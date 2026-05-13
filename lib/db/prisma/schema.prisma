@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  ACTIVE
+  TERMINATED
+  FAILED
+}
+
+model User {
+  id        String   @id
+  email     String   @unique
+  role      UserRole @default(USER)
+  balance   Decimal  @default(0) @db.Decimal(10, 2)
+  banned    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders    Order[]
+  emailLogs EmailLog[]
+  auditLogs AuditLog[] @relation("ActorAuditLogs")
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+model Order {
+  id                    String   @id @default(uuid())
+  userId                String
+  plan                  String
+  region                String
+  image                 String
+  linodeInstanceId      Int?
+  ip                    String?
+  rdpUsername           String?
+  rdpPasswordEncrypted  String?
+  status                OrderStatus @default(PENDING)
+  amount                Decimal  @db.Decimal(10, 2)
+  durationDays          Int      @default(30)
+  createdAt             DateTime @default(now())
+  expiresAt             DateTime?
+  terminatedAt          DateTime?
+  terminationReason     String?
+  metadata              Json?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([expiresAt])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+model MarketSettings {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
+  @@map("market_settings")
+}
+
+model EmailLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  email     String
+  subject   String
+  status    String
+  error     String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("email_logs")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  action    String
+  entity    String
+  entityId  String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  actor User? @relation("ActorAuditLogs", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([actorId])
+  @@index([action])
+  @@index([entity])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model RateLimit {
+  id         String   @id @default(cuid())
+  identifier String
+  endpoint   String
+  count      Int      @default(1)
+  expiresAt  DateTime
+
+  @@unique([identifier, endpoint])
+  @@index([identifier])
+  @@index([expiresAt])
+  @@map("rate_limits")
+}

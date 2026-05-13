@@ -1,0 +1,551 @@
+You are a senior full-stack SaaS architect and production engineer.
+
+I already have an existing production-ready monorepo project for cyberise.org with the following stack already configured:
+
+CURRENT STACK:
+- React 19
+- Quick 7
+- Tailwind CSS 4
+- pnpm workspaces monorepo
+- Express 5 API
+- Vercel serverless deployment
+- wouter (client-side routing)
+- Existing packages:
+  - artifacts/cyberise   (React + Vite frontend)
+  - artifacts/api-server (Express 5 backend)
+  - lib/                 (shared libraries)
+
+I need you to EXTEND the current project into a full RDP/VPS marketplace platform for selling Windows RDP servers using the Linode API.
+
+DO NOT rebuild the project from scratch.
+DO NOT replace the existing architecture.
+Instead:
+- preserve the current monorepo
+- preserve React/Vite setup
+- preserve Express API structure
+- extend and integrate professionally
+
+==================================================
+TARGET ARCHITECTURE
+==================================================
+
+Frontend:
+- React 19
+- Quick 7
+- TailwindCSS 4
+- Radix UI
+- Framer Motion
+- wouter (already installed — do NOT add React Router)
+
+Backend:
+- Express 5
+- Vercel serverless functions
+
+Infrastructure:
+- Neon PostgreSQL
+- Prisma ORM
+- Upstash Redis
+- Clerk Authentication
+- Resend Email API
+- Linode API
+- Vercel Cron Jobs
+
+Package Manager:
+- pnpm workspaces
+
+==================================================
+NEW PACKAGES TO ADD
+==================================================
+
+Add:
+- lib/db
+
+This package should contain:
+- Prisma schema
+- Prisma client
+- database utilities
+- migrations
+- seed utilities
+- shared DB helpers
+
+==================================================
+ENVIRONMENT VARIABLES
+==================================================
+
+Generate:
+- .env.example
+- validation utilities for env variables
+
+Required variables:
+
+DATABASE_URL=
+DIRECT_URL=
+
+REDIS_URL=
+REDIS_TOKEN=
+
+CLERK_SECRET_KEY=
+VITE_CLERK_PUBLISHABLE_KEY=
+
+JWT_SECRET=
+
+LINODE_API_TOKEN=
+
+RESEND_API_KEY=
+
+ENCRYPTION_SECRET=
+
+VERCEL_URL=
+
+==================================================
+CORE BUSINESS GOAL
+==================================================
+
+Build a scalable automated RDP marketplace platform where users can:
+- browse RDP plans
+- purchase Windows RDP instances
+- automatically provision Linode instances
+- receive credentials instantly
+- manage active orders
+- renew or terminate services
+- receive email notifications
+
+The platform must:
+- minimize manual operations
+- support scaling
+- remain low-cost during MVP stage
+- follow modern SaaS best practices
+- be secure and modular
+
+==================================================
+DATABASE (PRISMA + NEON)
+==================================================
+
+Use Prisma with Neon PostgreSQL.
+
+Create production-grade Prisma schema.
+
+Models required:
+
+User
+- id (String @id) // Clerk userId
+- email
+- role (USER | ADMIN)
+- balance
+- banned
+- createdAt
+- updatedAt
+
+Order
+- id (uuid)
+- userId
+- plan
+- region
+- image
+- linodeInstanceId
+- ip
+- rdpUsername
+- rdpPasswordEncrypted
+- status (PENDING | ACTIVE | TERMINATED | FAILED)
+- amount
+- createdAt
+- expiresAt
+- terminatedAt
+- metadata Json?
+
+MarketSettings
+- id
+- key
+- value Json
+- updatedAt
+
+EmailLog
+- id
+- userId
+- email
+- subject
+- status
+- createdAt
+
+AuditLog
+- id
+- actorId
+- action
+- entity
+- metadata Json
+- createdAt
+
+RateLimit
+- id
+- identifier
+- endpoint
+- count
+- expiresAt
+
+==================================================
+AUTHENTICATION (CLERK)
+==================================================
+
+Integrate Clerk authentication fully.
+
+Features:
+- Google login
+- Magic link
+- Email/password
+
+Create:
+- auth middleware
+- admin middleware
+- protected routes
+- Clerk webhook endpoint
+
+Webhook:
+POST /api/webhooks/clerk
+
+Handle:
+- user.created
+- user.updated
+- user.deleted
+
+Mirror users into database automatically.
+
+Admin role:
+- controlled via Clerk metadata OR DB flag
+
+Frontend:
+- protected routes
+- session persistence
+- admin-only layouts
+
+==================================================
+MARKETPLACE FEATURES
+==================================================
+
+Create:
+/market
+
+Features:
+- hardware selector UI
+- region selector
+- Windows image selector
+- live pricing
+- order duration
+- real-time total calculation
+- smooth animations using Framer Motion
+
+Data source:
+- Linode API types
+- Linode regions
+- Windows images
+
+Pricing:
+- base Linode price
+- apply markup from MarketSettings
+
+When ordering:
+- authenticate user
+- validate request with Zod
+- create Linode instance
+- save order in DB
+- email credentials
+- display credentials in dashboard
+
+If Linode capacity fails:
+- DO NOT charge
+- recommend:
+  - nearby region
+  - next available plan
+  - fallback configurations
+
+==================================================
+LINODE API INTEGRATION
+==================================================
+
+ALL Linode requests MUST happen server-side only.
+
+Never expose tokens.
+
+Implement:
+- reusable Linode service layer
+- retries
+- timeout handling
+- typed API wrappers
+
+Endpoints needed:
+- list plans
+- list regions
+- list Windows images
+- create instance
+- delete instance
+- reboot instance
+- fetch instance status
+
+==================================================
+REDIS (UPSTASH)
+==================================================
+
+Use Upstash Redis for:
+- caching
+- rate limiting
+- temporary provisioning states
+
+Cache:
+GET /api/market/plans
+TTL: 5 minutes
+
+Implement:
+- reusable cache utilities
+- Redis rate limiter middleware
+
+Rate limit:
+- /api/market/plans
+- /api/market/order
+- auth-sensitive routes
+
+==================================================
+API STRUCTURE
+==================================================
+
+Maintain and extend:
+artifacts/api-server
+
+Structure:
+
+artifacts/api-server/src/
+  routes/
+    market.ts
+    orders.ts
+    admin.ts
+    webhook.ts
+    cron.ts
+
+  middleware/
+    auth.ts
+    admin.ts
+    rateLimit.ts
+    errorHandler.ts
+
+  services/
+    linode.ts
+    redis.ts
+    pricing.ts
+    email.ts
+    encryption.ts
+
+  utils/
+    env.ts
+    logger.ts
+    responses.ts
+
+  validators/
+    market.ts
+    admin.ts
+
+==================================================
+API ENDPOINTS
+==================================================
+
+PUBLIC:
+GET /api/market/plans
+
+AUTH:
+POST /api/market/order
+GET /api/orders
+
+ADMIN:
+GET /api/admin/users
+PATCH /api/admin/users/:id/ban
+PATCH /api/admin/users/:id/unban
+
+GET /api/admin/orders
+DELETE /api/admin/orders/:id
+
+GET /api/admin/settings
+PATCH /api/admin/settings
+
+WEBHOOKS:
+POST /api/webhooks/clerk
+
+CRON:
+POST /api/cron/expire-instances
+
+==================================================
+CRON JOBS (VERCEL)
+==================================================
+
+Create Vercel cron configuration.
+
+Every 30 mins:
+- find expired ACTIVE instances
+- destroy Linode instances
+- mark orders TERMINATED
+- log actions
+
+==================================================
+EMAIL SYSTEM
+==================================================
+
+Use Resend API.
+
+Send:
+- RDP credentials
+- order confirmations
+- termination notices
+- renewal reminders
+
+Create reusable email templates.
+
+==================================================
+ENCRYPTION & SECURITY
+==================================================
+
+Requirements:
+- Never expose Linode token
+- Encrypt stored RDP passwords
+- Centralized error handling
+- Secure env validation
+- Helmet middleware
+- CORS protection
+- Zod validation
+- Audit logging
+- Consistent API responses
+
+API response format:
+{
+  success: boolean,
+  data?: any,
+  error?: string,
+  details?: any
+}
+
+==================================================
+FRONTEND REQUIREMENTS
+==================================================
+
+Use existing React/Vite app at artifacts/cyberise.
+
+Create pages:
+- /market
+- /dashboard
+- /orders
+- /admin
+- /admin/users
+- /admin/orders
+- /admin/settings
+
+Use:
+- TailwindCSS 4
+- Radix UI
+- Framer Motion
+- wouter (already installed — use for all routing)
+
+Design:
+- modern cyber/security aesthetic
+- glassmorphism allowed
+- responsive
+- sleek cards
+- animated pricing updates
+- loading skeletons
+- optimistic UI where appropriate
+
+==================================================
+ADMIN PANEL
+==================================================
+
+Admin features:
+- user management
+- ban/unban users
+- order management
+- terminate instances
+- market pricing controls
+- region enable/disable
+- plan enable/disable
+- fallback rule management
+
+Use:
+- table UI
+- Radix Dialog
+- filters
+- pagination
+
+==================================================
+DEPLOYMENT
+==================================================
+
+Target:
+- Vercel production deployment
+
+Generate:
+- vercel.json
+- proper rewrites
+- serverless configuration
+- edge-compatible code where possible
+
+==================================================
+MONOREPO REQUIREMENTS
+==================================================
+
+Keep pnpm workspaces.
+
+Generate/update:
+- package.json files
+- tsconfig references
+- shared aliases
+- workspace dependencies
+
+==================================================
+DEVELOPER EXPERIENCE
+==================================================
+
+Requirements:
+- strong TypeScript typing
+- modular architecture
+- clean code
+- reusable services
+- production-ready folder structure
+- comments only where useful
+- avoid overengineering
+- scalable architecture
+
+==================================================
+IMPLEMENTATION ORDER
+==================================================
+
+Build in this order:
+
+1. lib/db (Prisma + Neon setup)
+2. Prisma schema
+3. env validation
+4. Clerk integration
+5. auth middleware
+6. Redis setup
+7. Linode service
+8. market API
+9. order system
+10. admin API
+11. cron jobs
+12. email service
+13. frontend market page
+14. dashboard/orders pages
+15. admin UI
+16. deployment configuration
+
+==================================================
+IMPORTANT
+==================================================
+
+- Produce implementation-ready code.
+- Preserve existing architecture.
+- Do not rewrite the monorepo from scratch.
+- The frontend lives in artifacts/cyberise — extend it, do not recreate it.
+- The API lives in artifacts/api-server — extend it, do not recreate it.
+- The new database package goes in lib/db.
+- Use wouter for all frontend routing — do NOT install or use React Router.
+- Use modern best practices for 2026.
+- Optimize for MVP + future scaling.
+- Keep costs low.
+- Ensure Vercel serverless compatibility.
+- Ensure Neon compatibility.
+- Ensure Prisma compatibility.
+- Ensure Upstash compatibility.
+- Ensure Clerk compatibility.

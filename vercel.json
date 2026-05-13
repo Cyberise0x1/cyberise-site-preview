@@ -1,0 +1,16 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "PORT=3000 BASE_PATH=/ NODE_ENV=production pnpm --filter @workspace/cyberise run build",
+  "outputDirectory": "artifacts/cyberise/dist/public",
+  "rewrites": [
+    { "source": "/((?!api/|assets/|.*\\.[\\w]+$).*)", "destination": "/index.html" }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron-expire-instances",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}
