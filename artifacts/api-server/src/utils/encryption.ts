@@ -1,4 +1,5 @@
 import CryptoJS from "crypto-js";
+import crypto from "node:crypto";
 import { env } from "./env";
 
 const SECRET_KEY = env.ENCRYPTION_SECRET;
@@ -14,10 +15,10 @@ export function decrypt(encryptedText: string): string {
 
 export function generatePassword(length = 16): string {
   const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+  const bytes = crypto.randomBytes(length);
   let password = "";
   for (let i = 0; i < length; i++) {
-    const randomIndex = Math.floor(Math.random() * charset.length);
-    password += charset[randomIndex];
+    password += charset[bytes[i] % charset.length];
   }
   return password;
 }

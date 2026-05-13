@@ -32,6 +32,14 @@ RESEND_SENDER_ADDRESS = "noreply@cyberise.org"
 CONTACT_RECIPIENT_EMAIL = "Cyberisetecnologies@consultant.com"
 
 [[ports]]
+localPort = 3000
+externalPort = 3001
+
+[[ports]]
+localPort = 4747
+externalPort = 3000
+
+[[ports]]
 localPort = 8080
 externalPort = 8080
 

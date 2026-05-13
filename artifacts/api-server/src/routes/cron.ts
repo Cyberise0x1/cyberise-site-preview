@@ -33,8 +33,14 @@ router.post("/cron/expire-instances", async (req, res) => {
     let terminated = 0;
     for (const order of expiredOrders) {
       try {
+        let deleteFailed = false;
         if (order.linodeInstanceId) {
-          await deleteInstance(order.linodeInstanceId);
+          try {
+            await deleteInstance(order.linodeInstanceId);
+          } catch (err) {
+            logger.error({ err, linodeId: order.linodeInstanceId, orderId: order.id }, "Failed to delete expired Linode instance — instance may be orphaned");
+            deleteFailed = true;
+          }
         }
 
         await prisma.order.update({
@@ -52,6 +58,7 @@ router.post("/cron/expire-instances", async (req, res) => {
             action: "ORDER_EXPIRED",
             entity: "Order",
             entityId: order.id,
+            metadata: deleteFailed ? { linodeOrphaned: true, linodeInstanceId: order.linodeInstanceId } : undefined,
           },
         });
 

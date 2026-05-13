@@ -21,7 +21,5 @@ export const paginationSchema = z.object({
     .optional(),
 });
 
-export type BanUserInput = z.infer<typeof banUserSchema>;
 export type UpdateSettingsInput = z.infer<typeof updateSettingsSchema>;
-export type UpdateOrderInput = z.infer<typeof updateOrderSchema>;
 export type PaginationInput = z.infer<typeof paginationSchema>;

@@ -110,15 +110,4 @@ model AuditLog {
   @@map("audit_logs")
 }
 
-model RateLimit {
-  id         String   @id @default(cuid())
-  identifier String
-  endpoint   String
-  count      Int      @default(1)
-  expiresAt  DateTime
 
-  @@unique([identifier, endpoint])
-  @@index([identifier])
-  @@index([expiresAt])
-  @@map("rate_limits")
-}

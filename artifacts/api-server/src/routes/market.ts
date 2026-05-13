@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { OrderStatus } from "@workspace/db";
 import { prisma } from "@workspace/db";
-import { getPlans, getRegions, getWindowsImages, createInstance } from "../services/linode";
+import { getPlans, getRegions, getWindowsImages, createInstance, deleteInstance } from "../services/linode";
 import { getCache, setCache } from "../services/redis";
 import { sendEmail, generateRDPCredentialsEmail } from "../services/email";
 import { encrypt, generatePassword } from "../utils/encryption";
@@ -138,29 +138,41 @@ router.post(
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + durationDays);
 
-      const order = await prisma.$transaction(async (tx) => {
-        await tx.user.update({
-          where: { id: userId },
-          data: { balance: { decrement: totalAmount } },
-        });
+      let order;
+      try {
+        order = await prisma.$transaction(async (tx) => {
+          await tx.user.update({
+            where: { id: userId },
+            data: { balance: { decrement: totalAmount } },
+          });
 
-        return tx.order.create({
-          data: {
-            userId,
-            plan,
-            region,
-            image,
-            linodeInstanceId: linodeInstance.id,
-            ip: linodeInstance.ipv4[0],
-            rdpUsername: "root",
-            rdpPasswordEncrypted: encrypt(rdpPassword),
-            status: OrderStatus.ACTIVE,
-            amount: totalAmount,
-            durationDays,
-            expiresAt,
-          },
+          return tx.order.create({
+            data: {
+              userId,
+              plan,
+              region,
+              image,
+              linodeInstanceId: linodeInstance.id,
+              ip: linodeInstance.ipv4[0],
+              rdpUsername: "root",
+              rdpPasswordEncrypted: encrypt(rdpPassword),
+              status: OrderStatus.ACTIVE,
+              amount: totalAmount,
+              durationDays,
+              expiresAt,
+            },
+          });
         });
-      });
+      } catch (err) {
+        logger.error({ err, linodeId: linodeInstance.id }, "DB transaction failed after Linode creation — cleaning up instance");
+        try {
+          await deleteInstance(linodeInstance.id);
+        } catch (cleanupErr) {
+          logger.error({ cleanupErr, linodeId: linodeInstance.id }, "Failed to clean up orphaned Linode instance");
+        }
+        sendError(res, "Failed to create order", 500);
+        return;
+      }
 
       const emailContent = generateRDPCredentialsEmail({
         ip: linodeInstance.ipv4[0],

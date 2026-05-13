@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="in">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Architecture Map — Cyberise RDP Marketplace</title>
+<style>
+:root {
+  --bg:#0F0F0F;--panel:#161616;--panel-2:#1c1c1c;--border:#2a2a2a;
+  --text:#e8e8e8;--muted:#8a8a8a;
+  --client:#4ea1ff;--route:#7bd389;--service:#c792ea;--db:#ffb86b;
+  --external:#ff6b9d;--critical:#ff3860;--accent:#f5b942;--accent-2:#ff7a45;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:our(--bg);color:our(--text);font-family:system-ui,-apple-system,sans-serif;overflow:hidden;height:100vh}
+#app{display:flex;height:100vh}
+#toolbar{position:absolute;top:12px;left:16px;z-index:10;display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:5px 12px;border-radius:14px;border:1px solid our(--border);background:our(--panel);color:our(--muted);cursor:pointer;font-size:12px;white-space:nowrap;transition:all .15s}
+.chip.active{color:#fff;border-color:our(--accent);background:#2a1f00}
+#canvas wrap{flex:1;position:relative;overflow:hidden}
+#svg-container{width:100%;height:100%}
+svg{width:100%;height:100%}
+#sidebar{width:340px;min-width:340px;background:our(--panel);border-left:1px solid our(--border);overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px}
+#sidebar h3{font-size:14px;color:our(--muted);text-transform:uppercase;letter-spacing:1px}
+#sidebar .node-title{font-size:18px;font-weight:600}
+#sidebar .node-path{font-family:minivan;font-size:12px;color:our(--muted);word-break:break-all}
+#sidebar .node-section{margin-bottom:4px}
+#sidebar .node-section h4{font-size:11px;text-transform:uppercase;color:our(--muted);margin-bottom:4px}
+#sidebar .node-notes{list-style:none;padding:0}
+#sidebar .node-notes li{font-size:12px;color:our(--text);padding:3px 0;border-bottom:1px solid our(--border)}
+#sidebar .default-view p{font-size:13px;color:our(--text);line-height:1.5}
+#sidebar .default-view .finding{border-left:2px solid our(--accent);padding:8px 12px;margin:8px 0;background:our(--panel-2);border-radius:4px;font-size:12px}
+#sidebar .default-view .finding .tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:8px;margin-right:6px}
+#sidebar .default-view .finding .tag.dead{background:#ff444420;color:#ff4444}
+#sidebar .default-view .finding .tag.hot{background:#ff386020;color:#ff3860}
+#sidebar .default-view .finding .tag.warn{background:#f5b94220;color:#f5b942}
+#sidebar .edge-list{list-style:none;padding:0}
+#sidebar .edge-list li{font-size:12px;padding:2px 0;display:flex;gap:6px;align-items:baseline}
+.edge-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.badge{font-size:10px;font-weight:700;border-radius:10px;padding:1px 6px;min-width:18px;text-align:center}
+.badge.fix{background:#4ea1ff20;color:#4ea1ff}
+.badge.bug{background:#ff386020;color:#ff3860}
+.cluster-label{font-size:11px;text-transform:uppercase;letter-spacing:1px;fill:var(--muted)}
+.node-rect{cursor:pointer;transition:opacity .2s}
+.node-label{font-size:12px;font-weight:600;fill:var(--text);pointer-events:none}
+.node-sub{font-size:10px;fill:var(--muted);pointer-events:none}
+.node-dim{opacity:.25}
+.edge-path{fill:none;stroke-width:1.2;pointer-events:stroke}
+.edge-path.critical{stroke:var(--critical);stroke-width:2.2}
+.edge-path.api{stroke:var(--external)}
+.edge-path.db{stroke:var(--db)}
+.edge-path.mount{stroke:var(--route)}
+.edge-path.normal{stroke:#444}
+.edge-label{font-size:9px;fill:var(--muted)}
+.legend{position:absolute;bottom:12px;right:16px;display:flex;gap:12px;background:var(--panel);padding:6px 12px;border-radius:8px;border:1px solid var(--border)}
+.legend-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted)}
+.legend-line{width:18px;height:2px;border-radius:1px}
+.zoom-controls{position:absolute;bottom:12px;left:16px;display:flex;gap:4px}
+.zoom-btn{width:28px;height:28px;border:1px solid var(--border);background:var(--panel);color:var(--text);border-radius:4px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+.zoom-btn:hover{background:var(--panel-2)}
+</style>
+</head>
+<body>
+<div id="app">
+<div id="canvas-wrap">
+<div id="toolbar"></div>
+<div id="svg-container"></div>
+<div class="legend">
+  <div class="legend-item"><div class="legend-line" style="background:var(--critical)"></div>critical path</div>
+  <div class="legend-item"><div class="legend-line" style="background:var(--external)"></div>API call</div>
+  <div class="legend-item"><div class="legend-line" style="background:var(--db)"></div>DB read/write</div>
+  <div class="legend-item"><div class="legend-line" style="background:var(--route)"></div>mount</div>
+  <div class="legend-item"><div class="legend-line" style="background:#444"></div>normal</div>
+</div>
+<div class="zoom-controls">
+  <button class="zoom-btn" id="zoom-in">+</button>
+  <button class="zoom-btn" id="zoom-out">−</button>
+  <button class="zoom-btn" id="fit-btn">⊡</button>
+</div>
+</div>
+<div id="sidebar"></div>
+</div>
+
+<script>
+// ===== DATA =====
+const clusters = [
+  { id:'client',  label:'Client',          x:25,  y:50,  w:220, h:880 },
+  { id:'entry',   label:'Server Entry',     x:290, y:50,  w:200, h:450 },
+  { id:'routes',  label:'Routes',           x:535, y:50,  w:210, h:750 },
+  { id:'services',label:'Services',         x:790, y:50,  w:200, h:680 },
+  { id:'data',    label:'Data',             x:1035,y:50,  w:200, h:300 },
+  { id:'external',label:'External',         x:1280,y:50,  w:200, h:380 },
+];
+
+const N = (id,cluster,label,sub,x,y,w,h,color,opts={}) =>
+  ({id,cluster,label,sub,x,y,w,h,color,...opts});
+
+const nodes = [
+  // === CLIENT ===
+  N('main-tsx','client','main.tsx','entry point',0,0,200,52,'#4ea1ff',{
+    role:'Bootstraps React app with ClerkProvider, QueryClientProvider, and Toaster.',
+    plain:'The starting point of the frontend. It loads authentication, data fetching, and toast notifications before rendering the app.',
+    path:'artifacts/cyberise/src/main.tsx:33',
+    notes:['line:30, CDN-loaded Clerk JS via jsDelivr','line:4-5, React Query with 5-min stale time and 1 retry','line:33-35, post-sign-in redirects to /market'],
+    tag:['overview','auth','market','all'],
+    critical:true,
+  }),
+  N('app-tsx','client','App.tsx','router',0,72,200,52,'#4ea1ff',{
+    role:'Client-side router using wouter with Switch/Route for all pages.',
+    plain:'The page navigator. Decides which screen to show based on the URL — home, market, dashboard, or admin panels.',
+    path:'artifacts/cyberise/src/App.tsx:97',
+    notes:['line:48-73, IntersectionObserver for scroll animations + stat counters','line:99-107, Route definitions for / /market /dashboard /orders /admin/*','line:12-26, HomePage inline component composes all landing sections'],
+    tag:['overview','all'],
+  }),
+  N('use-api','client','useApi hook','auth fetch',0,144,200,44,'#4ea1ff',{
+    role:'Typed fetch wrapper that auto-injects Clerk JWT Bearer token into API requests.',
+    plain:'Every time a page calls the backend, this helper attaches the user\'s login token so the server knows who they are.',
+    path:'artifacts/cyberise/src/lib/api.ts:18',
+    notes:['line:24-27, getToken() from Clerk injects Bearer auth','line:29, fetches from VITE_API_URL or /api','line:33-35, throws ApiError on non-2xx responses'],
+    tag:['overview','auth','all'],
+    critical:true,
+  }),
+  N('market-page','client','Market.tsx','plan selector',0,208,200,44,'#4ea1ff',{
+    role:'RDP marketplace page: displays plans/regions/images, price calculator, and deploy button.',
+    plain:'The storefront where users pick a server plan, region, Windows image, and rental duration, then click deploy.',
+    path:'artifacts/cyberise/src/pages/Market.tsx:14',
+    notes:['line:25-28, SignIn modal overlay if not authenticated','line:14, uses useApi + useAuth from Clerk','line:18-21, plan/region/image/duration state'],
+    tag:['overview','market','all'],
+    critical:true,
+  }),
+  N('orders-page','client','Orders.tsx','order list',0,272,200,44,'#4ea1ff',{
+    role:'Displays user order history with status filter, credential viewer, and terminate action.',
+    plain:'Lists all the servers a user has ordered. Shows active/pending/terminated status with a button to cancel.',
+    path:'artifacts/cyberise/src/pages/Orders.tsx:1',
+    notes:['line:13-17, color-coded status badges (ACTIVE green, FAILED red)','line:11, terminate action with ban icon'],
+    tag:['overview','market','all'],
+    critical:true,
+  }),
+  N('dashboard-page','client','Dashboard.tsx','user summary',0,336,200,44,'#4ea1ff',{
+    role:'Authenticated user dashboard showing active/pending/total order counts and instance list.',
+    plain:'A summary page showing how many servers you have running, pending, and total. Links to market and orders.',
+    path:'artifacts/cyberise/src/pages/Dashboard.tsx:11',
+    notes:['line:17, fetches GET /orders on mount','line:5, uses ProtectedRoute wrapper'],
+    tag:['overview','all'],
+  }),
+  N('admin-users-page','client','AdminUsers.tsx','user mgmt',0,400,200,44,'#4ea1ff',{
+    role:'Admin page: paginated user table with search, ban/unban actions.',
+    path:'artifacts/cyberise/src/pages/AdminUsers.tsx:1',
+    tag:['admin','all'],
+  }),
+  N('admin-orders-page','client','AdminOrders.tsx','order mgmt',0,464,200,44,'#4ea1ff',{
+    role:'Admin page: paginated order table with search and force-terminate action.',
+    path:'artifacts/cyberise/src/pages/AdminOrders.tsx:1',
+    tag:['admin','all'],
+  }),
+  N('admin-settings-page','client','AdminSettings.tsx','market cfg',0,528,200,44,'#4ea1ff',{
+    role:'Admin page: edit market settings (markup %, enabled plans/regions, toggles).',
+    path:'artifacts/cyberise/src/pages/AdminSettings.tsx:1',
+    tag:['admin','all'],
+  }),
+  // landing components not rendered from App.tsx HomePage
+  N('home-page','client','HomePage','landing sections',0,592,200,44,'#4ea1ff',{
+    role:'Inline component in App.tsx composing Hero, StatsBar, Marquee, Services, About, Projects, WhyUs, Testimonials, Contact, Footer.',
+    plain:'The marketing landing page with animated stats, service cards, testimonials carousel, and a contact form.',
+    path:'artifacts/cyberise/src/App.tsx:28',
+    notes:['line:29-30, legal modal state for privacy/terms/NDA/cookies','line:48-73, IntersectionObserver for scroll animations','line:76-95, renders all landing sections sequentially'],
+    tag:['overview','all'],
+  }),
+  N('protected-route','client','ProtectedRoute','auth guard',0,656,200,36,'#4ea1ff',{
+    role:'Auth guard wrapping protected pages. Redirects to Clerk SignIn if not authenticated. Supports requireAdmin prop.',
+    path:'artifacts/cyberise/src/components/ProtectedRoute.tsx:1',
+    notes:['Checks user.publicMetadata.role for admin access'],
+    tag:['auth','all'],
+    critical:true,
+  }),
+
+  // === SERVER ENTRY ===
+  N('entry-index','entry','index.ts','server start',0,0,180,48,'#7bd389',{
+    role:'Reads PORT env var, validates it, and starts Express server via app.listen().',
+    plain:'The switch that turns the server on. Reads which port to use from the environment and starts listening.',
+    path:'artifacts/api-server/src/index.ts:3',
+    notes:['line:5-11, validates PORT is a positive number','line:13-21, app.listen with error handling'],
+    tag:['overview','all'],
+    critical:true,
+  }),
+  N('entry-app','entry','app.ts','Express setup',0,68,180,48,'#7bd389',{
+    role:'Configures Express app with pino-http logging, helmet CSP headers, CORS, JSON/urlencoded parsing. Mounts all routes at /api.',
+    plain:'The server\'s middle layer. Adds security headers, request logging, and connects all the API routes under /api.',
+    path:'artifacts/api-server/src/app.ts:8',
+    notes:['line:30-37, pino-http redacts auth headers','line:39-46, helmet CSP with self-only script policy','line:48-52, CORS whitelist: cyberise.org in prod, * in dev','line:54-55, 10mb body limit for JSON and urlencoded'],
+    tag:['overview','all'],
+    critical:true,
+  }),
+  N('entry-router','entry','routes/index.ts','route agg',0,148,180,40,'#7bd389',{
+    role:'Express Router that imports and mounts all 8 sub-routers in order: clerkProxy → health → contact → market → orders → admin → webhook → cron.',
+    plain:'The wiring hub. All eight API sub-routers plug in here and get mounted under /api.',
+    path:'artifacts/api-server/src/routes/index.ts:10',
+    notes:['line:12-19, routers mounted in sequence — order matters for path matching','line:12, clerkProxy mounts first to avoid path conflicts'],
+    tag:['overview','all'],
+    critical:true,
+  }),
+  N('entry-auth-middleware','entry','auth.ts','Clerk + guards',0,208,180,52,'#7bd389',{
+    role:'requireAuth (Clerk JWT verification), attachUser (DB lookup + ban check), requireAdmin, requireActiveUser guards.',
+    plain:'The security checkpoint. Verifies the user\'s login token, looks up their account in the database, and checks if they\'re allowed or banned.',
+    path:'artifacts/api-server/src/middleware/auth.ts:17',
+    notes:['line:17-21, requireAuth uses ClerkExpressRequireAuth','line:23-54, attachUser fetches user from DB, checks banned status','line:56-64, requireAdmin checks role === ADMIN','line:66-75, requireActiveUser checks banned !== true'],
+    tag:['overview','auth','all'],
+    critical:true,
+  }),
+  N('entry-ratelimit-middleware','entry','rateLimit.ts','Redis RL',0,280,180,44,'#7bd389',{
+    role:'Factory middleware that uses Redis to track request counts. Exports marketRateLimit, orderRateLimit, strictRateLimit presets.',
+    plain:'The traffic cop. Counts how many requests each user/IP makes and blocks them if they exceed the limit within a time window.',
+    path:'artifacts/api-server/src/middleware/rateLimit.ts:11',
+    notes:['line:49-52, marketRateLimit: 30 req/min, IP-based','line:54-61, orderRateLimit: 5 req/min, user-ID-based with IP fallback','line:63-66, strictRateLimit: 10 req/min, IP-based','line:27-29, sets standard RateLimit-* response headers'],
+    tag:['overview','all'],
+    critical:true,
+  }),
+
+  // === ROUTES ===
+  N('route-market','routes','market.ts','plans + order',0,0,190,48,'#c792ea',{
+    role:'GET /market/plans (public, cached 5min in Redis, with markup) and POST /market/order (auth, creates Linode RDP instance).',
+    plain:'The marketplace API. Lists available server plans with pricing markup, and creates new RDP servers when users place orders.',
+    path:'artifacts/api-server/src/routes/market.ts:15',
+    notes:['line:17-67, GET /plans: Redis cache check → Linode APIs → filter enabled → apply markup','line:69-203, POST /order: validate → balance check → create Linode → deduct → email → audit','line:89-92, max_active_orders check from MarketSettings','line:106-117, Linode instance creation with retry on failure'],
+    tag:['overview','market','all'],
+    critical:true,
+  }),
+  N('route-orders','routes','orders.ts','list + terminate',0,68,190,48,'#c792ea',{
+    role:'GET /orders (auth, list with optional status filter, decrypts passwords) and POST /orders/:id/terminate (auth, deletes Linode instance).',
+    plain:'The orders API. Shows a user\'s server orders with decrypted passwords, and lets them cancel active servers.',
+    path:'artifacts/api-server/src/routes/orders.ts:15',
+    notes:['line:17-48, GET /orders: admin can filter by userId, decrypts rdpPasswordEncrypted','line:84-162, POST /orders/:id/terminate: deletes Linode instance, updates status, sends email, creates audit log'],
+    tag:['overview','market','all'],
+    critical:true,
+  }),
+  N('route-admin','routes','admin.ts','admin CRUD',0,136,190,48,'#c792ea',{
+    role:'Admin routes (auth+admin required): GET/PATCH users, GET/DELETE orders, GET/PATCH settings. Upserts MarketSettings with Redis cache invalidation.',
+    plain:'The admin control panel API. Lets admins manage users (ban/unban), force-terminate orders, and change marketplace pricing/rules.',
+    path:'artifacts/api-server/src/routes/admin.ts:16',
+    notes:['line:16, router.use applies auth+admin to all sub-routes','line:18-63, paginated user list with search','line:137-159, order search by id/ip/user email','line:223-256, settings upsert with cache invalidation'],
+    tag:['admin','all'],
+  }),
+  N('route-webhook','routes','webhook.ts','Clerk sync',0,204,190,40,'#c792ea',{
+    role:'POST /webhooks/clerk — Svix-signed webhook handler. user.created (upsert), user.updated (sync email), user.deleted (soft-delete by ban).',
+    plain:'Listens for account changes from Clerk. When someone signs up or changes their email, this updates the database.',
+    path:'artifacts/api-server/src/routes/webhook.ts:20',
+    notes:['line:20-26, Svix Webhook signature verification','line:28-51, user.created: upserts with email lookup','line:53-61, user.updated: syncs email','line:63-70, user.deleted: soft-delete via banned=true'],
+    tag:['auth','all'],
+  }),
+  N('route-cron','routes','cron.ts','expiry job',0,264,190,40,'#c792ea',{
+    role:'POST /cron/expire-instances — Bearer-authorized job. Terminates expired active orders and sends renewal reminders for orders expiring within 3 days.',
+    path:'artifacts/api-server/src/routes/cron.ts:11',
+    notes:['line:13-16, CRON_SECRET Bearer token auth','line:20-28, finds expired ACTIVE orders (expiresAt < now)','line:58-72, finds orders expiring within 3 days for reminders','line:78-96, sends renewal reminder emails'],
+    tag:['all'],
+  }),
+  N('route-contact','routes','contact.ts','form handler',0,324,190,40,'#c792ea',{
+    role:'POST /contact — Rate-limited (3 per 15min per IP). Validates, sends dual Resend emails (business notification + user auto-reply), HTML-escapes output.',
+    plain:'The contact form handler. Validates submissions, rate-limits by IP, and sends two emails: one to the business and an auto-reply to the user.',
+    path:'artifacts/api-server/src/routes/contact.ts:59',
+    notes:['line:59-64, IP-based rate limit: 3 requests per 15 minutes','line:81-86, validates all fields (name, email, service, message)','line:88-91, email regex validation','line:117-118, escapeHtml for XSS prevention in auto-reply'],
+    tag:['overview','all'],
+  }),
+  N('route-health','routes','health.ts','health check',0,384,190,36,'#c792ea',{
+    role:'GET /healthz — returns { status:"ok" }. No auth required.',
+    path:'artifacts/api-server/src/routes/health.ts:5',
+    tag:['overview','all'],
+  }),
+  N('route-clerk-proxy','routes','clerkProxy.ts','API proxy',0,440,190,36,'#c792ea',{
+    role:'Proxies /api/clerk/* to Clerk backend API using http-proxy-middleware. Derives Clerk domain from CLERK_SECRET_KEY.',
+    path:'artifacts/api-server/src/routes/clerkProxy.ts:6',
+    notes:['line:6-14, reverse-engineers Clerk domain from publishable key base64 suffix'],
+    tag:['auth','all'],
+  }),
+
+  // === SERVICES ===
+  N('svc-linode','services','linode.ts','Linode API',0,0,180,55,'#ffb86b',{
+    role:'Full Linode API client: getPlans, getRegions, getWindowsImages, createInstance, deleteInstance. 30s timeout, Bearer auth.',
+    plain:'Talks to Linode\'s servers. Creates, deletes, and lists virtual machines (RDP servers). Uses a 30-second timeout for reliability.',
+    path:'artifacts/api-server/src/services/linode.ts:57',
+    notes:['line:57-74, generic linodeFetch wrapper with AbortController timeout','line:76-83, getPlans filters standard/nanode class only','line:85-91, getRegions filters status=ok with Linodes capability','line:93-99, getWindowsImages filters non-deprecated Windows images'],
+    tag:['overview','market','all'],
+    critical:true,
+  }),
+  N('svc-email','services','email.ts','Resend + templates',0,75,180,55,'#ffb86b',{
+    role:'Resend transactional email: sendEmail (with EmailLog DB logging), generateRDPCredentialsEmail, generateTerminationEmail, generateRenewalReminderEmail.',
+    plain:'Sends emails via Resend. Has pre-built templates for RDP credentials, termination notices, and renewal reminders.',
+    path:'artifacts/api-server/src/services/email.ts:16',
+    notes:['line:16-43, sendEmail: sends via Resend, logs to EmailLog table','line:45-120, generateRDPCredentialsEmail: dark-themed HTML with IP/username/password','line:122-170, generateTerminationEmail: red-accented HTML','line:172-226, generateRenewalReminderEmail: days-left calculation'],
+    tag:['overview','market','all'],
+    critical:true,
+  }),
+  N('svc-redis','services','redis.ts','Upstash cache',0,150,180,48,'#ffb86b',{
+    role:'Upstash Redis client (lazy singleton). getCache/setCache/deleteCache with TTL. checkRateLimit with sliding window. incrementRateLimit (DEAD, zero callers).',
+    plain:'Temporary memory store used for two things: caching marketplace data so we don\'t call Linode every time, and counting rate limits.',
+    path:'artifacts/api-server/src/services/redis.ts:13',
+    notes:['line:13-21, getRedis: lazy singleton pattern','line:23-27, getCache with JSON handling','line:44-58, checkRateLimit: sliding-window implementation','line:32, incrementRateLimit exported but never called — DEAD CODE'],
+    tag:['overview','all'],
+    critical:true,
+  }),
+  N('svc-encryption','services','encryption.ts','AES crypto',0,218,180,40,'#ffb86b',{
+    role:'encrypt/decrypt using CryptoJS AES with ENCRYPTION_SECRET. generatePassword for 16-char random RDP passwords.',
+    plain:'Scrambles and unscrambles RDP passwords so they aren\'t stored in plain text. Also generates random passwords.',
+    path:'artifacts/api-server/src/utils/encryption.ts:7',
+    notes:['line:7-9, encrypt: AES.encrypt with secret key','line:11-14, decrypt: AES.decrypt, converts to UTF-8','line:16-22, generatePassword: Math.random, not crypto.randomUUID'],
+    tag:['overview','market','all'],
+    critical:true,
+  }),
+  N('svc-responses','services','responses.ts','JSON helpers',0,278,180,36,'#ffb86b',{
+    role:'Standardized JSON response helpers: sendSuccess, sendError, sendValidationError, sendNotFound, sendUnauthorized, sendForbidden.',
+    plain:'Consistent response format so every API endpoint returns JSON in the same shape: { success, data?, error?, details? }.',
+    path:'artifacts/api-server/src/utils/responses.ts:11',
+    notes:['line:1-7, ApiResponse interface with success/data/error/details','line:11-17, sendSuccess wraps data in {success:true, data}'],
+    tag:['overview','all'],
+  }),
+  N('svc-validators-admin','services','validators/admin.ts','admin schemas',0,334,180,44,'#ffb86b',{
+    role:'Zod schemas for admin endpoints: paginationSchema (page/limit/search), updateSettingsSchema (Record). banUserSchema and updateOrderSchema are DEAD (exported, never imported).',
+    plain:'Validation rules for admin API inputs — page numbers, search terms, settings updates.',
+    path:'artifacts/api-server/src/validators/admin.ts:3',
+    notes:['line:3-7, banUserSchema: exported but never imported — DEAD CODE','line:10-13, updateOrderSchema: exported but never imported — DEAD CODE','line:15-21, paginationSchema: page/limit with defaults, search coercion'],
+    tag:['admin','all'],
+  }),
+  N('svc-validators-market','services','validators/market.ts','order schema',0,398,180,36,'#ffb86b',{
+    role:'Zod schemas: createOrderSchema (plan/region/image/durationDays 7-365), orderIdSchema (UUID).',
+    path:'artifacts/api-server/src/validators/market.ts:3',
+    notes:['line:3-9, createOrderSchema: durationDays 7-365, default 30','line:11-13, orderIdSchema: uuid validation'],
+    tag:['market','all'],
+    critical:true,
+  }),
+  N('svc-logger','services','logger.ts','Pino',0,454,180,36,'#ffb86b',{
+    role:'Pino logger with redacted auth headers/cookies. Pretty-prints in development, JSON in production.',
+    path:'artifacts/api-server/src/lib/logger.ts:4',
+    notes:['line:5-8, redacts authorization and cookie headers','line:9-14, pino-pretty transport in dev only'],
+    tag:['all'],
+  }),
+  // DEAD CODE - Linode functions never called
+  N('svc-linode-dead','services','linode.ts (unused exports)','DEAD getInstance/rebootInstance/getInstanceStats',0,510,180,44,'#ffb86b',{
+    role:'EXPORTED BUT NEVER CALLED: getInstance, rebootInstance, getInstanceStats. Defined but zero live callers.',
+    plain:'These functions exist in the code but nothing uses them. They could be removed or wired up if instance management features are needed.',
+    path:'artifacts/api-server/src/services/linode.ts:144',
+    notes:['line:144, getInstance — fetch single Linode details (zero callers)','line:148, rebootInstance — reboot a Linode (zero callers)','line:154, getInstanceStats — fetch instance stats (zero callers)'],
+    tag:['all'],
+  }),
+
+  // === DATA ===
+  N('data-prisma','data','db/client.ts','Prisma singleton',0,0,180,44,'#ffb86b',{
+    role:'PrismaClient singleton with globalThis caching for hot-reload safety in development.',
+    plain:'The database connection. One shared connection reused across all requests instead of opening new ones each time.',
+    path:'lib/db/src/client.ts:3',
+    notes:['line:3-5, globalThis.prisma for dev hot-reload caching','line:9-11, NODE_ENV guard to avoid global pollution in production'],
+    tag:['overview','all'],
+    critical:true,
+  }),
+  N('data-schema','data','schema.prisma','DB models',0,64,180,60,'#ffb86b',{
+    role:'PostgreSQL schema via Prisma: User, Order, MarketSettings, EmailLog, AuditLog, RateLimit. RateLimit model exists but rate limiting uses Redis instead.',
+    plain:'The database blueprint. Defines all tables: users, orders, market settings, email logs, audit trails, and a rate-limit table that isn\'t actually used.',
+    path:'lib/db/prisma/schema.prisma:1',
+    notes:['line:28-41, User: id, email (unique), role, balance (decimal), banned','line:44-65, Order: plan, region, image, linodeInstanceId, encrypted RDP password, status, amount','line:68-77, MarketSettings: key-value with JSON values','line:109-123, RateLimit model defined but unused — app uses Redis for rate limiting'],
+    tag:['overview','all'],
+    critical:true,
+  }),
+  N('data-env','data','env/server.ts','env validation',0,144,180,44,'#ffb86b',{
+    role:'Validates 14 server env vars with Zod (DATABASE_URL, CLERK_SECRET_KEY, LINODE_API_TOKEN, RESEND_API_KEY, etc). Cached singleton.',
+    path:'lib/env/src/index.ts:3',
+    notes:['line:3-18, serverEnvSchema: 14 required vars with strict validation','line:32, throws on invalid env with detailed error messages','line:13, ENCRYPTION_SECRET min 32 chars, JWT_SECRET min 32 chars'],
+    tag:['all'],
+  }),
+  N('data-env-client','data','env/client.ts','client env',0,208,180,36,'#ffb86b',{
+    role:'Validates VITE_CLERK_PUBLISHABLE_KEY for the frontend. Cached singleton.',
+    path:'lib/env/src/client.ts:1',
+    notes:['line:3-5, single field: VITE_CLERK_PUBLISHABLE_KEY'],
+    tag:['auth','all'],
+  }),
+
+  // === EXTERNAL ===
+  N('ext-clerk','external','Clerk','auth provider',0,0,180,48,'#ff6b9d',{
+    role:'User authentication: sign-up, sign-in, JWT token issuance, webhooks for user lifecycle events. CDN-loaded Clerk JS.',
+    plain:'The login system. Handles user accounts, passwords, and session tokens. The frontend loads Clerk\'s code from a CDN.',
+    tag:['overview','auth','all'],
+    critical:true,
+  }),
+  N('ext-linode','external','Linode API','VPS provider',0,68,180,48,'#ff6b9d',{
+    role:'Cloud VPS provider: provisions Windows RDP instances, manages regions/images/plans. Called via linode.ts service.',
+    plain:'The cloud server company. When a user orders an RDP server, Linode actually creates and runs the virtual machine.',
+    tag:['overview','market','all'],
+    critical:true,
+  }),
+  N('ext-resend','external','Resend','email API',0,136,180,48,'#ff6b9d',{
+    role:'Transactional email API: sends RDP credentials, termination notices, renewal reminders, contact form notifications.',
+    plain:'The email delivery service. Sends all system emails — RDP login details, cancellation confirmations, renewal warnings.',
+    tag:['overview','market','all'],
+    critical:true,
+  }),
+  N('ext-redis','external','Upstash Redis','cache + RL',0,204,180,48,'#ff6b9d',{
+    role:'Managed Redis: caches market data (5min TTL), implements rate limiting with sliding windows.',
+    plain:'A fast memory store. Keeps marketplace data cached so we don\'t hammer Linode\'s API, and tracks rate limits.',
+    tag:['overview','all'],
+    critical:true,
+  }),
+  N('ext-postgres','external','PostgreSQL','primary DB',0,272,180,40,'#ff6b9d',{
+    role:'Primary database (via Prisma): stores users, orders, market settings, email logs, audit logs.',
+    plain:'The main database. Stores every user account, every server order, every email sent, and every admin action.',
+    tag:['overview','all'],
+    critical:true,
+  }),
+];
+
+const edges = [
+  // Client → Entry (API calls, color=mount)
+  {from:'market-page',to:'route-market',kind:'mount',label:'GET /market/plans\nPOST /market/order',tag:['overview','market','all']},
+  {from:'orders-page',to:'route-orders',kind:'mount',label:'GET /orders\nPOST /orders/:id/terminate',tag:['overview','market','all']},
+  {from:'dashboard-page',to:'route-orders',kind:'mount',label:'GET /orders',tag:['overview','all']},
+  {from:'admin-users-page',to:'route-admin',kind:'mount',label:'GET /admin/users',tag:['admin','all']},
+  {from:'admin-orders-page',to:'route-admin',kind:'mount',label:'GET /admin/orders',tag:['admin','all']},
+  {from:'admin-settings-page',to:'route-admin',kind:'mount',label:'GET/PATCH /admin/settings',tag:['admin','all']},
+  {from:'contact-page',to:'route-contact',kind:'mount',label:'POST /contact',tag:['overview','all']},
+  // Virtual node for contact page (HomePage contains Contact component)
+  {from:'home-page',to:'route-contact',kind:'mount',label:'POST /contact',tag:['overview','all']},
+  {from:'main-tsx',to:'app-tsx',kind:'mount',label:'render',tag:['overview','all']},
+  {from:'app-tsx',to:'market-page',kind:'mount',label:'<Route /market>',tag:['overview','market','all']},
+  {from:'app-tsx',to:'orders-page',kind:'mount',label:'<Route /orders>',tag:['overview','market','all']},
+  {from:'app-tsx',to:'dashboard-page',kind:'mount',label:'<Route /dashboard>',tag:['overview','all']},
+  {from:'app-tsx',to:'admin-users-page',kind:'mount',label:'<Route /admin/users>',tag:['admin','all']},
+  {from:'use-api',to:'market-page',kind:'mount',label:'fetch()',tag:['overview','market','all']},
+  {from:'use-api',to:'orders-page',kind:'mount',label:'fetch()',tag:['overview','market','all']},
+  {from:'use-api',to:'dashboard-page',kind:'mount',label:'fetch()',tag:['overview','all']},
+  {from:'use-api',to:'ext-clerk',kind:'api',label:'getToken()',tag:['overview','auth','all']},
+  {from:'main-tsx',to:'ext-clerk',kind:'api',label:'ClerkProvider',tag:['overview','auth','all']},
+
+  // Entry → Routes (mount edges)
+  {from:'entry-router',to:'route-market',kind:'mount',label:'router.use',tag:['overview','market','all']},
+  {from:'entry-router',to:'route-orders',kind:'mount',label:'router.use',tag:['overview','market','all']},
+  {from:'entry-router',to:'route-admin',kind:'mount',label:'router.use',tag:['admin','all']},
+  {from:'entry-router',to:'route-webhook',kind:'mount',label:'router.use',tag:['auth','all']},
+  {from:'entry-router',to:'route-cron',kind:'mount',label:'router.use',tag:['all']},
+  {from:'entry-router',to:'route-contact',kind:'mount',label:'router.use',tag:['overview','all']},
+  {from:'entry-router',to:'route-health',kind:'mount',label:'router.use',tag:['overview','all']},
+  {from:'entry-router',to:'route-clerk-proxy',kind:'mount',label:'router.use',tag:['auth','all']},
+  {from:'entry-app',to:'entry-router',kind:'mount',label:'app.use("/api",)',tag:['overview','all']},
+  {from:'entry-index',to:'entry-app',kind:'mount',label:'app.listen()',tag:['overview','all']},
+
+  // Middleware → Routes (auth + rate limit)
+  {from:'entry-auth-middleware',to:'route-market',kind:'mount',label:'requireAuth\nattachUser\nrequireActiveUser',tag:['overview','market','auth','all']},
+  {from:'entry-auth-middleware',to:'route-orders',kind:'mount',label:'requireAuth\nattachUser\nrequireActiveUser',tag:['overview','market','auth','all']},
+  {from:'entry-auth-middleware',to:'route-admin',kind:'mount',label:'requireAuth\nattachUser\nrequireAdmin',tag:['admin','auth','all']},
+  {from:'entry-auth-middleware',to:'ext-clerk',kind:'api',label:'JWT verify',tag:['auth','all']},
+  {from:'entry-ratelimit-middleware',to:'route-market',kind:'mount',label:'marketRateLimit\norderRateLimit',tag:['overview','market','all']},
+  {from:'entry-ratelimit-middleware',to:'route-orders',kind:'mount',label:'strictRateLimit',tag:['overview','market','all']},
+
+  // Routes → Services (critical flow)
+  {from:'route-market',to:'svc-linode',kind:'critical',label:'getPlans()\ngetRegions()\ngetWindowsImages()\ncreateInstance()',tag:['overview','market','all']},
+  {from:'route-market',to:'svc-redis',kind:'critical',label:'getCache()\nsetCache(300s)',tag:['overview','market','all']},
+  {from:'route-market',to:'svc-email',kind:'critical',label:'sendEmail(credentials)',tag:['overview','market','all']},
+  {from:'route-market',to:'svc-encryption',kind:'critical',label:'encrypt(password)\ngeneratePassword()',tag:['overview','market','all']},
+  {from:'route-market',to:'svc-validators-market',kind:'critical',label:'createOrderSchema',tag:['overview','market','all']},
+  {from:'route-orders',to:'svc-linode',kind:'critical',label:'deleteInstance()',tag:['overview','market','all']},
+  {from:'route-orders',to:'svc-email',kind:'critical',label:'sendEmail(termination)',tag:['overview','market','all']},
+  {from:'route-orders',to:'svc-encryption',kind:'critical',label:'decrypt(password)',tag:['overview','market','all']},
+  {from:'route-admin',to:'svc-validators-admin',kind:'normal',label:'paginationSchema\nupdateSettingsSchema',tag:['admin','all']},
+  {from:'route-admin',to:'svc-linode',kind:'normal',label:'deleteInstance()',tag:['admin','all']},
+  {from:'route-admin',to:'svc-redis',kind:'normal',label:'deleteCache()',tag:['admin','all']},
+  {from:'route-cron',to:'svc-linode',kind:'normal',label:'deleteInstance()',tag:['all']},
+  {from:'route-cron',to:'svc-email',kind:'normal',label:'sendEmail(reminder)',tag:['all']},
+  {from:'route-contact',to:'svc-email',kind:'normal',label:'dual sendEmail()',tag:['overview','all']},
+  {from:'route-clerk-proxy',to:'ext-clerk',kind:'api',label:'proxy /api/clerk/*',tag:['auth','all']},
+
+  // Routes/Entry → External
+  {from:'route-market',to:'ext-linode',kind:'api',label:'GET /linode/types\nGET /regions\nPOST /linode/instances',tag:['overview','market','all']},
+  {from:'route-orders',to:'ext-linode',kind:'api',label:'DELETE /linode/instances/:id',tag:['overview','market','all']},
+  {from:'route-admin',to:'ext-linode',kind:'api',label:'DELETE /linode/instances/:id',tag:['admin','all']},
+  {from:'svc-linode',to:'ext-linode',kind:'api',label:'REST API calls',tag:['overview','market','all']},
+  {from:'svc-email',to:'ext-resend',kind:'api',label:'resend.emails.send()',tag:['overview','market','all']},
+  {from:'svc-redis',to:'ext-redis',kind:'api',label:'get/set/del/incr',tag:['overview','all']},
+  {from:'entry-ratelimit-middleware',to:'ext-redis',kind:'api',label:'checkRateLimit()',tag:['overview','all']},
+  {from:'route-webhook',to:'ext-clerk',kind:'api',label:'Svix webhook',tag:['auth','all']},
+
+  // Routes/Entry → Data (DB edges)
+  {from:'route-market',to:'data-prisma',kind:'db',label:'prisma.order.create\nprisma.user.update(balance)\nprisma.auditLog.create\nprisma.marketSettings.findMany',tag:['overview','market','all']},
+  {from:'route-orders',to:'data-prisma',kind:'db',label:'prisma.order.findMany\nprisma.order.findUnique\nprisma.order.update',tag:['overview','market','all']},
+  {from:'route-admin',to:'data-prisma',kind:'db',label:'prisma.user.findMany\nprisma.user.update\nprisma.order.findMany\nprisma.marketSettings.upsert',tag:['admin','all']},
+  {from:'route-webhook',to:'data-prisma',kind:'db',label:'prisma.user.upsert\nprisma.user.update',tag:['auth','all']},
+  {from:'route-cron',to:'data-prisma',kind:'db',label:'prisma.order.findMany\nprisma.order.update\nprisma.auditLog.create',tag:['all']},
+  {from:'svc-email',to:'data-prisma',kind:'db',label:'prisma.emailLog.create',tag:['overview','market','all']},
+  {from:'entry-auth-middleware',to:'data-prisma',kind:'db',label:'prisma.user.findUnique',tag:['overview','auth','all']},
+  {from:'data-prisma',to:'data-schema',kind:'normal',label:'Prisma schema',tag:['overview','all']},
+  {from:'data-prisma',to:'ext-postgres',kind:'db',label:'SQL queries',tag:['overview','all']},
+  {from:'entry-auth-middleware',to:'data-prisma',kind:'db',label:'prisma.user.findUnique()',tag:['auth','all']},
+
+  // Data
+  {from:'data-env',to:'data-prisma',kind:'normal',label:'DATABASE_URL',tag:['all']},
+  {from:'data-env',to:'svc-redis',kind:'normal',label:'REDIS_URL/TOKEN',tag:['all']},
+  {from:'entry-app',to:'data-env',kind:'normal',label:'getServerEnv()',tag:['all']},
+  {from:'main-tsx',to:'data-env-client',kind:'normal',label:'VITE_CLERK_PUBLISHABLE_KEY',tag:['auth','all']},
+];
+
+// ===== FIXES & KNOWN BUGS =====
+const FIXES = {
+  'svc-linode-dead': [{n:1,t:'Remove getInstance/rebootInstance/getInstanceStats or wire them into admin routes for instance management'}],
+  'svc-validators-admin': [{n:2,t:'Remove unused banUserSchema and updateOrderSchema types (no callers)'}],
+  'svc-redis': [{n:3,t:'Remove unused incrementRateLimit export (zero callers) — checkRateLimit covers all rate-limit use cases'}],
+  'data-schema': [{n:4,t:'Remove or repurpose RateLimit Prisma model — app uses Redis for rate limiting, model is never queried'}],
+  'svc-encryption': [{n:5,t:'Replace Math.random with crypto.getRandomValues in generatePassword for cryptographic safety'}],
+  'entry-app': [{n:6,t:'Helmet CSP scriptSrc restricts to self only — may break Clerk CDN inline scripts'}],
+};
+
+const KNOWN_BUGS = {
+  'route-contact': [{sev:'med',ref:'artifacts/api-server/src/routes/contact.ts:117',t:'escapeHtml used only for auto-reply email; business notification email passes raw user input to Resend'}],
+  'svc-encryption': [{sev:'low',ref:'artifacts/api-server/src/utils/encryption.ts:17',t:'generatePassword uses Math.random not crypto.getRandomValues — predictable passwords'}],
+  'route-cron': [{sev:'med',ref:'artifacts/api-server/src/routes/cron.ts:32-46',t:'If deleteInstance fails for an expired order, the order remains ACTIVE with the Linode orphaned'}],
+  'route-market': [{sev:'med',ref:'artifacts/api-server/src/routes/market.ts:106-117',t:'If Linode instance creation succeeds but Prisma transaction fails, the Linode instance is orphaned (no rollback)'}],
+  'svc-redis': [{sev:'low',ref:'artifacts/api-server/src/services/redis.ts:34-40',t:'Redis INCR + EXPIRE in incrementRateLimit is not atomic — race condition on first request'}],
+  'entry-app': [{sev:'low',ref:'artifacts/api-server/src/app.ts:39-46',t:'Helmet CSP styleSrc allows unsafe-inline — weakens XSS protection for Tailwind inline styles'}],
+};
+
+// ===== FILTER CHIPS =====
+const chips = [
+  {id:'overview',label:'Overview',default:true},
+  {id:'market',label:'Market & Orders'},
+  {id:'admin',label:'Admin'},
+  {id:'auth',label:'Authentication'},
+  {id:'all',label:'Show all wires'},
+  {id:'roadmap',label:'Roadmap & bugs'},
+];
+let activeFilter = 'overview';
+
+// ===== SVG RENDERING =====
+const SVGW = 1550;
+const SVGH = 1050;
+let svg, svgGroup, transformX=0, transformY=0, scale=1;
+let selectedNodeId = null;
+
+function init() {
+  svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('viewBox',`0 0 ${SVGW} ${SVGH}`);
+  svg.setAttribute('preserveAspectRatio','xMidYMid meet');
+
+  // defs
+  const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
+  const mk = (id,color) => {
+    const m = document.createElementNS('http://www.w3.org/2000/svg','marker');
+    m.setAttribute('id',id);
+    m.setAttribute('markerWidth','6');
+    m.setAttribute('markerHeight','6');
+    m.setAttribute('refX','5');
+    m.setAttribute('refY','3');
+    m.setAttribute('orient','auto');
+    const p = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+    p.setAttribute('points','0 0, 6 3, 0 6');
+    p.setAttribute('fill',color);
+    m.appendChild(p);
+    return m;
+  };
+  defs.appendChild(mk('arrow-critical','var(--critical)'));
+  defs.appendChild(mk('arrow-api','var(--external)'));
+  defs.appendChild(mk('arrow-db','var(--db)'));
+  defs.appendChild(mk('arrow-mount','var(--route)'));
+  defs.appendChild(mk('arrow-normal','#444'));
+  svg.appendChild(defs);
+
+  svgGroup = document.createElementNS('http://www.w3.org/2000/svg','g');
+  svgGroup.id = 'svg-group';
+  svg.appendChild(svgGroup);
+  document.getElementById('svg-container').appendChild(svg);
+  renderAll();
+  setupInteractions();
+  renderSidebar();
+}
+
+function renderAll() {
+  svgGroup.innerHTML = '';
+  // cluster backgrounds
+  clusters.forEach(c=>{
+    const r = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    r.setAttribute('x',c.x);r.setAttribute('y',c.y);
+    r.setAttribute('width',c.w);r.setAttribute('height',c.h||600);
+    r.setAttribute('rx','8');r.setAttribute('ry','8');
+    r.setAttribute('fill','var(--panel)');
+    r.setAttribute('stroke','var(--border)');
+    r.setAttribute('stroke-width','1');
+    r.setAttribute('stroke-dasharray','4 3');
+    svgGroup.appendChild(r);
+    // label
+    const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('x',c.x+8);t.setAttribute('y',c.y-8);
+    t.setAttribute('class','cluster-label');
+    t.textContent = c.label;
+    svgGroup.appendChild(t);
+  });
+
+  // edges
+  const activeTags = activeFilter==='all'?chips.map(c=>c.id):[activeFilter,'all'];
+
+  edges.forEach(e=>{
+    if(!e.tag.some(t=>activeTags.includes(t))) return;
+    const fn = nodes.find(n=>n.id===e.from);
+    const tn = nodes.find(n=>n.id===e.to);
+    if(!fn||!tn) return;
+
+    const x1 = clusterX(fn.cluster)+fn.x+fn.w;
+    const y1 = clusterY(fn.cluster)+fn.y+fn.h/2;
+    const x2 = clusterX(tn.cluster)+tn.x;
+    const y2 = clusterY(tn.cluster)+tn.y+tn.h/2;
+    const mx = (x1+x2)/2;
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    const d = `M ${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`;
+    path.setAttribute('d',d);
+    path.setAttribute('class',`edge-path ${e.kind}`);
+    const arrowMap = {critical:'arrow-critical',api:'arrow-api',db:'arrow-db',mount:'arrow-mount',normal:'arrow-normal'};
+    path.setAttribute('marker-end',`url(#${arrowMap[e.kind]||'arrow-normal'})`);
+
+    if(e.kind==='critical'){
+      // Add glow effect
+      const glow = document.createElementNS('http://www.w3.org/2000/svg','path');
+      glow.setAttribute('d',d);
+      glow.setAttribute('class','edge-path critical');
+      glow.setAttribute('stroke-width','6');
+      glow.setAttribute('opacity','0.3');
+      glow.setAttribute('marker-end','none');
+      svgGroup.appendChild(glow);
+    }
+
+    svgGroup.appendChild(path);
+  });
+
+  // edge labels
+  const edgeLabelsByGap = {};
+  edges.forEach(e=>{
+    if(!e.tag.some(t=>activeTags.includes(t))) return;
+    const fn = nodes.find(n=>n.id===e.from);
+    const tn = nodes.find(n=>n.id===e.to);
+    if(!fn||!tn) return;
+    const x1 = clusterX(fn.cluster)+fn.x+fn.w;
+    const y1 = clusterY(fn.cluster)+fn.y+fn.h/2;
+    const x2 = clusterX(tn.cluster)+tn.x;
+    const y2 = clusterY(tn.cluster)+tn.y+tn.h/2;
+    const mx = (x1+x2)/2;
+    const my = (y1+y2)/2;
+
+    const gapX = Math.round(mx/30)*30;
+    if(!edgeLabelsByGap[gapX]) edgeLabelsByGap[gapX] = [];
+    edgeLabelsByGap[gapX].push({label:e.label, mx,my});
+  });
+
+  Object.values(edgeLabelsByGap).forEach(labels=>{
+    labels.forEach((l,i)=>{
+      const dy = (i - (labels.length-1)/2)*14;
+      const lines = l.label.split('\n');
+      lines.forEach((line,li)=>{
+        const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+        t.setAttribute('x',l.mx);
+        t.setAttribute('y',l.my+dy+li*10-(lines.length-1)*5);
+        t.setAttribute('text-anchor','middle');
+        t.setAttribute('class','edge-label');
+        t.textContent = line;
+        svgGroup.appendChild(t);
+      });
+    });
+  });
+
+  // nodes
+  nodes.forEach(n=>{
+    const nx = clusterX(n.cluster)+n.x;
+    const ny = clusterY(n.cluster)+n.y;
+    const isDead = n.id==='svc-linode-dead';
+    const hasBadge = FIXES[n.id]||KNOWN_BUGS[n.id];
+
+    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.setAttribute('data-node-id',n.id);
+
+    const r = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    r.setAttribute('x',nx);r.setAttribute('y',ny);
+    r.setAttribute('width',n.w);r.setAttribute('height',n.h);
+    r.setAttribute('rx','5');r.setAttribute('ry','5');
+    r.setAttribute('fill',isDead?'#ff444410':'var(--panel-2)');
+    r.setAttribute('stroke',n.color);
+    r.setAttribute('stroke-width',n.critical?'2.5':'1.5');
+    r.setAttribute('class','node-rect');
+    r.setAttribute('data-node-id',n.id);
+    g.appendChild(r);
+
+    const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('x',nx+8);t.setAttribute('y',ny+16);
+    t.setAttribute('class','node-label');
+    t.textContent = n.label;
+    g.appendChild(t);
+
+    if(n.sub){
+      const s = document.createElementNS('http://www.w3.org/2000/svg','text');
+      s.setAttribute('x',nx+8);s.setAttribute('y',ny+n.h<=44?ny+32:ny+34);
+      s.setAttribute('class','node-sub');
+      s.textContent = n.sub;
+      g.appendChild(s);
+    }
+
+    // badges
+    if(hasBadge){
+      const fixCount = (FIXES[n.id]||[]).length;
+      const bugCount = (KNOWN_BUGS[n.id]||[]).length;
+      let bx = nx+n.w-6;
+      if(fixCount>0){
+        const b = document.createElementNS('http://www.w3.org/2000/svg','circle');
+        b.setAttribute('cx',bx);b.setAttribute('cy',ny+6);
+        b.setAttribute('r','8');b.setAttribute('fill','#4ea1ff');
+        b.setAttribute('opacity','0.85');
+        g.appendChild(b);
+        const bt = document.createElementNS('http://www.w3.org/2000/svg','text');
+        bt.setAttribute('x',bx);bt.setAttribute('y',ny+9);
+        bt.setAttribute('text-anchor','middle');bt.setAttribute('font-size','9');bt.setAttribute('fill','#fff');
+        bt.textContent = fixCount;
+        g.appendChild(bt);
+        bx -= 20;
+      }
+      if(bugCount>0){
+        const b = document.createElementNS('http://www.w3.org/2000/svg','circle');
+        b.setAttribute('cx',bx);b.setAttribute('cy',ny+6);
+        b.setAttribute('r','8');b.setAttribute('fill','var(--critical)');
+        b.setAttribute('opacity','0.85');
+        g.appendChild(b);
+        const bt = document.createElementNS('http://www.w3.org/2000/svg','text');
+        bt.setAttribute('x',bx);bt.setAttribute('y',ny+9);
+        bt.setAttribute('text-anchor','middle');bt.setAttribute('font-size','9');bt.setAttribute('fill','#fff');
+        bt.textContent = bugCount;
+        g.appendChild(bt);
+      }
+    }
+
+    svgGroup.appendChild(g);
+  });
+
+  applyFilter();
+}
+
+function clusterX(cid){ return clusters.find(c=>c.id===cid)?.x??0; }
+function clusterY(cid){ return clusters.find(c=>c.id===cid)?.y??0; }
+
+function findNodeById(id){ return nodes.find(n=>n.id===id); }
+
+function applyFilter(){
+  const activeTags = activeFilter==='all'?chips.map(c=>c.id):[activeFilter,'all'];
+  const isRoadmap = activeFilter==='roadmap';
+
+  if(isRoadmap){
+    // Dim everything except nodes with fixes/bugs
+    document.querySelectorAll('[data-node-id]').forEach(el=>{
+      const nid = el.getAttribute('data-node-id');
+      const n = findNodeById(nid);
+      if(n && (FIXES[n.id]||KNOWN_BUGS[n.id])){
+        el.classList.remove('node-dim');
+      } else {
+        el.classList.add('node-dim');
+      }
+    });
+    return;
+  }
+
+  document.querySelectorAll('[data-node-id]').forEach(el=>{
+    const nid = el.getAttribute('data-node-id');
+    const n = findNodeById(nid);
+    if(n && n.tag.some(t=>activeTags.includes(t))){
+      el.classList.remove('node-dim');
+    } else if(n){
+      el.classList.add('node-dim');
+    }
+  });
+}
+
+function renderSidebar(nodeId=null){
+  const sb = document.getElementById('sidebar');
+  if(!nodeId){
+    // Default view with findings
+    sb.innerHTML = `
+      <div class="default-view">
+        <h3>Architecture Map</h3>
+        <p>Cyberise RDP Marketplace — pnpm workspace with Express 5 API, React frontend, Prisma/PostgreSQL, Linode VPS provisioning.</p>
+        <h4 style="margin-top:16px;color:var(--muted)">Notable Findings</h4>
+        <div class="finding"><span class="tag dead">DEAD CODE</span> <strong>Linode getInstance/rebootInstance/getInstanceStats</strong> — 3 exported functions in linode.ts with zero callers. Also banUserSchema and updateOrderSchema in validators/admin.ts.</div>
+        <div class="finding"><span class="tag dead">DEAD CODE</span> <strong>RateLimit Prisma model</strong> — Defined in schema.prisma but never used. Rate limiting uses Redis (Upstash) instead.</div>
+        <div class="finding"><span class="tag dead">DEAD CODE</span> <strong>incrementRateLimit in redis.ts</strong> — Exported but never called. All rate limiting uses checkRateLimit.</div>
+        <div class="finding"><span class="tag hot">HOT PATH</span> <strong>POST /market/order</strong> — Single request touches 5 external services (Clerk auth, Linode API, Redis cache, Resend email, Prisma DB) with no circuit breakers.</div>
+        <div class="finding"><span class="tag warn">RISK</span> <strong>Orphaned Linode instances</strong> — If Linode creation succeeds but DB transaction fails, the instance is orphaned (no rollback). Same for failed terminations in cron.ts.</div>
+        <div class="finding"><span class="tag warn">RISK</span> <strong>Math.random passwords</strong> — generatePassword uses Math.random not crypto.getRandomValues. Predictable RDP passwords.</div>
+        <div class="finding"><span class="tag warn">RISK</span> <strong>Race condition in incrementRateLimit</strong> — INCR + EXPIRE in Redis are two separate commands, not atomic.</div>
+        <div class="finding"><span class="tag warn">NOTE</span> <strong>Dual DB concern</strong> — Prisma schema has RateLimit table but app uses Redis for rate limiting. Two parallel rate-limit systems, only one active.</div>
+        <div class="finding"><span class="tag note" style="background:#4ea1ff20;color:#4ea1ff">SURPRISE</span> <strong>Resend sends 2 emails per contact</strong> — Contact form sends both business notification AND auto-reply. Only one has XSS escaping.</div>
+        <div class="finding"><span class="tag note" style="background:#4ea1ff20;color:#4ea1ff">SURPRISE</span> <strong>Clerk CDN loading</strong> — Frontend loads Clerk JS from jsDelivr CDN rather than npm bundle. Proxy API calls routed through Express.</div>
+      </div>`;
+    return;
+  }
+  const n = findNodeById(nodeId);
+  if(!n){ sb.innerHTML='<p>Node not found</p>';return; }
+
+  const fixItems = FIXES[n.id]||[];
+  const bugItems = KNOWN_BUGS[n.id]||[];
+  const incoming = edges.filter(e=>e.to===nodeId);
+  const outgoing = edges.filter(e=>e.from===nodeId);
+
+  const badgeHtml = (fixItems.length||bugItems.length)?`
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      ${fixItems.length?`<span class="badge fix">${fixItems.length} fix${fixItems.length>1?'es':''}</span>`:''}
+      ${bugItems.length?`<span class="badge bug">${bugItems.length} bug${bugItems.length>1?'s':''}</span>`:''}
+    </div>`:'';
+
+  const fixesHtml = fixItems.length?`
+    <div class="node-section">
+      <h4>Fixes</h4>
+      <ul class="node-notes">${fixItems.map(f=>`<li>#${f.n} ${f.t}</li>`).join('')}</ul>
+    </div>`:'';
+
+  const bugsHtml = bugItems.length?`
+    <div class="node-section">
+      <h4>Known Bugs</h4>
+      <ul class="node-notes">${bugItems.map(b=>`<li><strong style="color:${b.sev==='high'?'var(--critical)':b.sev==='med'?'var(--accent)':'var(--muted)'}">${b.sev.toUpperCase()}</strong> ${b.ref?`<code style="font-size:10px;color:var(--muted)">${b.ref}</code><br/>`:''}${b.t}</li>`).join('')}</ul>
+    </div>`:'';
+
+  const edgeList = (list,title)=>{
+    if(!list.length) return '';
+    const colorMap = {critical:'var(--critical)',api:'var(--external)',db:'var(--db)',mount:'var(--route)',normal:'#444'};
+    return `<div class="node-section"><h4>${title} (${list.length})</h4>
+      <ul class="edge-list">${list.map(e=>`<li><span class="edge-dot" style="background:${colorMap[e.kind]||'#444'}"></span> ${e.label.replace(/\n/g,' → ')} <span style="color:var(--muted);font-size:10px">→ ${e.to===nodeId?findNodeById(e.from)?.label:e.to}</span></li>`).join('')}</ul></div>`;
+  };
+
+  sb.innerHTML = `
+    <div>
+      <div class="node-title">${n.label}</div>
+      ${n.sub?`<div style="color:var(--muted);font-size:12px;margin-top:2px">${n.sub}</div>`:''}
+      ${badgeHtml}
+    </div>
+    ${n.path?`<div class="node-path">${n.path}</div>`:''}
+    ${n.role?`<div class="node-section"><h4>What It Does</h4><p style="font-size:12px;line-height:1.5">${n.role}</p></div>`:''}
+    ${n.plain?`<div class="node-section"><h4>Plain English</h4><p style="font-size:12px;line-height:1.5;color:var(--muted)">${n.plain}</p></div>`:''}
+    ${n.notes?.length?`<div class="node-section"><h4>Notes</h4><ul class="node-notes">${n.notes.map(note=>`<li>${note}</li>`).join('')}</ul></div>`:''}
+    ${FIXES[n.id]?.length?fixesHtml:''}
+    ${KNOWN_BUGS[n.id]?.length?bugsHtml:''}
+    ${edgeList(outgoing,'Outgoing')}
+    ${edgeList(incoming,'Incoming')}
+  `;
+}
+
+// ===== INTERACTIONS =====
+function setupInteractions(){
+  // Pan + zoom
+  const container = document.getElementById('svg-container');
+  let isPanning = false, startX, startY;
+  let lastTransform = {x:0,y:0};
+
+  container.addEventListener('mousedown',e=>{
+    if(e.target.closest('.node-rect')) return;
+    if(e.target.tagName==='text'&&e.target.closest('g')?.querySelector('.node-rect')) return;
+    isPanning=true;startX=e.clientX-lastTransform.x;startY=e.clientY-lastTransform.y;
+    container.style.cursor='grabbing';
+  });
+  window.addEventListener('mousemove',e=>{
+    if(!isPanning) return;
+    lastTransform.x=e.clientX-startX;lastTransform.y=e.clientY-startY;
+    updateTransform();
+  });
+  window.addEventListener('mouseup',()=>{
+    isPanning=false;container.style.cursor='grab';
+  });
+
+  container.addEventListener('wheel',e=>{
+    e.preventDefault();
+    const rect = container.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    const ds = e.deltaY>0?0.9:1.1;
+    const newScale = Math.max(0.2,Math.min(3,scale*ds));
+    lastTransform.x += (mx-lastTransform.x)*(1-newScale/scale);
+    lastTransform.y += (my-lastTransform.y)*(1-newScale/scale);
+    scale = newScale;
+    updateTransform();
+  },{passive:false});
+
+  // Click handling
+  svg.addEventListener('click',e=>{
+    const rect = e.target.closest('.node-rect');
+    if(rect){
+      const nid = rect.getAttribute('data-node-id');
+      selectNode(nid);
+    } else {
+      selectNode(null);
+    }
+  });
+
+  // Hover
+  svg.addEventListener('mouseover',e=>{
+    const rect = e.target.closest('.node-rect');
+    if(rect){
+      const nid = rect.getAttribute('data-node-id');
+      renderSidebar(nid);
+    }
+  });
+  svg.addEventListener('mouseout',e=>{
+    const rect = e.target.closest('.node-rect');
+    if(rect && !selectedNodeId){
+      renderSidebar();
+    }
+  });
+
+  // Zoom controls
+  document.getElementById('zoom-in').addEventListener('click',()=>{
+    scale=Math.min(3,scale*1.2);updateTransform();
+  });
+  document.getElementById('zoom-out').addEventListener('click',()=>{
+    scale=Math.max(0.2,scale/1.2);updateTransform();
+  });
+  document.getElementById('fit-btn').addEventListener('click',()=>{
+    scale=1;lastTransform={x:0,y:0};updateTransform();
+  });
+
+  // Toolbar chips
+  chips.forEach(chip=>{
+    const el = document.createElement('div');
+    el.className = 'chip'+(chip.default?' active':'');
+    el.textContent = chip.label;
+    el.addEventListener('click',()=>{
+      document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+      el.classList.add('active');
+      activeFilter=chip.id;
+      renderAll();
+      renderSidebar(selectedNodeId);
+    });
+    document.getElementById('toolbar').appendChild(el);
+  });
+}
+
+function selectNode(nid){
+  selectedNodeId = nid;
+  renderSidebar(nid);
+  if(!nid){
+    document.querySelectorAll('.node-rect').forEach(r=>r.setAttribute('opacity','1'));
+    return;
+  }
+  document.querySelectorAll('.node-rect').forEach(r=>{
+    r.setAttribute('opacity',r.getAttribute('data-node-id')===nid?'1':'0.25');
+  });
+}
+
+function updateTransform(){
+  svgGroup.setAttribute('transform',`translate(${lastTransform.x},${lastTransform.y}) scale(${scale})`);
+}
+
+init();
+</script>
+</body>
+</html>

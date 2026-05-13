@@ -1,5 +1,6 @@
 import { env } from "../utils/env";
 import { logger } from "../lib/logger";
+import { getBreaker } from "../utils/circuitBreaker";
 
 const LINODE_API_BASE = env.LINODE_API_URL;
 const AUTH_HEADER = `Bearer ${env.LINODE_API_TOKEN}`;
@@ -55,36 +56,44 @@ interface LinodeInstance {
   updated: string;
 }
 
+const linodeBreaker = getBreaker("linode-api", {
+  failureThreshold: 3,
+  cooldownMs: 30000,
+  timeoutMs: 30000,
+});
+
 async function linodeFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const url = `${LINODE_API_BASE}${endpoint}`;
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30000);
+  return linodeBreaker.call(async () => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
 
-  try {
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        Authorization: AUTH_HEADER,
-        "Content-Type": "application/json",
-        ...options.headers,
-      },
-      signal: controller.signal,
-    });
+    try {
+      const response = await fetch(url, {
+        ...options,
+        headers: {
+          Authorization: AUTH_HEADER,
+          "Content-Type": "application/json",
+          ...options.headers,
+        },
+        signal: controller.signal,
+      });
 
-    clearTimeout(timeout);
+      clearTimeout(timeout);
 
-    if (!response.ok) {
-      const error = await response.text();
-      logger.error({ endpoint, status: response.status, error }, "Linode API error");
-      throw new Error(`Linode API error: ${response.status} - ${error}`);
+      if (!response.ok) {
+        const error = await response.text();
+        logger.error({ endpoint, status: response.status, error }, "Linode API error");
+        throw new Error(`Linode API error: ${response.status} - ${error}`);
+      }
+
+      return response.json() as Promise<T>;
+    } catch (error) {
+      clearTimeout(timeout);
+      throw error;
     }
-
-    return response.json() as Promise<T>;
-  } catch (error) {
-    clearTimeout(timeout);
-    throw error;
-  }
+  });
 }
 
 export async function getPlans(): Promise<LinodePlan[]> {
@@ -139,20 +148,6 @@ export async function deleteInstance(instanceId: number): Promise<void> {
   await linodeFetch(`/linode/instances/${instanceId}`, {
     method: "DELETE",
   });
-}
-
-export async function getInstance(instanceId: number): Promise<LinodeInstance> {
-  return linodeFetch<LinodeInstance>(`/linode/instances/${instanceId}`);
-}
-
-export async function rebootInstance(instanceId: number): Promise<void> {
-  await linodeFetch(`/linode/instances/${instanceId}/reboot`, {
-    method: "POST",
-  });
-}
-
-export async function getInstanceStats(instanceId: number) {
-  return linodeFetch(`/linode/instances/${instanceId}/stats`);
 }
 
 export { type LinodePlan, type LinodeRegion, type LinodeImage, type LinodeInstance };

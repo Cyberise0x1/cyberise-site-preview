@@ -29,18 +29,6 @@ export async function deleteCache(key: string): Promise<void> {
   await client.del(key);
 }
 
-export async function incrementRateLimit(identifier: string, endpoint: string, windowSeconds = 60): Promise<number> {
-  const client = getRedis();
-  const key = `rate_limit:${endpoint}:${identifier}`;
-  const count = await client.incr(key);
-
-  if (count === 1) {
-    await client.expire(key, windowSeconds);
-  }
-
-  return count;
-}
-
 export async function checkRateLimit(identifier: string, endpoint: string, maxRequests: number, windowSeconds = 60): Promise<{ allowed: boolean; remaining: number; resetAt: Date }> {
   const key = `rate_limit:${endpoint}:${identifier}`;
   const client = getRedis();
