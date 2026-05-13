@@ -10,18 +10,26 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@workspace/api-zod": "workspace:*",
+    "@clerk/clerk-sdk-node": "^5.1.6",
+    "@prisma/client": "^6.6.0",
+    "@upstash/redis": "^1.34.0",
     "@workspace/db": "workspace:*",
+    "@workspace/env": "workspace:*",
     "cookie-parser": "^1.4.7",
     "cors": "^2",
-    "drizzle-orm": "catalog:",
+    "crypto-js": "^4.2.0",
     "express": "^5",
+    "helmet": "^7.2.0",
     "pino": "^9",
-    "pino-http": "^10"
+    "pino-http": "^10",
+    "resend": "^6.12.2",
+    "svix": "^1.45.0",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
+    "@types/crypto-js": "^4.2.2",
     "@types/express": "^5.0.6",
     "@types/node": "catalog:",
     "esbuild": "^0.27.3",

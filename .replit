@@ -11,6 +11,27 @@ env = { "CI" = "true" }
 [workflows]
 runButton = "Project"
 
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start application"
+
+[[workflows.workflow]]
+name = "Start application"
+author = "agent"
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "PORT=22231 BASE_PATH=/ pnpm --filter @workspace/cyberise run dev"
+waitForPort = 22231
+
 [agent]
 stack = "PNPM_WORKSPACE"
 expertMode = true
@@ -18,3 +39,19 @@ expertMode = true
 [postMerge]
 path = "scripts/post-merge.sh"
 timeoutMs = 20000
+
+[userenv]
+
+[userenv.shared]
+RESEND_API_KEY = "re_sGNQ7jDR_JqNjnxwinYswr8tB5MV23kWE"
+CLERK_SECRET_KEY = "REDACTED_STRIPE_SK"
+DIRECT_URL = "postgresql://postgres:password@helium/heliumdb?sslmode=disable"
+CLERK_WEBHOOK_SECRET = "whsec_Jz7Y93o/FbnXivg5810DvH0JIZ0H7OU3"
+
+[[ports]]
+localPort = 8081
+externalPort = 8081
+
+[[ports]]
+localPort = 22231
+externalPort = 80
