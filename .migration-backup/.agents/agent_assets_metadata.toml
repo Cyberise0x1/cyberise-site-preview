@@ -1,8 +1,0 @@
-uploads = []
-generated = []
-
-[[outputs]]
-id = "KxCSe-oWTqnTyDs_r82dD"
-uri = "file://attached_assets/cyberise-rdp-prompt-corrected.md"
-type = "text"
-title = "Cyberise RDP Marketplace Prompt (Corrected)"
