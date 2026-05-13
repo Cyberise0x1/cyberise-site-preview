@@ -66,6 +66,13 @@ export default defineConfig({
     fs: {
       strict: true,
     },
+    proxy: {
+      "/v1": {
+        target: "https://api.clerk.com",
+        changeOrigin: true,
+        secure: true,
+      },
+    },
   },
   preview: {
     port,

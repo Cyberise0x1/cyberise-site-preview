@@ -21,7 +21,13 @@ if (!publishableKey) {
 }
 
 createRoot(document.getElementById("root")!).render(
-  <ClerkProvider publishableKey={publishableKey} afterSignInUrl="/market" afterSignUpUrl="/market" afterSignOutUrl="/">
+  <ClerkProvider
+    publishableKey={publishableKey}
+    clerkJSUrl="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js"
+    afterSignInUrl="/market"
+    afterSignUpUrl="/market"
+    afterSignOutUrl="/"
+  >
     <QueryClientProvider client={queryClient}>
       <App />
       <Toaster position="top-right" richColors />
