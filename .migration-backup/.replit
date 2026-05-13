@@ -1,0 +1,52 @@
+modules = ["nodejs-24"]
+
+[deployment]
+router = "application"
+deploymentTarget = "autoscale"
+
+[deployment.postBuild]
+args = ["pnpm", "store", "prune"]
+env = { "CI" = "true" }
+
+[workflows]
+runButton = "Project"
+
+[agent]
+stack = "PNPM_WORKSPACE"
+expertMode = true
+
+[postMerge]
+path = "scripts/post-merge.sh"
+timeoutMs = 20000
+
+[[ports]]
+localPort = 8080
+externalPort = 8080
+
+[[ports]]
+localPort = 8081
+externalPort = 80
+
+[[ports]]
+localPort = 8082
+externalPort = 3001
+
+[[ports]]
+localPort = 8083
+externalPort = 3002
+
+[[ports]]
+localPort = 22231
+externalPort = 3000
+
+[nix]
+channel = "stable-25_05"
+packages = ["sish"]
+
+[userenv]
+
+[userenv.shared]
+VITE_API_URL = ""
+CONTACT_RECIPIENT_EMAIL = "Cyberisetecnologies@consultant.com"
+RESEND_SENDER_ADDRESS = "contacts@cyberise.org"
+GITHUB_TOKEN = "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"

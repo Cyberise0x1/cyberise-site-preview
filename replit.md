@@ -1,57 +1,45 @@
-# Workspace
+# [Project name]
 
-## Overview
+_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
 
-pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
+## Run & Operate
+
+- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm run typecheck` — full typecheck across all packages
+- `pnpm run build` — typecheck + build all packages
+- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
+- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
+- Required env: `DATABASE_URL` — Postgres connection string
 
 ## Stack
 
-- **Monorepo tool**: pnpm workspaces
-- **Node.js version**: 24
-- **Package manager**: pnpm
-- **TypeScript version**: 5.9
-- **API framework**: Express 5
-- **Database**: PostgreSQL + Drizzle ORM
-- **Validation**: Zod (`zod/v4`), `drizzle-zod`
-- **API codegen**: Orval (from OpenAPI spec)
-- **Build**: esbuild (CJS bundle)
+- pnpm workspaces, Node.js 24, TypeScript 5.9
+- API: Express 5
+- DB: PostgreSQL + Drizzle ORM
+- Validation: Zod (`zod/v4`), `drizzle-zod`
+- API codegen: Orval (from OpenAPI spec)
+- Build: esbuild (CJS bundle)
 
-## Key Commands
+## Where things live
 
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- `pnpm --filter @workspace/api-server run dev` — run API server locally
+_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
 
-See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.
+## Architecture decisions
 
-## Deployment
+_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
 
-This project ships in two ways:
+## Product
 
-### Replit (development + preview)
+_Describe the high-level user-facing capabilities of this app once they exist._
 
-Three workflows run side-by-side:
-- `artifacts/cyberise: web` — Vite dev server for the frontend (port 22231)
-- `artifacts/api-server: API Server` — Express API (port 8080)
-- `artifacts/mockup-sandbox: Component Preview Server` — design canvas (port 8081)
+## User preferences
 
-### Vercel (production)
+_Populate as you build — explicit user instructions worth remembering across sessions._
 
-`vercel.json` at the repo root configures a hybrid static + serverless deploy:
-- **Frontend**: `pnpm --filter @workspace/cyberise run build` outputs to `artifacts/cyberise/dist/public` and is served as static assets. SPA fallback rewrites unmatched paths to `/index.html`.
-- **API**: `api/index.ts` re-exports the Express app from `artifacts/api-server/src/app.ts`. Vercel auto-detects the `api/` directory and runs each file as a Node serverless function. The rewrite `/api/(.*) → /api` sends all `/api/*` requests through the Express app, which handles its own routing.
+## Gotchas
 
-**Required Vercel env vars** (Project Settings → Environment Variables, all environments):
-- `RESEND_API_KEY` (secret)
-- `CONTACT_RECIPIENT_EMAIL` (e.g. `Cyberisetecnologies@consultant.com`)
-- `RESEND_SENDER_ADDRESS` (must be on a domain verified in Resend)
+_Populate as you build — sharp edges, "always run X before Y" rules._
 
-**Build env vars** (already set in `vercel.json`):
-- `PORT=3000`, `BASE_PATH=/`, `NODE_ENV=production` — required by `vite.config.ts` at build time.
+## Pointers
 
-**Caveats**:
-- The contact-form rate limiter (`successMap` in `routes/contact.ts`) is per-instance memory. On Vercel serverless the cap effectively becomes "3-per-instance per 15 min." Swap to Vercel KV / Upstash if you need true per-IP enforcement.
-- `pino-pretty` is dev-only; production uses plain JSON pino logs (compatible with serverless).
-- Express `app.set("trust proxy", true)` is enabled so `req.ip` reflects the real client behind Vercel's edge.
+- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
