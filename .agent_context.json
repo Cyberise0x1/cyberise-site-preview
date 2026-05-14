@@ -1,14 +1,30 @@
 {
   "protocol_version": 1,
-  "last_updated_by": "replit",
-  "last_updated_at": "2026-05-14T09:20:00Z",
+  "last_updated_by": "commandcode",
+  "last_updated_at": "2026-05-14T10:10:00Z",
   "_protocol_note": "Both agents: read replit.md § 'Agent Collaboration Protocol' for full rules. This file IS the shared state — claims, logs, notes, conflicts all live here.",
 
   "sprint_goal": "Vercel production live at cyberise.org. GitHub push of 11 local commits is blocked by GitHub secret scanning (Stripe key + Vercel PAT detected in old .replit). Awaiting user to click GitHub unblock links.",
 
-  "active_claims": {},
+  "active_claims": {
+    "commandcode": {
+      "since": "2026-05-14T10:10:00Z",
+      "files": [
+        "artifacts/cyberise/src/pages/AdminUsers.tsx",
+        "artifacts/cyberise/src/pages/AdminOrders.tsx",
+        "artifacts/cyberise/src/pages/AdminSettings.tsx",
+        "artifacts/cyberise/src/pages/Dashboard.tsx",
+        "artifacts/cyberise/src/pages/Orders.tsx",
+        "artifacts/cyberise/src/pages/Market.tsx",
+        "artifacts/cyberise/src/pages/AdminLayout.tsx"
+      ],
+      "task": "User is uploading replacement CMS pages — hold claim to prevent Replit interference"
+    }
+  },
 
-  "commandcode_log": [],
+  "commandcode_log": [
+    { "ts": "2026-05-14T10:00:00Z", "file": "vercel.json", "action": "edit", "summary": "Added SPA catch-all rewrite (/(.*) → /index.html) so client-side routes like /admin, /market, /dashboard don't 404" }
+  ],
   "replit_log": [
     { "ts": "2026-05-14T09:20:00Z", "file": ".agent_context.json", "action": "edit", "summary": "Activated protocol on Replit side — backfilled session history, set sprint_goal" },
     { "ts": "2026-05-14T09:13:06Z", "file": "(vercel)", "action": "edit", "summary": "Vercel production deploy READY (dpl_9PpSvW7oV7oFGEwopcSksRxf4V3S) — live at cyberise.org" },
