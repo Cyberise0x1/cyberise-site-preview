@@ -13,11 +13,8 @@ function escapeHtml(raw: string): string {
 
 const router: IRouter = Router();
 
-const RECIPIENT_EMAIL =
-  process.env["CONTACT_RECIPIENT_EMAIL"] ?? "Cyberisetecnologies@consultant.com";
-
-const SENDER_ADDRESS =
-  process.env["RESEND_SENDER_ADDRESS"] ?? "onboarding@resend.dev";
+const RECIPIENT_EMAIL = process.env["CONTACT_RECIPIENT_EMAIL"];
+const SENDER_ADDRESS = process.env["RESEND_SENDER_ADDRESS"];
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -88,8 +85,8 @@ router.post("/contact", async (req, res) => {
 
   const apiKey = process.env["RESEND_API_KEY"];
 
-  if (!apiKey) {
-    logger.error("RESEND_API_KEY is not configured");
+  if (!apiKey || !RECIPIENT_EMAIL || !SENDER_ADDRESS) {
+    logger.error("Email service environment variables are not fully configured");
     res.status(503).json({ error: "Email service is not configured." });
     return;
   }

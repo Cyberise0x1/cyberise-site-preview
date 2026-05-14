@@ -1,4 +1,4 @@
-modules = ["nodejs-24", "python-3.11"]
+modules = ["nodej-24", "python-3.11"]
 
 [deployment]
 router = "application"
@@ -21,15 +21,15 @@ timeoutMs = 20000
 [userenv]
 
 [userenv.shared]
-RESEND_API_KEY = "re_sGNQ7jDR_JqNjnxwinYswr8tB5MV23kWE"
-CLERK_SECRET_KEY = "REDACTED_STRIPE_SK"
-DIRECT_URL = "postgresql://postgres:password@helium/heliumdb?sslmode=disable"
-CLERK_WEBHOOK_SECRET = "whsec_Jz7Y93o/FbnXivg5810DvH0JIZ0H7OU3"
-ENCRYPTION_SECRET = "d0a1e0c8fef3f8ebe075661ea8dbf415"
-JWT_SECRET = "7b9fd5e0bc9cfece2e29b830cf4c87cbde65ece2780dd67c2c68e918404d2bce"
-VERCEL_TOKEN = "REDACTED_VERCEL_PAT"
-RESEND_SENDER_ADDRESS = "noreply@cyberise.org"
-CONTACT_RECIPIENT_EMAIL = "Cyberisetecnologies@consultant.com"
+RESEND_API_KEY = "YOUR_RESEND_API_KEY"
+CLERK_SECRET_KEY = "YOUR_CLERK_SECRET_KEY"
+DIRECT_URL = "YOUR_DATABASE_URL"
+CLERK_WEBHOOK_SECRET = "YOUR_CLERK_WEBHOOK_SECRET"
+ENCRYPTION_SECRET = "YOUR_ENCRYPTION_SECRET"
+JWT_SECRET = "YOUR_JWT_SECRET"
+VERCEL_TOKEN = "YOUR_VERCEL_TOKEN"
+RESEND_SENDER_ADDRESS = "YOUR_SENDER_ADDRESS"
+CONTACT_RECIPIENT_EMAIL = "YOUR_CONTACT_EMAIL"
 
 [[ports]]
 localPort = 3000
