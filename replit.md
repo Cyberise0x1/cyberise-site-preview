@@ -40,6 +40,39 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 _Populate as you build — sharp edges, "always run X before Y" rules._
 
+## Agent Collaboration Protocol
+
+**You are working in parallel with an external agent (CommandCode).** Both agents share `.agent_context.json` as the single source of truth. **Read it before any work. Update it after any work.**
+
+### Rules
+
+1. **MEMORY SYNC:** Read `.agent_context.json` before starting any task.
+   - Check `active_claims.commandcode` — if CommandCode has files claimed, **skip them**.
+   - Read `commandcode_log` for recent backend changes that affect your work.
+   - Read `notes[]` for project conventions and warnings.
+
+2. **CLAIM YOUR FILES:** Before editing any file, set `active_claims.replit`:
+   ```json
+   { "replit": { "since": "<ISO timestamp>", "files": ["path/to/file.tsx"], "task": "What you are doing" } }
+   ```
+   Clear it when done.
+
+3. **WRITEBACK:** After each file edit, append to `replit_log`:
+   ```json
+   { "ts": "<ISO timestamp>", "file": "path/to/file.tsx", "action": "edit|create|delete", "summary": "What changed" }
+   ```
+   Keep log capped at 50 entries — remove oldest if exceeded.
+
+4. **LOCKING:** If `active_claims.commandcode` exists and the task is backend-related, focus on frontend work to avoid merge conflicts.
+
+5. **CONFLICTS:** If you can't avoid stepping on CommandCode's files, add to `conflicts[]` for human review.
+
+6. **LAST UPDATED:** Set `last_updated_by` to `"replit"` and `last_updated_at` to current timestamp after every write.
+
+### Protocol Files
+- `.agent_context.json` — shared state (claims, logs, notes, conflicts)
+- `AGENT_PROTOCOL.md` — full protocol documentation
+
 ## Pointers
 
 - See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details

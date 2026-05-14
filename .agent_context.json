@@ -1,0 +1,60 @@
+{
+  "protocol_version": 1,
+  "last_updated_by": "replit",
+  "last_updated_at": "2026-05-14T09:20:00Z",
+  "_protocol_note": "Both agents: read replit.md § 'Agent Collaboration Protocol' for full rules. This file IS the shared state — claims, logs, notes, conflicts all live here.",
+
+  "sprint_goal": "Vercel production live at cyberise.org. GitHub push of 11 local commits is blocked by GitHub secret scanning (Stripe key + Vercel PAT detected in old .replit). Awaiting user to click GitHub unblock links.",
+
+  "active_claims": {},
+
+  "commandcode_log": [],
+  "replit_log": [
+    { "ts": "2026-05-14T09:20:00Z", "file": ".agent_context.json", "action": "edit", "summary": "Activated protocol on Replit side — backfilled session history, set sprint_goal" },
+    { "ts": "2026-05-14T09:13:06Z", "file": "(vercel)", "action": "edit", "summary": "Vercel production deploy READY (dpl_9PpSvW7oV7oFGEwopcSksRxf4V3S) — live at cyberise.org" },
+    { "ts": "2026-05-14T09:10:00Z", "file": ".vercelignore", "action": "edit", "summary": "Aggressive ignore list (**/node_modules, dist, .git) to fit 15k Vercel file limit" },
+    { "ts": "2026-05-14T09:05:00Z", "file": "api/index.js", "action": "create", "summary": "Replaced api/index.ts with .js that imports built artifacts/api-server/dist/app.mjs — bypasses Vercel's broken TS compiler" },
+    { "ts": "2026-05-14T09:05:00Z", "file": "api/index.ts", "action": "delete", "summary": "Removed — replaced by api/index.js" },
+    { "ts": "2026-05-14T09:04:00Z", "file": "vercel.json", "action": "edit", "summary": "Added @workspace/api-server build to buildCommand so dist/app.mjs exists for serverless function" },
+    { "ts": "2026-05-14T09:00:00Z", "file": "(env)", "action": "edit", "summary": "Set PORT=8080 (shared), deleted YOUR_* placeholder shared env vars that were overriding real secrets" },
+    { "ts": "2026-05-14T08:55:00Z", "file": "(secrets)", "action": "edit", "summary": "Stored VERCEL_TOKEN, RESEND_SENDER_ADDRESS=contacts@cyberise.org, CONTACT_RECIPIENT_EMAIL as Replit secrets" },
+    { "ts": "2026-05-14T08:45:00Z", "file": ".vercel/project.json", "action": "create", "summary": "Linked Vercel project (prj_0abXRCzSWof4VfsGpe6fYXMXMJLy / team_77AQxqCkTaCHg5rntA64HHp3)" },
+    { "ts": "2026-05-14T08:30:00Z", "file": "artifacts/api-server/src/routes/contact.ts", "action": "edit", "summary": "Use env vars for sender/recipient with existence guard before send" },
+    { "ts": "2026-05-14T08:00:00Z", "file": ".replit", "action": "edit", "summary": "Sanitized — replaced all plaintext secrets with YOUR_* placeholders (still git-tracked but safe)" },
+    { "ts": "2026-05-14T07:30:00Z", "file": ".gitignore", "action": "edit", "summary": "Added .replit, .replitignore, .upm/, artifacts/*/.replit-artifact/" },
+    { "ts": "2026-05-14T07:15:00Z", "file": "artifacts/cyberise/vite.config.ts", "action": "edit", "summary": "PORT and BASE_PATH made optional with safe defaults so Vercel build doesn't throw" },
+    { "ts": "2026-05-14T07:00:00Z", "file": "vercel.json", "action": "create", "summary": "Initial Vercel config — buildCommand, outputDirectory, /api/* rewrite to /api/index" },
+    { "ts": "2026-05-14T06:45:00Z", "file": "artifacts/api-server/src/jobs/cron.ts", "action": "edit", "summary": "Orphaned Linode instance cleanup logic added" },
+    { "ts": "2026-05-14T06:30:00Z", "file": "artifacts/api-server/src/routes/market.ts", "action": "edit", "summary": "Crypto-secure password gen, circuit breaker for Linode API, orphan cleanup" },
+    { "ts": "2026-05-14T06:15:00Z", "file": "lib/db/prisma/schema.prisma", "action": "edit", "summary": "Removed dead RateLimit Prisma model (rate limiting is Redis-based, not DB)" },
+    { "ts": "2026-05-14T06:00:00Z", "file": "artifacts/api-server/src/routes/index.ts", "action": "edit", "summary": "Mount clerkProxy router for /api/clerk/* → clerk.cyberise.org" },
+    { "ts": "2026-05-14T05:45:00Z", "file": "artifacts/cyberise/src/main.tsx", "action": "edit", "summary": "ClerkProvider uses clerkJSUrl from jsdelivr CDN" },
+    { "ts": "2026-05-14T05:30:00Z", "file": "artifacts/api-server/src/middleware/auth.ts", "action": "create", "summary": "JWT validation middleware for Clerk-protected routes" }
+  ],
+
+  "notes": [
+    "PROTOCOL: Before any edit, check active_claims.replit — skip files claimed by Replit Agent",
+    "PROTOCOL: Claim your files in active_claims.commandcode before editing, release when done",
+    "PROTOCOL: After each file edit, append to commandcode_log (ts, file, action, summary). Cap at 50.",
+    "PROTOCOL: Set last_updated_by to 'commandcode' and last_updated_at after each update",
+    "PROTOCOL: If Replit has a file you need claimed, add to conflicts[] and move on",
+    "PROTOCOL: Read replit_log before starting to see what Replit recently changed",
+    "Cyberise is an RDP marketplace — users buy RDP servers provisioned on Linode",
+    "Frontend: Vite + React (artifacts/cyberise/), API: Express 5 (artifacts/api-server/)",
+    "Auth is handled by Clerk — middleware validates JWT tokens",
+    "Database is PostgreSQL via Prisma ORM (lib/db/)",
+    "Rate limiting uses Upstash Redis — three presets: market(30/min), order(5/min), strict(10/min)",
+    "RDP passwords are AES-encrypted at rest via CryptoJS",
+    "Don't touch lib/db/schema.prisma without coordinating between agents",
+    "Deployment target is Vercel — Vite builds frontend, esbuild bundles API",
+    "VERCEL: Production lives at cyberise.org. Project linked in .vercel/project.json. CLI deploys use --archive=tgz to fit 15k file limit.",
+    "VERCEL: api/index.js (NOT .ts) is the serverless entry point — imports prebuilt artifacts/api-server/dist/app.mjs to avoid Vercel's TypeScript compiler conflicting with project's bundler moduleResolution",
+    "VERCEL: buildCommand must include @workspace/api-server build (produces dist/app.mjs)",
+    "ENV: Local API server needs PORT=8080. Email vars are SECRETS not shared env vars (placeholder shared vars override real secrets — keep them deleted).",
+    "GITHUB: Push to origin is blocked by secret scanning — old commits 0dbfc01/f42ae97/4cf66cb/f9d6fcf contain real Stripe key + Vercel PAT in .replit. User must click GitHub unblock URLs OR rewrite history before push will succeed. Both keys must be rotated regardless.",
+    "CLERK: Production keys only work on cyberise.org domain — login errors in Replit dev sandbox are EXPECTED, not a bug",
+    "CLERK: afterSignInUrl is deprecated — use fallbackRedirectUrl/forceRedirectUrl when touching auth UI"
+  ],
+
+  "conflicts": []
+}
