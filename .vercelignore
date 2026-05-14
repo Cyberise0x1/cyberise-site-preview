@@ -1,0 +1,10 @@
+node_modules
+.git
+.replit
+.config
+artifacts/cyberise/node_modules
+artifacts/api-server/node_modules
+artifacts/mockup-sandbox
+lib/*/node_modules
+.cache
+*.log

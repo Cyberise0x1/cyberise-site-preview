@@ -1,5 +1,5 @@
 {
-  "buildCommand": "pnpm --filter @workspace/db run generate && pnpm --filter @workspace/cyberise run build",
+  "buildCommand": "pnpm --filter @workspace/db run generate && pnpm --filter @workspace/api-server run build && pnpm --filter @workspace/cyberise run build",
   "outputDirectory": "artifacts/cyberise/dist/public",
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index" }
