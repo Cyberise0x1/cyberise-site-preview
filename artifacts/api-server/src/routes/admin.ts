@@ -1,4 +1,6 @@
 import { Router, type IRouter } from "express";
+import fs from "fs/promises";
+import path from "path";
 import { OrderStatus, Prisma } from "@workspace/db";
 import { prisma } from "@workspace/db";
 import { deleteInstance } from "../services/linode";
@@ -254,6 +256,27 @@ router.patch("/admin/settings", strictRateLimit, async (req: AuthRequest, res) =
   } catch (error) {
     logger.error({ error }, "Failed to update settings");
     sendError(res, "Failed to update settings");
+  }
+});
+
+router.get("/admin/agent-context", async (_req: AuthRequest, res) => {
+  try {
+    const candidates = [
+      path.resolve(process.cwd(), ".agent_context.json"),
+      path.resolve(process.cwd(), "../../.agent_context.json"),
+    ];
+    let content: string | null = null;
+    for (const p of candidates) {
+      try { content = await fs.readFile(p, "utf-8"); break; } catch {}
+    }
+    if (!content) {
+      sendError(res, ".agent_context.json not found");
+      return;
+    }
+    sendSuccess(res, JSON.parse(content));
+  } catch (error) {
+    logger.error({ error }, "Failed to read agent context");
+    sendError(res, "Failed to read agent context");
   }
 });
 

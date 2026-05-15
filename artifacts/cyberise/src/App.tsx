@@ -21,6 +21,7 @@ import Orders from "./pages/Orders";
 import AdminUsers from "./pages/AdminUsers";
 import AdminOrders from "./pages/AdminOrders";
 import AdminSettings from "./pages/AdminSettings";
+import AdminDev from "./pages/AdminDev";
 import { Toaster } from "@/components/ui/toaster";
 
 function HomePage() {
@@ -119,6 +120,7 @@ export default function App() {
         <Route path="/admin/users" component={AdminUsers} />
         <Route path="/admin/orders" component={AdminOrders} />
         <Route path="/admin/settings" component={AdminSettings} />
+        <Route path="/admin/dev" component={AdminDev} />
       </Switch>
       <Toaster />
     </>
