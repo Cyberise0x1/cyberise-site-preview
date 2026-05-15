@@ -1,14 +1,18 @@
 {
   "protocol_version": 1,
   "last_updated_by": "commandcode",
-  "last_updated_at": "2026-05-15T00:00:00Z",
+  "last_updated_at": "2026-05-15T00:01:00Z",
   "_protocol_note": "Both agents: read replit.md § 'Agent Collaboration Protocol' for full rules. This file IS the shared state — claims, logs, notes, conflicts all live here.",
 
   "sprint_goal": "",
 
   "active_claims": {},
 
-  "commandcode_log": [],
+  "commandcode_log": [
+    { "ts": "2026-05-15T00:01:00Z", "file": "artifacts/cyberise/vite.config.ts", "action": "edit", "summary": "Added /api proxy to localhost:8080 so Replit dev preview routes API calls to local API server" },
+    { "ts": "2026-05-15T00:00:00Z", "file": "artifacts/cyberise/public/architecture-map-backend.html", "action": "create", "summary": "Interactive backend architecture map — 27 nodes, 42 edges, 6 clusters, critical RDP purchase path, filter chips, node selection with details panel" },
+    { "ts": "2026-05-15T00:00:00Z", "file": "artifacts/cyberise/public/architecture-map-frontend.html", "action": "create", "summary": "Interactive frontend architecture map — 26 nodes, 37 edges, 6 clusters, critical purchase flow, filter chips, node selection with details panel" }
+  ],
   "replit_log": [
     { "ts": "2026-05-15T00:00:00Z", "file": "artifacts/cyberise/src/pages/AdminDev.tsx", "action": "create", "summary": "New admin Dev tab — agent activity feed (replit_log, commandcode_log, claims, conflicts) + architecture map iframes, auto-refreshes every 30s" },
     { "ts": "2026-05-15T00:00:00Z", "file": "artifacts/api-server/src/routes/admin.ts", "action": "edit", "summary": "Added GET /admin/agent-context endpoint — reads .agent_context.json from workspace root, admin-only" },

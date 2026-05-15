@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Architecture Map — Cyberise Backend</title>
+<style>
+:root {
+  --bg: #0F0F0F;
+  --panel: #161616;
+  --panel-2: #1c1c1c;
+  --border: #2a2a2a;
+  --text: #e8e8e8;
+  --muted: #8a8a8a;
+  --client: #4ea1ff;
+  --route: #7bd389;
+  --service: #c792ea;
+  --db: #ffb86b;
+  --external: #ff6b9d;
+  --critical: #ff3860;
+  --accent: #f5b942;
+  --accent-2: #ff7a45;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,sans-serif; overflow:hidden; height:100vh; display:flex; }
+#sidebar { width:320px; min-width:320px; background:var(--panel); border-right:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; }
+#sidebar h2 { padding:20px 20px 12px; font-size:16px; font-weight:600; color:var(--text); }
+#sidebar .desc { padding:0 20px 12px; font-size:12px; color:var(--muted); line-height:1.5; }
+#chips { padding:0 20px 12px; display:flex; flex-wrap:wrap; gap:6px; }
+.chip { padding:4px 10px; border-radius:12px; font-size:11px; cursor:pointer; background:var(--panel-2); color:var(--muted); border:1px solid var(--border); transition:all 0.15s; }
+.chip.active { background:var(--accent); color:#000; border-color:var(--accent); font-weight:600; }
+#details-area { padding:0 20px 20px; flex:1; overflow-y:auto; }
+#details-area h3 { font-size:14px; margin-bottom:6px; color:var(--accent); }
+#details-area .detail-row { font-size:12px; color:var(--muted); margin-bottom:4px; line-height:1.4; }
+#details-area .detail-row span { color:var(--text); }
+#details-area .detail-notes { margin-top:10px; padding:10px; background:var(--panel-2); border-radius:6px; font-size:11px; color:var(--muted); line-height:1.5; }
+#canvas-wrap { flex:1; position:relative; overflow:hidden; cursor:grab; }
+#canvas-wrap:active { cursor:grabbing; }
+svg { width:100%; height:100%; }
+.node { cursor:pointer; transition:opacity 0.2s; }
+.node rect { stroke-width:1.5px; rx:6; ry:6; }
+.node text.label { font-size:11px; font-weight:600; fill:var(--text); pointer-events:none; }
+.node text.sub { font-size:9px; fill:var(--muted); pointer-events:none; }
+.node.dimmed { opacity:0.15; }
+.node.selected rect { stroke:var(--accent); stroke-width:2.5px; filter:drop-shadow(0 0 8px var(--accent)); }
+.edge { fill:none; stroke:var(--muted); stroke-width:1; }
+.edge.dimmed { opacity:0.05; }
+.edge.critical { stroke:var(--critical); stroke-width:2; }
+.edge-label { font-size:9px; fill:var(--muted); pointer-events:none; }
+.critical-badge { fill:var(--critical); font-size:7px; font-weight:700; pointer-events:none; }
+.cluster-label text { font-size:10px; fill:var(--muted); text-transform:uppercase; letter-spacing:1.5px; }
+.cluster-label line { stroke:var(--border); stroke-width:1; }
+.cluster-bg { fill:var(--panel-2); stroke:var(--border); stroke-width:1; rx:8; }
+</style>
+</head>
+<body>
+<div id="sidebar">
+  <h2>Architecture Map — Backend</h2>
+  <div class="desc">Express 5 API server, Vercel serverless entry, middleware chain, services, and data layer.</div>
+  <div id="chips"></div>
+  <div id="details-area"><div style="color:var(--muted);font-size:12px;padding-top:10px;">Click a node to see details</div></div>
+</div>
+<div id="canvas-wrap"><svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg></div>
+
+<defs id="defs">
+  <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+    <polygon points="0 0, 8 3, 0 6" fill="#8a8a8a"/>
+  </marker>
+  <marker id="arrowhead-critical" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+    <polygon points="0 0, 8 3, 0 6" fill="#ff3860"/>
+  </marker>
+</defs>
+
+<script>
+const clusters = [
+  { id:'entry',     label:'Entry',     x:20,  y:30,  w:200, h:260 },
+  { id:'middleware',label:'Middleware',x:260, y:30,  w:200, h:260 },
+  { id:'routes',    label:'Routes',    x:500, y:30,  w:200, h:720 },
+  { id:'services',  label:'Services',  x:740, y:30,  w:210, h:500 },
+  { id:'data',      label:'Data',      x:990, y:30,  w:200, h:380 },
+  { id:'external',  label:'External',  x:1230,y:30,  w:180, h:380 },
+];
+
+const N = (id, cluster, label, sub, x, y, w, h, color, opts = {}) =>
+  ({ id, cluster, label, sub, x, y, w, h, color, ...opts });
+
+const nodes = [
+  N('entry-index',    'entry','api/index.js','Vercel serverless',        0,0,170,42,'client',{path:'api/index.js',notes:'Imports prebuilt ../artifacts/api-server/dist/app.mjs. If esbuild bundle not run, Vercel 500s.',tag:['all','infra'],critical:true}),
+  N('entry-server',   'entry','src/index.ts','Standalone server',        0,56,170,38,'client',{path:'artifacts/api-server/src/index.ts',notes:'Reads PORT env, starts HTTP server on app.listen().',tag:['all','infra']}),
+  N('entry-app',      'entry','src/app.ts','Express app factory',        0,108,170,42,'client',{path:'artifacts/api-server/src/app.ts',notes:'Configures CORS, JSON body parser, helmet, morgan logging, clerkMiddleware, registers all route mounts.',tag:['all','infra'],critical:true}),
+  N('mw-auth',        'middleware','auth.ts','Clerk JWT validation',     0,0,170,56,'client',{path:'artifacts/api-server/src/middleware/auth.ts',notes:'Exports: requireAuth (validates Clerk JWT), attachUser (fetches user from Prisma), requireAdmin, requireActiveUser. Uses @clerk/clerk-sdk-node.',tag:['all','auth'],critical:true}),
+  N('mw-ratelimit',   'middleware','rateLimit.ts','Upstash Redis',       0,72,170,56,'client',{path:'artifacts/api-server/src/middleware/rateLimit.ts',notes:'Three presets: marketRateLimit(30/min), orderRateLimit(5/min), strictRateLimit(10/min). Backed by Upstash Redis.',tag:['all','infra'],critical:true}),
+  N('route-index',    'routes','index.ts','Route mount map',             0,0,170,42,'route',{path:'artifacts/api-server/src/routes/index.ts',notes:'Mounts all routers: /market, /orders, /admin, /webhooks/clerk, /cron, /contact, /healthz, /clerk.',tag:['all','infra']}),
+  N('route-market',   'routes','market.ts','RDP purchase handler',       0,56,170,42,'route',{path:'artifacts/api-server/src/routes/market.ts',notes:'GET /market/plans (cached, Redis), POST /market/order (full purchase flow). Auth: requireAuth + attachUser + requireActiveUser. Rate limit: orderRateLimit(5/min).',tag:['all','market'],critical:true}),
+  N('route-orders',   'routes','orders.ts','Order management',           0,112,170,42,'route',{path:'artifacts/api-server/src/routes/orders.ts',notes:'GET /orders (list), GET /orders/:id (detail + decrypt RDP password), POST /orders/:id/terminate. Auth: requireAuth.',tag:['all','orders']}),
+  N('route-admin',    'routes','admin.ts','Admin panel routes',          0,168,170,42,'route',{path:'artifacts/api-server/src/routes/admin.ts',notes:'User ban/unban, order terminations, settings management, agent-context endpoint. Auth: requireAdmin.',tag:['all','admin']}),
+  N('route-webhook',  'routes','webhook.ts','Clerk user sync',           0,224,170,42,'route',{path:'artifacts/api-server/src/routes/webhook.ts',notes:'POST /webhooks/clerk — Svix webhook receiver. Syncs Clerk users to local Prisma DB on user.created/updated/deleted.',tag:['all','auth']}),
+  N('route-cron',     'routes','cron.ts','Scheduled expiry',             0,280,170,42,'route',{path:'artifacts/api-server/src/routes/cron.ts',notes:'POST /cron/expire-instances — finds expired orders, terminates Linode instances, sends reminders.',tag:['all','infra']}),
+  N('route-contact',  'routes','contact.ts','Contact form handler',      0,336,170,42,'route',{path:'artifacts/api-server/src/routes/contact.ts',notes:'POST /contact — validates contact form, sends via Resend to CONTACT_RECIPIENT_EMAIL.',tag:['all','comms']}),
+  N('route-health',   'routes','health.ts','Health check endpoint',      0,392,170,42,'route',{path:'artifacts/api-server/src/routes/health.ts',notes:'GET /healthz — returns {status:"ok"}. No auth, no rate limit.',tag:['all','infra']}),
+  N('route-clerkp',   'routes','clerkProxy.ts','Clerk API proxy',        0,448,170,42,'route',{path:'artifacts/api-server/src/routes/clerkProxy.ts',notes:'Proxies /clerk/* → clerk.cyberise.org via http-proxy-middleware. Used for frontend Clerk API calls.',tag:['all','auth']}),
+  N('svc-linode',     'services','linode.ts','Linode API client',        0,0,190,42,'service',{path:'artifacts/api-server/src/services/linode.ts',notes:'Exports: getPlans, getRegions, getWindowsImages, createInstance, deleteInstance. Uses LINODE_API_TOKEN. Wrapped in circuit breaker.',tag:['all','market'],critical:true}),
+  N('svc-email',      'services','email.ts','Resend email sender',       0,56,190,42,'service',{path:'artifacts/api-server/src/services/email.ts',notes:'Exports: sendEmail, generateRDPCredentialsEmail, generateTerminationEmail, generateRenewalReminderEmail. Uses Resend API.',tag:['all','comms'],critical:true}),
+  N('svc-redis',      'services','redis.ts','Upstash Redis cache',       0,112,190,42,'service',{path:'artifacts/api-server/src/services/redis.ts',notes:'Exports: getCache, setCache, deleteCache, checkRateLimit. 300s TTL for plan cache. Uses REDIS_URL + REDIS_TOKEN.',tag:['all','infra'],critical:true}),
+  N('util-breaker',   'services','circuitBreaker.ts','Fault tolerance',   0,168,190,42,'service',{path:'artifacts/api-server/src/utils/circuitBreaker.ts',notes:'Exports: getBreaker. Config: 3 failures → 30s cooldown. Guards Linode API calls. Check if threshold/reset match Linode p99 latency.',tag:['all','market'],critical:true}),
+  N('util-crypto',    'services','encryption.ts','AES password encrypt',  0,224,190,42,'service',{path:'artifacts/api-server/src/utils/encryption.ts',notes:'Exports: encrypt, decrypt, generatePassword. Uses crypto-js AES + node:crypto for password gen. Key source: ENCRYPTION_SECRET env var.',tag:['all','market'],critical:true}),
+  N('data-prisma',    'data','client.ts','Prisma client singleton',      0,0,180,42,'db',{path:'lib/db/src/client.ts',notes:'Exports: prisma (PrismaClient singleton). Models: User, Order, MarketSettings, EmailLog, AuditLog.',tag:['all','data'],critical:true}),
+  N('data-schema',    'data','schema.prisma','DB schema definition',      0,56,180,42,'db',{path:'lib/db/prisma/schema.prisma',notes:'Coordination boundary — do not modify without cross-agent agreement. 5 models: User, Order, MarketSettings, EmailLog, AuditLog.',tag:['all','data']}),
+  N('data-seed',      'data','seed.ts','DB seed script',                 0,112,180,42,'db',{path:'lib/db/src/seed.ts',notes:'Creates default MarketSettings (max_active_orders=5, markup_percentage=20).',tag:['all','data']}),
+  N('data-env',       'data','env/server.ts','Server env validation',    0,168,180,42,'db',{path:'lib/env/src/server.ts',notes:'Validates: DATABASE_URL, REDIS_URL, CLERK_SECRET_KEY, LINODE_API_TOKEN, RESEND_API_KEY, ENCRYPTION_SECRET (min 32 chars), JWT_SECRET (min 32 chars), CRON_SECRET. No unsafe defaults found.',tag:['all','infra']}),
+  N('data-zod',       'data','api-zod/index.ts','OpenAPI Zod validators',0,224,180,42,'db',{path:'lib/api-zod/src/index.ts',notes:'Generated Zod schemas from OpenAPI spec. Used by validators for request body parsing. Shared with frontend via lib boundary.',tag:['all','data']}),
+  N('ext-linode',     'external','Linode API','api.linode.com/v4',       0,0,160,42,'external',{notes:'External REST API. Provision/destroy Linode instances. Critical dependency for RDP purchase flow.',tag:['all','market'],critical:true}),
+  N('ext-clerk',      'external','Clerk JWKS','JWT key server',          0,56,160,42,'external',{notes:'Clerk JSON Web Key Set endpoint. Used by auth middleware to validate JWT signatures.',tag:['all','auth'],critical:true}),
+  N('ext-redis',      'external','Upstash Redis','Serverless Redis',     0,112,160,42,'external',{notes:'Upstash serverless Redis. Used for rate limiting + plan caching. REDIS_URL + REDIS_TOKEN required.',tag:['all','infra'],critical:true}),
+  N('ext-resend',     'external','Resend','Email API',                   0,168,160,42,'external',{notes:'Resend email delivery API. Transactional emails: RDP credentials, terminations, reminders, contact form.',tag:['all','comms'],critical:true}),
+  N('ext-vercel',     'external','Vercel','Serverless host',             0,224,160,42,'external',{notes:'Hosts Express API as serverless function. api/index.js is the single entry. Cold starts possible.',tag:['all','infra']}),
+];
+
+const edges = [
+  // Entry → App
+  {from:'entry-index',to:'entry-app',kind:'import',label:'imports app',tag:['all','infra'],critical:true},
+  {from:'entry-server',to:'entry-app',kind:'import',label:'imports app',tag:['all','infra']},
+  // App → Middleware
+  {from:'entry-app',to:'mw-auth',kind:'config',label:'global middleware',tag:['all','auth'],critical:true},
+  {from:'entry-app',to:'mw-ratelimit',kind:'config',label:'mounts per-route',tag:['all','infra'],critical:true},
+  // App → Route index
+  {from:'entry-app',to:'route-index',kind:'mount',label:'mounts routers',tag:['all','infra'],critical:true},
+  // Route index → Route files
+  {from:'route-index',to:'route-market',kind:'mount',label:'/api/market',tag:['all','market']},
+  {from:'route-index',to:'route-orders',kind:'mount',label:'/api/orders',tag:['all','orders']},
+  {from:'route-index',to:'route-admin',kind:'mount',label:'/api/admin',tag:['all','admin']},
+  {from:'route-index',to:'route-webhook',kind:'mount',label:'/api/webhooks',tag:['all','auth']},
+  {from:'route-index',to:'route-cron',kind:'mount',label:'/api/cron',tag:['all','infra']},
+  {from:'route-index',to:'route-contact',kind:'mount',label:'/api/contact',tag:['all','comms']},
+  {from:'route-index',to:'route-health',kind:'mount',label:'/api/healthz',tag:['all','infra']},
+  {from:'route-index',to:'route-clerkp',kind:'mount',label:'/api/clerk',tag:['all','auth']},
+  // Middleware → Routes (auth + rate limit applied per route)
+  {from:'mw-auth',to:'route-market',kind:'guard',label:'requireAuth',tag:['all','market'],critical:true},
+  {from:'mw-ratelimit',to:'route-market',kind:'guard',label:'orderRateLimit',tag:['all','market'],critical:true},
+  {from:'mw-auth',to:'route-orders',kind:'guard',label:'requireAuth',tag:['all','orders']},
+  {from:'mw-ratelimit',to:'route-orders',kind:'guard',label:'orderRateLimit',tag:['all','orders']},
+  {from:'mw-auth',to:'route-admin',kind:'guard',label:'requireAdmin',tag:['all','admin']},
+  {from:'mw-ratelimit',to:'route-admin',kind:'guard',label:'strictRateLimit',tag:['all','admin']},
+  {from:'mw-auth',to:'route-cron',kind:'guard',label:'cronSecret check',tag:['all','infra']},
+  {from:'mw-ratelimit',to:'route-contact',kind:'guard',label:'strictRateLimit',tag:['all','comms']},
+  // Routes → Services
+  {from:'route-market',to:'svc-linode',kind:'call',label:'createInstance()',tag:['all','market'],critical:true},
+  {from:'route-market',to:'svc-redis',kind:'call',label:'getCache / setCache',tag:['all','market'],critical:true},
+  {from:'route-market',to:'util-crypto',kind:'call',label:'encrypt(password)',tag:['all','market'],critical:true},
+  {from:'route-market',to:'svc-email',kind:'call',label:'sendEmail()',tag:['all','market'],critical:true},
+  {from:'route-orders',to:'svc-linode',kind:'call',label:'deleteInstance()',tag:['all','orders']},
+  {from:'route-orders',to:'util-crypto',kind:'call',label:'decrypt(password)',tag:['all','orders']},
+  {from:'route-orders',to:'svc-email',kind:'call',label:'generateTerminationEmail',tag:['all','orders']},
+  {from:'route-admin',to:'svc-linode',kind:'call',label:'deleteInstance()',tag:['all','admin']},
+  {from:'route-cron',to:'svc-linode',kind:'call',label:'expire instances',tag:['all','infra']},
+  {from:'route-cron',to:'svc-email',kind:'call',label:'renewal reminders',tag:['all','infra']},
+  {from:'route-contact',to:'svc-email',kind:'call',label:'sendEmail()',tag:['all','comms']},
+  // Services → External
+  {from:'svc-linode',to:'ext-linode',kind:'api',label:'REST /v4',tag:['all','market'],critical:true},
+  {from:'svc-email',to:'ext-resend',kind:'api',label:'emails.send()',tag:['all','comms'],critical:true},
+  {from:'svc-redis',to:'ext-redis',kind:'api',label:'Redis protocol',tag:['all','infra'],critical:true},
+  {from:'mw-auth',to:'ext-clerk',kind:'api',label:'JWKS fetch',tag:['all','auth'],critical:true},
+  {from:'route-webhook',to:'ext-clerk',kind:'webhook',label:'Svix webhook',tag:['all','auth']},
+  {from:'entry-index',to:'ext-vercel',kind:'host',label:'Vercel serverless',tag:['all','infra']},
+  // Services ↔ Circuit Breaker
+  {from:'util-breaker',to:'svc-linode',kind:'wrap',label:'circuit breaker',tag:['all','market'],critical:true},
+  // Routes → Data
+  {from:'route-market',to:'data-prisma',kind:'rw',label:'prisma.$transaction',tag:['all','market'],critical:true},
+  {from:'route-orders',to:'data-prisma',kind:'rw',label:'findMany / update',tag:['all','orders']},
+  {from:'route-admin',to:'data-prisma',kind:'rw',label:'CRUD operations',tag:['all','admin']},
+  {from:'route-webhook',to:'data-prisma',kind:'write',label:'upsert User',tag:['all','auth']},
+  {from:'route-cron',to:'data-prisma',kind:'rw',label:'expire queries',tag:['all','infra']},
+  {from:'mw-auth',to:'data-prisma',kind:'read',label:'findUser',tag:['all','auth']},
+  // Data internal
+  {from:'data-prisma',to:'data-schema',kind:'generated',label:'Prisma client',tag:['all','data']},
+  {from:'data-seed',to:'data-prisma',kind:'write',label:'seed defaults',tag:['all','data']},
+  {from:'data-env',to:'data-prisma',kind:'config',label:'DATABASE_URL',tag:['all','data']},
+];
+
+const FIXES = {
+  'circuit-breaker-tuning': 'Verify circuit breaker threshold (3 failures) and reset window (30s) match Linode p99 latency.',
+  'route-health-unguarded': 'GET /healthz has no auth — acceptable for health checks, but consider if load balancer probes need headers.',
+  'encryption-key-source': 'Confirm ENCRYPTION_SECRET env var is set in Vercel and does not fall back to a hardcoded default.',
+};
+
+const KNOWN_BUGS = {
+  'vercel-cold-bundle': 'api/index.js imports ../artifacts/api-server/dist/app.mjs. If buildCommand skips api-server build, Vercel returns 500.',
+  'rate-limit-gaps': 'Grep all route files for rate limit middleware usage. Flag any route that applies no preset — health.ts is one.',
+  'prisma-coordination': 'lib/db/prisma/schema.prisma is a coordination boundary. Do not modify without cross-agent agreement.',
+  'dead-code-check': 'Review top-level exports in src/services/ and src/utils/ for zero callers — potential dead code.',
+};
+
+// --- Layout engine ---
+function applyOffsets() {
+  clusters.forEach(c => {
+    nodes.filter(n => n.cluster === c.id).forEach(n => {
+      n.x = c.x + n.x + 15;
+      n.y = c.y + n.y + 35;
+    });
+  });
+  // Expand cluster heights based on content
+  clusters.forEach(c => {
+    const cnodes = nodes.filter(n => n.cluster === c.id);
+    if (cnodes.length) {
+      const maxY = Math.max(...cnodes.map(n => n.y + n.h));
+      c.h = maxY - c.y + 15;
+    }
+  });
+
+  // entry cluster sizing
+  const entryC = clusters.find(c => c.id === 'entry');
+  entryC.h = 260;
+
+  // middleware cluster sizing
+  const mwC = clusters.find(c => c.id === 'middleware');
+  mwC.h = 200;
+}
+
+applyOffsets();
+
+// --- Active filter ---
+let activeFilter = 'all';
+
+function setFilter(tag) {
+  activeFilter = tag;
+  document.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.tag === tag));
+  render();
+}
+
+function nodeMatchesFilter(n) {
+  if (activeFilter === 'all') return true;
+  return n.tag && n.tag.includes(activeFilter);
+}
+
+// --- Selection ---
+let selectedNodeId = null;
+function selectNode(id) {
+  selectedNodeId = selectedNodeId === id ? null : id;
+  render();
+  updateDetails();
+}
+
+// --- Pan/zoom ---
+let tx = 0, ty = 0, scale = 1;
+let dragging = false, dragX, dragY;
+
+const wrap = document.getElementById('canvas-wrap');
+const svgEl = document.getElementById('svg');
+
+wrap.addEventListener('wheel', e => {
+  e.preventDefault();
+  const rect = wrap.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  const ds = e.deltaY < 0 ? 1.1 : 0.9;
+  const newScale = Math.max(0.2, Math.min(3, scale * ds));
+  tx = mx - (mx - tx) * (newScale / scale);
+  ty = my - (my - ty) * (newScale / scale);
+  scale = newScale;
+  render();
+});
+
+wrap.addEventListener('mousedown', e => {
+  if (e.target === wrap || e.target === svgEl) {
+    dragging = true; dragX = e.clientX - tx; dragY = e.clientY - ty;
+  }
+});
+
+window.addEventListener('mousemove', e => {
+  if (dragging) { tx = e.clientX - dragX; ty = e.clientY - dragY; render(); }
+});
+
+window.addEventListener('mouseup', () => { dragging = false; });
+
+// --- Rendering ---
+function render() {
+  const svg = document.getElementById('svg');
+  const G = 20; // gutter
+
+  let html = `<g transform="translate(${tx},${ty}) scale(${scale})">`;
+
+  // Cluster backgrounds
+  clusters.forEach(c => {
+    html += `<rect class="cluster-bg" x="${c.x}" y="${c.y}" width="${c.w}" height="${c.h}" rx="8"/>`;
+  });
+
+  // Cluster labels
+  clusters.forEach(c => {
+    html += `<g class="cluster-label">
+      <line x1="${c.x}" y1="${c.y + 7}" x2="${c.x + c.w}" y2="${c.y + 7}"/>
+      <text x="${c.x + 8}" y="${c.y - 6}">${c.label}</text>
+    </g>`;
+  });
+
+  // Edges
+  const selectedSet = new Set();
+  if (selectedNodeId) {
+    selectedSet.add(selectedNodeId);
+    edges.forEach(e => {
+      if (e.from === selectedNodeId) selectedSet.add(e.to);
+      if (e.to === selectedNodeId) selectedSet.add(e.from);
+    });
+  }
+
+  const relevantEdges = edges.filter(e => {
+    if (activeFilter !== 'all') return e.tag && e.tag.includes(activeFilter);
+    if (selectedNodeId) return e.from === selectedNodeId || e.to === selectedNodeId;
+    return true;
+  });
+
+  relevantEdges.forEach(e => {
+    const from = nodes.find(n => n.id === e.from);
+    const to = nodes.find(n => n.id === e.to);
+    if (!from || !to) return;
+
+    const x1 = from.x + from.w;
+    const y1 = from.y + from.h / 2;
+    const x2 = to.x;
+    const y2 = to.y + to.h / 2;
+    const cx1 = x1 + Math.abs(x2 - x1) * 0.4;
+    const cx2 = x2 - Math.abs(x2 - x1) * 0.4;
+
+    const dimmed = selectedNodeId && !selectedSet.has(e.from) && !selectedSet.has(e.to);
+    const isCritical = e.critical;
+    const cls = ['edge', dimmed ? 'dimmed' : '', isCritical ? 'critical' : ''].filter(Boolean).join(' ');
+    const marker = isCritical ? 'url(#arrowhead-critical)' : 'url(#arrowhead)';
+
+    html += `<path class="${cls}" d="M${x1},${y1} C${cx1},${y1} ${cx2},${y2} ${x2},${y2}" marker-end="${marker}"/>`;
+
+    // Edge label
+    const lx = (x1 + x2) / 2;
+    const ly = (y1 + y2) / 2 - 6;
+    html += `<text class="edge-label" x="${lx}" y="${ly}" text-anchor="middle">${e.label}</text>`;
+  });
+
+  // Nodes
+  const relevantNodes = nodes.filter(n => nodeMatchesFilter(n));
+
+  relevantNodes.forEach(n => {
+    const selected = n.id === selectedNodeId;
+    const dimmed = selectedNodeId && !selectedSet.has(n.id);
+    const isCritical = n.critical;
+    const fill = `var(--${n.color})`;
+
+    html += `<g class="node${selected ? ' selected' : ''}${dimmed ? ' dimmed' : ''}" data-id="${n.id}" onclick="selectNode('${n.id}')">
+      <rect x="${n.x}" y="${n.y}" width="${n.w}" height="${n.h}" fill="var(--panel-2)" stroke="${fill}" rx="6"/>
+      <text class="label" x="${n.x + n.w/2}" y="${n.y + 16}" text-anchor="middle">${n.label}</text>
+      <text class="sub" x="${n.x + n.w/2}" y="${n.y + 30}" text-anchor="middle">${n.sub}</text>`;
+
+    if (isCritical) {
+      html += `<text class="critical-badge" x="${n.x + n.w - 6}" y="${n.y + 10}" text-anchor="end">✦</text>`;
+    }
+    html += `</g>`;
+  });
+
+  html += `</g>`;
+  svg.innerHTML = html;
+}
+
+// --- Details panel ---
+function updateDetails() {
+  const area = document.getElementById('details-area');
+  if (!selectedNodeId) {
+    area.innerHTML = '<div style="color:var(--muted);font-size:12px;padding-top:10px;">Click a node to see details</div>';
+    return;
+  }
+  const n = nodes.find(x => x.id === selectedNodeId);
+  if (!n) return;
+
+  let html = `<h3>${n.label}</h3>`;
+  html += `<div class="detail-row">Path: <span>${n.path || 'N/A'}</span></div>`;
+  html += `<div class="detail-row">Cluster: <span>${n.cluster}</span></div>`;
+  if (n.tag) html += `<div class="detail-row">Tags: <span>${n.tag.join(', ')}</span></div>`;
+  if (n.critical) html += `<div class="detail-row" style="color:var(--critical);">Critical path ✦</div>`;
+  if (n.notes) html += `<div class="detail-notes">${n.notes}</div>`;
+  area.innerHTML = html;
+}
+
+// --- Chips ---
+const chipArea = document.getElementById('chips');
+const allTags = ['all','market','orders','admin','auth','comms','infra','data'];
+allTags.forEach(t => {
+  const chip = document.createElement('span');
+  chip.className = 'chip' + (t === 'all' ? ' active' : '');
+  chip.textContent = t;
+  chip.dataset.tag = t;
+  chip.onclick = () => setFilter(t);
+  chipArea.appendChild(chip);
+});
+
+// --- Keyboard ---
+window.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { selectedNodeId = null; render(); updateDetails(); }
+});
+
+// --- Initial render ---
+render();
+
+// Node count and edge count
+console.log('Backend Architecture Map: nodes=' + nodes.length + ', edges=' + edges.length);
+</script>
+</body>
+</html>

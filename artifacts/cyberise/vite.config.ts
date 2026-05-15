@@ -52,6 +52,11 @@ export default defineConfig({
       strict: true,
     },
     proxy: {
+      "/api": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+        secure: false,
+      },
       "/v1": {
         target: "https://api.clerk.com",
         changeOrigin: true,

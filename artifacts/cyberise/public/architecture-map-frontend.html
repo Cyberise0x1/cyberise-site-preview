@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Architecture Map — Cyberise Frontend</title>
+<style>
+:root {
+  --bg: #0F0F0F;
+  --panel: #161616;
+  --panel-2: #1c1c1c;
+  --border: #2a2a2a;
+  --text: #e8e8e8;
+  --muted: #8a8a8a;
+  --client: #4ea1ff;
+  --route: #7bd389;
+  --service: #c792ea;
+  --db: #ffb86b;
+  --external: #ff6b9d;
+  --critical: #ff3860;
+  --accent: #f5b942;
+  --accent-2: #ff7a45;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,sans-serif; overflow:hidden; height:100vh; display:flex; }
+#sidebar { width:320px; min-width:320px; background:var(--panel); border-right:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; }
+#sidebar h2 { padding:20px 20px 12px; font-size:16px; font-weight:600; color:var(--text); }
+#sidebar .desc { padding:0 20px 12px; font-size:12px; color:var(--muted); line-height:1.5; }
+#chips { padding:0 20px 12px; display:flex; flex-wrap:wrap; gap:6px; }
+.chip { padding:4px 10px; border-radius:12px; font-size:11px; cursor:pointer; background:var(--panel-2); color:var(--muted); border:1px solid var(--border); transition:all 0.15s; }
+.chip.active { background:var(--accent); color:#000; border-color:var(--accent); font-weight:600; }
+#details-area { padding:0 20px 20px; flex:1; overflow-y:auto; }
+#details-area h3 { font-size:14px; margin-bottom:6px; color:var(--accent); }
+#details-area .detail-row { font-size:12px; color:var(--muted); margin-bottom:4px; line-height:1.4; }
+#details-area .detail-row span { color:var(--text); }
+#details-area .detail-notes { margin-top:10px; padding:10px; background:var(--panel-2); border-radius:6px; font-size:11px; color:var(--muted); line-height:1.5; }
+#canvas-wrap { flex:1; position:relative; overflow:hidden; cursor:grab; }
+#canvas-wrap:active { cursor:grabbing; }
+svg { width:100%; height:100%; }
+.node { cursor:pointer; transition:opacity 0.2s; }
+.node rect { stroke-width:1.5px; rx:6; ry:6; }
+.node text.label { font-size:11px; font-weight:600; fill:var(--text); pointer-events:none; }
+.node text.sub { font-size:9px; fill:var(--muted); pointer-events:none; }
+.node.dimmed { opacity:0.15; }
+.node.selected rect { stroke:var(--accent); stroke-width:2.5px; filter:drop-shadow(0 0 8px var(--accent)); }
+.edge { fill:none; stroke:var(--muted); stroke-width:1; }
+.edge.dimmed { opacity:0.05; }
+.edge.critical { stroke:var(--critical); stroke-width:2; }
+.edge-label { font-size:9px; fill:var(--muted); pointer-events:none; }
+.critical-badge { fill:var(--critical); font-size:7px; font-weight:700; pointer-events:none; }
+.cluster-label text { font-size:10px; fill:var(--muted); text-transform:uppercase; letter-spacing:1.5px; }
+.cluster-label line { stroke:var(--border); stroke-width:1; }
+.cluster-bg { fill:var(--panel-2); stroke:var(--border); stroke-width:1; rx:8; }
+</style>
+</head>
+<body>
+<div id="sidebar">
+  <h2>Architecture Map — Frontend</h2>
+  <div class="desc">React + Vite app: pages, components, auth state, API client, and external integrations.</div>
+  <div id="chips"></div>
+  <div id="details-area"><div style="color:var(--muted);font-size:12px;padding-top:10px;">Click a node to see details</div></div>
+</div>
+<div id="canvas-wrap"><svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg></div>
+
+<defs id="defs">
+  <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+    <polygon points="0 0, 8 3, 0 6" fill="#8a8a8a"/>
+  </marker>
+  <marker id="arrowhead-critical" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+    <polygon points="0 0, 8 3, 0 6" fill="#ff3860"/>
+  </marker>
+</defs>
+
+<script>
+const clusters = [
+  { id:'entry',     label:'Entry',        x:20,  y:30,  w:200, h:260 },
+  { id:'pages',     label:'Pages',        x:260, y:30,  w:200, h:560 },
+  { id:'components',label:'Components',   x:500, y:30,  w:210, h:660 },
+  { id:'state-auth',label:'State & Auth', x:750, y:30,  w:210, h:260 },
+  { id:'api-client',label:'API Client',   x:1000,y:30,  w:210, h:220 },
+  { id:'external',  label:'External',     x:1250,y:30,  w:180, h:220 },
+];
+
+const N = (id, cluster, label, sub, x, y, w, h, color, opts = {}) =>
+  ({ id, cluster, label, sub, x, y, w, h, color, ...opts });
+
+const nodes = [
+  N('entry-main',      'entry','main.tsx','ClerkProvider + root',            0,0,170,42,'client',{path:'artifacts/cyberise/src/main.tsx',notes:'Root render: ClerkProvider (VITE_CLERK_PUBLISHABLE_KEY, clerkJSUrl from jsdelivr CDN), QueryClientProvider (5min staleTime), Toaster, Router, App. If jsdelivr CDN blocked, auth silently breaks.',tag:['all','auth'],critical:true}),
+  N('entry-app',       'entry','App.tsx','Route definitions',                0,56,170,42,'client',{path:'artifacts/cyberise/src/App.tsx',notes:'Wouter router. Routes: / (landing), /market, /dashboard, /orders, /admin/*, /404. Composes homepage from landing components.',tag:['all','landing'],critical:true}),
+  N('entry-vite',      'entry','vite.config.ts','Build config',              0,112,170,38,'client',{path:'artifacts/cyberise/vite.config.ts',notes:'Reads PORT, BASE_PATH with optional fallbacks. Safe defaults prevent undefined in URLs.',tag:['all','infra']}),
+  N('page-market',     'pages','Market.tsx','RDP plan listing',              0,0,170,42,'route',{path:'artifacts/cyberise/src/pages/Market.tsx',notes:'Displays RDP plans from GET /api/market/plans. Purchase flow: select plan → POST /api/market/order → show credentials. Auth guard: redirects to sign-in on order if not signed in. Partially unguarded (browse is public).',tag:['all','market'],critical:true}),
+  N('page-dashboard',  'pages','Dashboard.tsx','User dashboard',             0,56,170,42,'route',{path:'artifacts/cyberise/src/pages/Dashboard.tsx',notes:'Protected route (ProtectedRoute). Shows active orders summary. API: GET /api/orders.',tag:['all','market','orders']}),
+  N('page-orders',     'pages','Orders.tsx','Order history',                 0,112,170,42,'route',{path:'artifacts/cyberise/src/pages/Orders.tsx',notes:'Protected route. Lists all user orders, allows termination. API: GET /api/orders, POST /api/orders/:id/terminate.',tag:['all','orders']}),
+  N('page-admin-l',    'pages','AdminLayout.tsx','Admin shell',              0,168,170,42,'route',{path:'artifacts/cyberise/src/pages/AdminLayout.tsx',notes:'Admin sidebar nav wrapper. Checks admin role. Child routes: users, orders, settings, dev.',tag:['all','admin']}),
+  N('page-admin-u',    'pages','AdminUsers.tsx','User management',           0,224,170,42,'route',{path:'artifacts/cyberise/src/pages/AdminUsers.tsx',notes:'Admin-only. List users, ban/unban. API: GET /api/admin/users, PATCH /api/admin/users/:id/ban.',tag:['all','admin']}),
+  N('page-admin-o',    'pages','AdminOrders.tsx','Order management',         0,280,170,42,'route',{path:'artifacts/cyberise/src/pages/AdminOrders.tsx',notes:'Admin-only. View/terminate orders. API: GET /api/admin/orders, DELETE /api/admin/orders/:id.',tag:['all','admin']}),
+  N('page-admin-s',    'pages','AdminSettings.tsx','Admin settings',         0,336,170,42,'route',{path:'artifacts/cyberise/src/pages/AdminSettings.tsx',notes:'Admin-only. Update MarketSettings. API: GET/PATCH /api/admin/settings.',tag:['all','admin']}),
+  N('page-admin-dev',  'pages','AdminDev.tsx','Agent Dev tab',               0,392,170,42,'route',{path:'artifacts/cyberise/src/pages/AdminDev.tsx',notes:'Agent activity feed (replit_log, commandcode_log, claims, conflicts) + architecture map iframes. Auto-refresh 30s.',tag:['all','admin']}),
+  N('page-404',        'pages','not-found.tsx','404 fallback',               0,448,170,38,'route',{path:'artifacts/cyberise/src/pages/not-found.tsx',notes:'Catch-all 404 page. No auth guard.',tag:['all','landing']}),
+  N('comp-hero',       'components','Hero.tsx','Landing hero',               0,0,180,38,'client',{path:'artifacts/cyberise/src/components/Hero.tsx',notes:'Animated hero section with CTA. Rendered on / (landing). No API calls.',tag:['all','landing']}),
+  N('comp-nav',        'components','Navbar.tsx','Navigation',               0,48,180,38,'client',{path:'artifacts/cyberise/src/components/Navbar.tsx',notes:'Top nav bar. Links to /market, /dashboard. Shows Clerk UserButton when signed in.',tag:['all','landing']}),
+  N('comp-footer',     'components','Footer.tsx','Site footer',              0,96,180,38,'client',{path:'artifacts/cyberise/src/components/Footer.tsx',notes:'Site footer with links, legal. No API calls.',tag:['all','landing']}),
+  N('comp-protected',  'components','ProtectedRoute.tsx','Auth gate',        0,144,180,42,'client',{path:'artifacts/cyberise/src/components/ProtectedRoute.tsx',notes:'Wraps protected routes. Uses useAuth() + useUser(). Checks isSignedIn → redirects to SignIn. Checks publicMetadata.role === "ADMIN" for admin routes.',tag:['all','auth'],critical:true}),
+  N('comp-contact',    'components','Contact.tsx','Contact form',            0,198,180,42,'client',{path:'artifacts/cyberise/src/components/Contact.tsx',notes:'Public contact form. POSTs to /api/contact. No auth required. Uses api.ts fetch.',tag:['all','comms']}),
+  N('comp-landing',    'components','Landing section','9 components',        0,252,180,42,'client',{notes:'Collapsed: About, Services, WhyUs, StatsBar, Marquee, Testimonials, Projects. All rendered on /. No API calls, no auth.',tag:['all','landing']}),
+  N('comp-shadcn',     'components','shadcn/ui','~40 UI components',         0,306,180,42,'client',{path:'artifacts/cyberise/src/components/ui/',notes:'~40 shadcn UI primitives (Button, Card, Dialog, Input, Select, etc.). Used across all pages.',tag:['all','landing']}),
+  N('comp-visual',     'components','Visual layer','3 components',           0,360,180,42,'client',{notes:'Collapsed: ThreeBackground (Three.js 3D background), CustomCursor, Preloader. Potential memory leak in ThreeBackground if renderer not disposed on unmount.',tag:['all','visual']}),
+  N('comp-legal',      'components','LegalModal.tsx','Legal popup',          0,414,180,38,'client',{path:'artifacts/cyberise/src/components/LegalModal.tsx',notes:'Legal/privacy modal. No API calls, no auth.',tag:['all','landing']}),
+  N('state-auth',      'state-auth','auth.tsx','Clerk hooks wrapper',        0,0,190,42,'client',{path:'artifacts/cyberise/src/lib/auth.tsx',notes:'Wraps Clerk hooks (useAuth, useUser, useSession). Used by ProtectedRoute and pages that need auth state.',tag:['all','auth'],critical:true}),
+  N('state-api',       'state-auth','api.ts','Fetch base config',            0,56,190,42,'client',{path:'artifacts/cyberise/src/lib/api.ts',notes:'Base fetch wrapper. Gets Clerk token via getToken() and attaches as Authorization: Bearer header. Exports useApi() hook.',tag:['all','auth'],critical:true}),
+  N('state-hooks',     'state-auth','hooks/','Custom hooks',                 0,112,190,42,'client',{path:'artifacts/cyberise/src/hooks/',notes:'use-mobile (768px breakpoint), use-toast (Sonner integration).',tag:['all','landing']}),
+  N('apicl-fetch',     'api-client','custom-fetch.ts','Auth fetch wrapper',  0,0,180,42,'client',{path:'lib/api-client-react/src/custom-fetch.ts',notes:'Custom fetch with auth token injection. setAuthTokenGetter() is called at init with Clerk getToken. Every API request attaches JWT via Authorization header.',tag:['all','auth'],critical:true}),
+  N('apicl-gen',       'api-client','generated/api.ts','React Query hooks',  0,56,180,42,'client',{path:'lib/api-client-react/src/generated/api.ts',notes:'Auto-generated by Orval from lib/api-spec/. Do NOT hand-edit. Exports: useHealthCheck, healthCheck, etc. Uses @tanstack/react-query.',tag:['all','infra']}),
+  N('apicl-index',     'api-client','index.ts','Package exports',            0,112,180,38,'client',{path:'lib/api-client-react/src/index.ts',notes:'Re-exports customFetch + generated hooks + schemas.',tag:['all','infra']}),
+  N('ext-clerk',       'external','Clerk','Authentication SaaS',             0,0,160,42,'external',{notes:'Clerk authentication service. Handles sign-in, sign-up, session management. Production keys only work on cyberise.org domain.',tag:['all','auth'],critical:true}),
+  N('ext-api',         'external','Express API','Backend @ /api',            0,56,160,42,'external',{notes:'Cyberise Express 5 API server (serverless on Vercel). All backend routes at /api/*. See backend architecture map.',tag:['all','market'],critical:true}),
+  N('ext-three',       'external','Three.js','3D rendering lib',             0,112,160,42,'external',{notes:'Three.js loaded via npm. Renders 3D background animation in ThreeBackground component. Imported as ESM module.',tag:['all','visual']}),
+];
+
+const edges = [
+  // Entry → Pages (routing)
+  {from:'entry-app',to:'page-market',kind:'route',label:'/market',tag:['all','market'],critical:true},
+  {from:'entry-app',to:'page-dashboard',kind:'route',label:'/dashboard',tag:['all','market']},
+  {from:'entry-app',to:'page-orders',kind:'route',label:'/orders',tag:['all','orders']},
+  {from:'entry-app',to:'page-admin-l',kind:'route',label:'/admin/*',tag:['all','admin']},
+  {from:'entry-app',to:'page-404',kind:'route',label:'* (404)',tag:['all','landing']},
+  {from:'page-admin-l',to:'page-admin-u',kind:'route',label:'/admin/users',tag:['all','admin']},
+  {from:'page-admin-l',to:'page-admin-o',kind:'route',label:'/admin/orders',tag:['all','admin']},
+  {from:'page-admin-l',to:'page-admin-s',kind:'route',label:'/admin/settings',tag:['all','admin']},
+  {from:'page-admin-l',to:'page-admin-dev',kind:'route',label:'/admin/dev',tag:['all','admin']},
+  // Entry → Components (composition)
+  {from:'entry-app',to:'comp-hero',kind:'render',label:'landing page',tag:['all','landing']},
+  {from:'entry-app',to:'comp-nav',kind:'render',label:'global nav',tag:['all','landing']},
+  {from:'entry-app',to:'comp-footer',kind:'render',label:'global footer',tag:['all','landing']},
+  {from:'entry-app',to:'comp-landing',kind:'render',label:'home sections',tag:['all','landing']},
+  // Entry → State & Auth
+  {from:'entry-main',to:'state-auth',kind:'wrap',label:'ClerkProvider',tag:['all','auth'],critical:true},
+  {from:'entry-main',to:'ext-clerk',kind:'init',label:'Clerk JS SDK',tag:['all','auth'],critical:true},
+  {from:'entry-main',to:'apicl-index',kind:'init',label:'React Query',tag:['all','infra']},
+  // Pages → Components
+  {from:'page-market',to:'comp-protected',kind:'guard',label:'sign-in gate',tag:['all','market'],critical:true},
+  {from:'page-dashboard',to:'comp-protected',kind:'guard',label:'requireAuth',tag:['all','market']},
+  {from:'page-orders',to:'comp-protected',kind:'guard',label:'requireAuth',tag:['all','orders']},
+  {from:'page-admin-l',to:'comp-protected',kind:'guard',label:'requireAdmin',tag:['all','admin']},
+  {from:'comp-shadcn',to:'page-market',kind:'use',label:'UI components',tag:['all','market']},
+  {from:'comp-shadcn',to:'page-dashboard',kind:'use',label:'UI components',tag:['all','market']},
+  {from:'comp-shadcn',to:'page-orders',kind:'use',label:'UI components',tag:['all','orders']},
+  {from:'comp-shadcn',to:'page-admin-l',kind:'use',label:'UI components',tag:['all','admin']},
+  {from:'comp-shadcn',to:'comp-landing',kind:'use',label:'UI components',tag:['all','landing']},
+  // Components → Visual
+  {from:'comp-visual',to:'ext-three',kind:'import',label:'Three.js ESM',tag:['all','visual']},
+  // State & Auth → Components
+  {from:'comp-protected',to:'state-auth',kind:'use',label:'useAuth/useUser',tag:['all','auth'],critical:true},
+  // Pages → State & Auth
+  {from:'page-market',to:'state-api',kind:'call',label:'API requests',tag:['all','market'],critical:true},
+  {from:'page-dashboard',to:'state-api',kind:'call',label:'API requests',tag:['all','market']},
+  {from:'page-orders',to:'state-api',kind:'call',label:'API requests',tag:['all','orders']},
+  {from:'page-admin-l',to:'state-api',kind:'call',label:'API requests',tag:['all','admin']},
+  {from:'comp-contact',to:'state-api',kind:'call',label:'POST /api/contact',tag:['all','comms']},
+  // State & Auth → API Client
+  {from:'state-api',to:'apicl-fetch',kind:'use',label:'attaches JWT',tag:['all','auth'],critical:true},
+  {from:'apicl-fetch',to:'apicl-index',kind:'export',label:'setBaseUrl/setAuthTokenGetter',tag:['all','infra']},
+  {from:'apicl-gen',to:'apicl-index',kind:'export',label:'React Query hooks',tag:['all','infra']},
+  // API Client → External
+  {from:'apicl-fetch',to:'ext-api',kind:'api',label:'Authorization: Bearer JWT',tag:['all','market'],critical:true},
+  {from:'ext-clerk',to:'ext-api',kind:'session',label:'validates JWT',tag:['all','auth']},
+  // External → Entry
+  {from:'entry-main',to:'ext-clerk',kind:'wrap',label:'ClerkProvider',tag:['all','auth']},
+  {from:'entry-vite',to:'entry-main',kind:'build',label:'vite build',tag:['all','infra']},
+];
+
+const FIXES = {
+  'clerk-cdn-url': 'Clerk clerkJSUrl points to jsdelivr CDN in main.tsx. If CDN blocked or URL changes, auth silently breaks. Verify the exact URL.',
+  'three-memory': 'ThreeBackground creates a Three.js renderer — check dispose() is called on componentWillUnmount to prevent memory leaks and orphaned WebGL contexts.',
+  'vite-fallbacks': 'vite.config.ts reads PORT and BASE_PATH with optional fallbacks. Confirm they produce valid URLs (not "undefined") during Vercel builds.',
+  'api-client-generation': 'lib/api-client-react/src/generated/api.ts is auto-generated by Orval. Do NOT hand-edit — changes lost on pnpm --filter @workspace/api-spec run codegen.',
+};
+
+const KNOWN_BUGS = {
+  'clerk-domain': 'Clerk production keys only work on cyberise.org. Auth errors on Replit subdomains are expected, not bugs.',
+  'unguarded-routes': 'Check pages without ProtectedRoute wrapper — Market.tsx (browse is public, purchase triggers sign-in), not-found.tsx (public). Landing sections are intentionally public.',
+  'api-client-direct': 'Grep pages for direct imports from lib/api.ts vs generated hooks. Direct imports bypass the typed API client layer.',
+  'afterSignInUrl-deprecated': 'afterSignInUrl is deprecated in Clerk v5. Use fallbackRedirectUrl or forceRedirectUrl instead.',
+};
+
+// --- Layout engine ---
+function applyOffsets() {
+  clusters.forEach(c => {
+    nodes.filter(n => n.cluster === c.id).forEach(n => {
+      n.x = c.x + n.x + 15;
+      n.y = c.y + n.y + 35;
+    });
+  });
+  clusters.forEach(c => {
+    const cnodes = nodes.filter(n => n.cluster === c.id);
+    if (cnodes.length) {
+      const maxY = Math.max(...cnodes.map(n => n.y + n.h));
+      c.h = maxY - c.y + 15;
+    }
+  });
+  // Override specific cluster heights
+  clusters.find(c => c.id === 'entry').h = 180;
+  clusters.find(c => c.id === 'pages').h = 520;
+  clusters.find(c => c.id === 'components').h = 500;
+  clusters.find(c => c.id === 'state-auth').h = 190;
+  clusters.find(c => c.id === 'api-client').h = 190;
+  clusters.find(c => c.id === 'external').h = 190;
+}
+
+applyOffsets();
+
+// --- Active filter ---
+let activeFilter = 'all';
+
+function setFilter(tag) {
+  activeFilter = tag;
+  document.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.tag === tag));
+  render();
+}
+
+function nodeMatchesFilter(n) {
+  if (activeFilter === 'all') return true;
+  return n.tag && n.tag.includes(activeFilter);
+}
+
+// --- Selection ---
+let selectedNodeId = null;
+function selectNode(id) {
+  selectedNodeId = selectedNodeId === id ? null : id;
+  render();
+  updateDetails();
+}
+
+// --- Pan/zoom ---
+let tx = 0, ty = 0, scale = 1;
+let dragging = false, dragX, dragY;
+
+const wrap = document.getElementById('canvas-wrap');
+const svgEl = document.getElementById('svg');
+
+wrap.addEventListener('wheel', e => {
+  e.preventDefault();
+  const rect = wrap.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  const ds = e.deltaY < 0 ? 1.1 : 0.9;
+  const newScale = Math.max(0.2, Math.min(3, scale * ds));
+  tx = mx - (mx - tx) * (newScale / scale);
+  ty = my - (my - ty) * (newScale / scale);
+  scale = newScale;
+  render();
+});
+
+wrap.addEventListener('mousedown', e => {
+  if (e.target === wrap || e.target === svgEl) {
+    dragging = true; dragX = e.clientX - tx; dragY = e.clientY - ty;
+  }
+});
+
+window.addEventListener('mousemove', e => {
+  if (dragging) { tx = e.clientX - dragX; ty = e.clientY - dragY; render(); }
+});
+
+window.addEventListener('mouseup', () => { dragging = false; });
+
+// --- Rendering ---
+function render() {
+  const svg = document.getElementById('svg');
+  let html = `<g transform="translate(${tx},${ty}) scale(${scale})">`;
+
+  // Cluster backgrounds
+  clusters.forEach(c => {
+    html += `<rect class="cluster-bg" x="${c.x}" y="${c.y}" width="${c.w}" height="${c.h}" rx="8"/>`;
+  });
+
+  // Cluster labels
+  clusters.forEach(c => {
+    html += `<g class="cluster-label">
+      <line x1="${c.x}" y1="${c.y + 7}" x2="${c.x + c.w}" y2="${c.y + 7}"/>
+      <text x="${c.x + 8}" y="${c.y - 6}">${c.label}</text>
+    </g>`;
+  });
+
+  // Edges
+  const selectedSet = new Set();
+  if (selectedNodeId) {
+    selectedSet.add(selectedNodeId);
+    edges.forEach(e => {
+      if (e.from === selectedNodeId) selectedSet.add(e.to);
+      if (e.to === selectedNodeId) selectedSet.add(e.from);
+    });
+  }
+
+  const relevantEdges = edges.filter(e => {
+    if (activeFilter !== 'all') return e.tag && e.tag.includes(activeFilter);
+    if (selectedNodeId) return e.from === selectedNodeId || e.to === selectedNodeId;
+    return true;
+  });
+
+  relevantEdges.forEach(e => {
+    const from = nodes.find(n => n.id === e.from);
+    const to = nodes.find(n => n.id === e.to);
+    if (!from || !to) return;
+
+    const x1 = from.x + from.w;
+    const y1 = from.y + from.h / 2;
+    const x2 = to.x;
+    const y2 = to.y + to.h / 2;
+    const cx1 = x1 + Math.abs(x2 - x1) * 0.4;
+    const cx2 = x2 - Math.abs(x2 - x1) * 0.4;
+
+    const dimmed = selectedNodeId && !selectedSet.has(e.from) && !selectedSet.has(e.to);
+    const isCritical = e.critical;
+    const cls = ['edge', dimmed ? 'dimmed' : '', isCritical ? 'critical' : ''].filter(Boolean).join(' ');
+    const marker = isCritical ? 'url(#arrowhead-critical)' : 'url(#arrowhead)';
+
+    html += `<path class="${cls}" d="M${x1},${y1} C${cx1},${y1} ${cx2},${y2} ${x2},${y2}" marker-end="${marker}"/>`;
+
+    const lx = (x1 + x2) / 2;
+    const ly = (y1 + y2) / 2 - 6;
+    html += `<text class="edge-label" x="${lx}" y="${ly}" text-anchor="middle">${e.label}</text>`;
+  });
+
+  // Nodes
+  const relevantNodes = nodes.filter(n => nodeMatchesFilter(n));
+
+  relevantNodes.forEach(n => {
+    const selected = n.id === selectedNodeId;
+    const dimmed = selectedNodeId && !selectedSet.has(n.id);
+    const isCritical = n.critical;
+    const fill = `var(--${n.color})`;
+
+    html += `<g class="node${selected ? ' selected' : ''}${dimmed ? ' dimmed' : ''}" data-id="${n.id}" onclick="selectNode('${n.id}')">
+      <rect x="${n.x}" y="${n.y}" width="${n.w}" height="${n.h}" fill="var(--panel-2)" stroke="${fill}" rx="6"/>
+      <text class="label" x="${n.x + n.w/2}" y="${n.y + 16}" text-anchor="middle">${n.label}</text>
+      <text class="sub" x="${n.x + n.w/2}" y="${n.y + 30}" text-anchor="middle">${n.sub}</text>`;
+
+    if (isCritical) {
+      html += `<text class="critical-badge" x="${n.x + n.w - 6}" y="${n.y + 10}" text-anchor="end">✦</text>`;
+    }
+    html += `</g>`;
+  });
+
+  html += `</g>`;
+  svg.innerHTML = html;
+}
+
+// --- Details panel ---
+function updateDetails() {
+  const area = document.getElementById('details-area');
+  if (!selectedNodeId) {
+    area.innerHTML = '<div style="color:var(--muted);font-size:12px;padding-top:10px;">Click a node to see details</div>';
+    return;
+  }
+  const n = nodes.find(x => x.id === selectedNodeId);
+  if (!n) return;
+
+  let html = `<h3>${n.label}</h3>`;
+  html += `<div class="detail-row">Path: <span>${n.path || 'N/A'}</span></div>`;
+  html += `<div class="detail-row">Cluster: <span>${n.cluster}</span></div>`;
+  if (n.tag) html += `<div class="detail-row">Tags: <span>${n.tag.join(', ')}</span></div>`;
+  if (n.critical) html += `<div class="detail-row" style="color:var(--critical);">Critical path ✦</div>`;
+  if (n.notes) html += `<div class="detail-notes">${n.notes}</div>`;
+  area.innerHTML = html;
+}
+
+// --- Chips ---
+const chipArea = document.getElementById('chips');
+const allTags = ['all','market','orders','admin','auth','comms','landing','visual','infra'];
+allTags.forEach(t => {
+  const chip = document.createElement('span');
+  chip.className = 'chip' + (t === 'all' ? ' active' : '');
+  chip.textContent = t;
+  chip.dataset.tag = t;
+  chip.onclick = () => setFilter(t);
+  chipArea.appendChild(chip);
+});
+
+// --- Keyboard ---
+window.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { selectedNodeId = null; render(); updateDetails(); }
+});
+
+// --- Initial render ---
+render();
+
+console.log('Frontend Architecture Map: nodes=' + nodes.length + ', edges=' + edges.length);
+</script>
+</body>
+</html>
