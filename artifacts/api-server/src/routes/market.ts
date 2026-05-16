@@ -2,7 +2,7 @@ import { Router, type IRouter } from "express";
 import { OrderStatus } from "@workspace/db";
 import { prisma } from "@workspace/db";
 import { getPlans, getRegions, getWindowsImages, createInstance, deleteInstance } from "../services/linode";
-import { getProPlans, getProRegions, createProInstance } from "../services/rdpmonster";
+import { getProPlans, getProRegions, createProInstance, deleteProInstance } from "../services/rdpmonster";
 import { getCache, setCache } from "../services/redis";
 import { sendEmail, generateRDPCredentialsEmail } from "../services/email";
 import { encrypt, generatePassword } from "../utils/encryption";
@@ -12,6 +12,18 @@ import { marketRateLimit, orderRateLimit } from "../middleware/rateLimit";
 import { createOrderSchema } from "../validators/market";
 import { logger } from "../lib/logger";
 import type { AuthRequest } from "../middleware/auth";
+
+/**
+ * Strips provider branding from Basic (Linode) plan and region labels.
+ * Any label containing the provider name must be replaced before sending to the buyer.
+ */
+function sanitizeBasicLabel(label: string): string {
+  return label
+    .replace(/\bLinode\b/gi, "")
+    .replace(/\bNanode\b/gi, "Starter")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
 
 const router: IRouter = Router();
 
@@ -39,11 +51,11 @@ router.get("/market/plans", marketRateLimit, async (_req, res) => {
 
     const filteredBasicRegions = basicRegions
       .filter(r => enabledRegions.includes(r.id))
-      .map(r => ({ ...r, tier: "basic" as const }));
+      .map(r => ({ ...r, label: sanitizeBasicLabel(r.label), tier: "basic" as const }));
 
     const filteredBasicPlans = basicPlans
       .filter(p => enabledPlans.includes(p.id))
-      .map(p => ({ ...p, tier: "basic" as const }));
+      .map(p => ({ ...p, label: sanitizeBasicLabel(p.label), tier: "basic" as const }));
 
     const markupPercent = settingsMap.markup_percentage as number ?? 20;
     const basicPlansWithPricing = filteredBasicPlans.map(plan => ({
@@ -67,7 +79,7 @@ router.get("/market/plans", marketRateLimit, async (_req, res) => {
     const data = {
       plans: [...basicPlansWithPricing, ...proPlansWithPricing],
       regions: [...filteredBasicRegions, ...proRegionsTagged],
-      images: images.length > 0 ? images : [{ id: "windows10", label: "Windows 10" }],
+      images,
     };
 
     await setCache("market:data", data, 300);
@@ -153,6 +165,11 @@ router.post(
           return;
         }
 
+        if (!image) {
+          sendError(res, "Image selection is required for this plan", 400);
+          return;
+        }
+
         const rdpPassword = generatePassword(16);
         const label = `cyberise-rdp-${userId.slice(0, 8)}-${Date.now()}`;
 
@@ -161,7 +178,7 @@ router.post(
           linodeInstance = await createInstance({
             region,
             type: plan,
-            image: image || "windows10",
+            image,
             label,
             root_pass: rdpPassword,
             tags: ["cyberise-rdp", userId.slice(0, 8)],
@@ -191,7 +208,7 @@ router.post(
               userId,
               plan,
               region,
-              image: image || "windows",
+              image: image ?? "unknown",
               linodeInstanceId: tier === "basic" && typeof orderResult.instanceId === "number" ? orderResult.instanceId : null,
               ip: orderResult.ip,
               rdpUsername: orderResult.username,
@@ -208,9 +225,15 @@ router.post(
           });
         });
       } catch (err) {
-        logger.error({ err }, "DB transaction failed after instance creation");
-        if (tier === "basic" && typeof orderResult.instanceId === "number") {
-          try { await deleteInstance(orderResult.instanceId as number); } catch {}
+        logger.error({ err }, "DB transaction failed after instance creation — attempting provider cleanup");
+        if (tier === "pro" && orderResult.instanceId) {
+          try { await deleteProInstance(String(orderResult.instanceId)); } catch (cleanupErr) {
+            logger.error({ cleanupErr, proInstanceId: orderResult.instanceId }, "Pro instance cleanup failed after DB rollback");
+          }
+        } else if (tier === "basic" && typeof orderResult.instanceId === "number") {
+          try { await deleteInstance(orderResult.instanceId as number); } catch (cleanupErr) {
+            logger.error({ cleanupErr, linodeInstanceId: orderResult.instanceId }, "Basic instance cleanup failed after DB rollback");
+          }
         }
         sendError(res, "Failed to create order", 500);
         return;
