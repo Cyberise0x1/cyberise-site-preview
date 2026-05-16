@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth, useUser, UserButton } from "@clerk/clerk-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { LayoutDashboard, ShoppingCart, Receipt, Menu, X, Zap } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Receipt, Menu, Zap } from "lucide-react";
 import { useApi, type Order } from "@/lib/api";
 
 interface AppShellProps {

@@ -9,11 +9,10 @@ import {
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
   AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import AppShell from "@/components/AppShell";
 import {
   Loader2, Server, Clock, CheckCircle, XCircle, AlertTriangle,
-  Copy, Check, Eye, Ban, ChevronDown, ChevronUp, Search, Plus
+  Copy, Check, Ban, ChevronDown, ChevronUp, Search, Plus
 } from "lucide-react";
 import { toast } from "sonner";
 

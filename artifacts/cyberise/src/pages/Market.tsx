@@ -6,12 +6,12 @@ import { useApi, type MarketData, type PlanTier, getRegionFlag } from "@/lib/api
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogContent } from "@/components/ui/alert-dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Loader2, Server, HardDrive, Cpu, Globe, Copy, Check,
-  Lock, Bitcoin, Zap, ChevronDown, Shield, Star
+  Lock, Zap, Shield, Star, AlertTriangle
 } from "lucide-react";
+import { FaBitcoin, FaEthereum } from "react-icons/fa";
 import { toast } from "sonner";
 import AppShell from "@/components/AppShell";
 
@@ -306,6 +306,13 @@ export default function Market() {
               </motion.div>
             )}
 
+            {selectedTier === "basic" && marketData && marketData.images.length === 0 && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+                className="rounded-xl border border-[rgba(255,136,0,0.2)] bg-[rgba(255,136,0,0.04)] px-4 py-3 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-[#ff8800] flex-shrink-0" />
+                <p className="text-[#ff8800] text-xs font-rajdhani">No Windows images are configured on this account. Contact support to enable Basic tier deployments.</p>
+              </motion.div>
+            )}
             {selectedTier === "basic" && marketData && marketData.images.length > 0 && (
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
                 className="bg-[#0d0d14] rounded-xl border border-[rgba(255,255,255,0.07)] p-4">
@@ -404,12 +411,13 @@ export default function Market() {
 
                 <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)]">
                   <Lock className="w-3.5 h-3.5 text-[#555] flex-shrink-0" />
-                  <div className="flex items-center gap-1.5 flex-1">
-                    <Bitcoin className="w-3.5 h-3.5 text-[#555]" />
-                    <span className="text-[#555] text-[11px] font-rajdhani">Crypto Payments</span>
+                  <div className="flex items-center gap-2 flex-1">
+                    <FaBitcoin className="w-3.5 h-3.5 text-[#555]" style={{ width: 14, height: 14 }} />
+                    <FaEthereum className="w-3.5 h-3.5 text-[#555]" style={{ width: 14, height: 14 }} />
+                    <span className="text-[#555] text-[11px] font-rajdhani">Crypto payments</span>
                   </div>
                   <span className="text-[10px] bg-[rgba(255,255,255,0.05)] text-[#555] px-1.5 py-0.5 rounded font-rajdhani tracking-[1px] uppercase border border-[rgba(255,255,255,0.06)]">
-                    Soon
+                    Coming Soon
                   </span>
                 </div>
               </div>
