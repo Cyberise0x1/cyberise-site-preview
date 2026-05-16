@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { OrderStatus } from "@workspace/db";
 import { prisma } from "@workspace/db";
 import { getPlans, getRegions, getWindowsImages, createInstance, deleteInstance } from "../services/linode";
+import { getProPlans, getProRegions, createProInstance } from "../services/rdpmonster";
 import { getCache, setCache } from "../services/redis";
 import { sendEmail, generateRDPCredentialsEmail } from "../services/email";
 import { encrypt, generatePassword } from "../utils/encryption";
@@ -16,12 +17,7 @@ const router: IRouter = Router();
 
 router.get("/market/plans", marketRateLimit, async (_req, res) => {
   try {
-    const cached = await getCache<{
-      plans: Awaited<ReturnType<typeof getPlans>>;
-      regions: Awaited<ReturnType<typeof getRegions>>;
-      images: Awaited<ReturnType<typeof getWindowsImages>>;
-    }>("market:data");
-
+    const cached = await getCache<object>("market:data");
     if (cached) {
       sendSuccess(res, cached);
       return;
@@ -30,20 +26,27 @@ router.get("/market/plans", marketRateLimit, async (_req, res) => {
     const settings = await prisma.marketSettings.findMany();
     const settingsMap = Object.fromEntries(settings.map(s => [s.key, s.value]));
 
-    const [plans, regions, images] = await Promise.all([
+    const [basicPlans, basicRegions, images, proPlans, proRegions] = await Promise.all([
       getPlans(),
       getRegions(),
       getWindowsImages(),
+      getProPlans(),
+      getProRegions(),
     ]);
 
-    const enabledRegions = settingsMap.enabled_regions as string[] ?? regions.map(r => r.id);
-    const enabledPlans = settingsMap.enabled_plans as string[] ?? plans.map(p => p.id);
+    const enabledRegions = settingsMap.enabled_regions as string[] ?? basicRegions.map(r => r.id);
+    const enabledPlans = settingsMap.enabled_plans as string[] ?? basicPlans.map(p => p.id);
 
-    const filteredRegions = regions.filter(r => enabledRegions.includes(r.id));
-    const filteredPlans = plans.filter(p => enabledPlans.includes(p.id));
+    const filteredBasicRegions = basicRegions
+      .filter(r => enabledRegions.includes(r.id))
+      .map(r => ({ ...r, tier: "basic" as const }));
+
+    const filteredBasicPlans = basicPlans
+      .filter(p => enabledPlans.includes(p.id))
+      .map(p => ({ ...p, tier: "basic" as const }));
 
     const markupPercent = settingsMap.markup_percentage as number ?? 20;
-    const plansWithPricing = filteredPlans.map(plan => ({
+    const basicPlansWithPricing = filteredBasicPlans.map(plan => ({
       ...plan,
       price: {
         hourly: Number((plan.price.hourly * (1 + markupPercent / 100)).toFixed(4)),
@@ -51,10 +54,20 @@ router.get("/market/plans", marketRateLimit, async (_req, res) => {
       },
     }));
 
+    const proPlansWithPricing = proPlans.map(plan => ({
+      ...plan,
+      price: {
+        hourly: Number((plan.price.hourly * (1 + markupPercent / 100)).toFixed(4)),
+        monthly: Number((plan.price.monthly * (1 + markupPercent / 100)).toFixed(2)),
+      },
+    }));
+
+    const proRegionsTagged = proRegions.map(r => ({ ...r, tier: "pro" as const }));
+
     const data = {
-      plans: plansWithPricing,
-      regions: filteredRegions,
-      images: images.length > 0 ? images : [{ id: "linode/windows10", label: "Windows 10" }],
+      plans: [...basicPlansWithPricing, ...proPlansWithPricing],
+      regions: [...filteredBasicRegions, ...proRegionsTagged],
+      images: images.length > 0 ? images : [{ id: "windows10", label: "Windows 10" }],
     };
 
     await setCache("market:data", data, 300);
@@ -79,7 +92,7 @@ router.post(
         return;
       }
 
-      const { plan, region, image, durationDays } = parsed.data;
+      const { plan, region, image, durationDays, tier } = parsed.data;
       const userId = req.user!.id;
 
       const [settings, existingActive] = await Promise.all([
@@ -100,39 +113,66 @@ router.post(
         return;
       }
 
-      const plans = await getPlans();
-      const selectedPlan = plans.find(p => p.id === plan);
-      if (!selectedPlan) {
-        sendError(res, "Invalid plan selected", 400);
-        return;
-      }
+      let totalAmount: number;
+      let orderResult: { ip: string; username: string; password: string; instanceId?: string | number };
 
-      const markupPercent = settingsMap.markup_percentage as number ?? 20;
-      const monthlyPrice = selectedPlan.price.monthly * (1 + markupPercent / 100);
-      const totalAmount = Number((monthlyPrice * (durationDays / 30)).toFixed(2));
+      if (tier === "pro") {
+        const proPlans = await getProPlans();
+        const selectedPlan = proPlans.find(p => p.id === plan);
+        if (!selectedPlan) {
+          sendError(res, "Invalid plan selected", 400);
+          return;
+        }
 
-      if (req.user!.balance < totalAmount) {
-        sendError(res, "Insufficient balance", 400);
-        return;
-      }
+        const markupPercent = settingsMap.markup_percentage as number ?? 20;
+        const monthlyPrice = selectedPlan.price.monthly * (1 + markupPercent / 100);
+        totalAmount = Number((monthlyPrice * (durationDays / 30)).toFixed(2));
 
-      const rdpPassword = generatePassword(16);
-      const label = `cyberise-rdp-${userId.slice(0, 8)}-${Date.now()}`;
+        if (req.user!.balance < totalAmount) {
+          sendError(res, "Insufficient balance", 400);
+          return;
+        }
 
-      let linodeInstance;
-      try {
-        linodeInstance = await createInstance({
-          region,
-          type: plan,
-          image,
-          label,
-          root_pass: rdpPassword,
-          tags: ["cyberise-rdp", userId.slice(0, 8)],
-        });
-      } catch (error) {
-        logger.error({ error, plan, region }, "Linode instance creation failed");
-        sendError(res, "Failed to provision instance. Please try a different region or plan.", 503);
-        return;
+        const label = `cyberise-pro-${userId.slice(0, 8)}-${Date.now()}`;
+        const instance = await createProInstance({ planId: plan, regionId: region, label });
+        orderResult = { ip: instance.ip, username: instance.username, password: instance.password, instanceId: instance.instanceId };
+      } else {
+        const basicPlans = await getPlans();
+        const selectedPlan = basicPlans.find(p => p.id === plan);
+        if (!selectedPlan) {
+          sendError(res, "Invalid plan selected", 400);
+          return;
+        }
+
+        const markupPercent = settingsMap.markup_percentage as number ?? 20;
+        const monthlyPrice = selectedPlan.price.monthly * (1 + markupPercent / 100);
+        totalAmount = Number((monthlyPrice * (durationDays / 30)).toFixed(2));
+
+        if (req.user!.balance < totalAmount) {
+          sendError(res, "Insufficient balance", 400);
+          return;
+        }
+
+        const rdpPassword = generatePassword(16);
+        const label = `cyberise-rdp-${userId.slice(0, 8)}-${Date.now()}`;
+
+        let linodeInstance;
+        try {
+          linodeInstance = await createInstance({
+            region,
+            type: plan,
+            image: image || "windows10",
+            label,
+            root_pass: rdpPassword,
+            tags: ["cyberise-rdp", userId.slice(0, 8)],
+          });
+        } catch (error) {
+          logger.error({ error, plan, region }, "Instance creation failed");
+          sendError(res, "Failed to provision instance. Please try a different region or plan.", 503);
+          return;
+        }
+
+        orderResult = { ip: linodeInstance.ipv4[0], username: "Administrator", password: rdpPassword, instanceId: linodeInstance.id };
       }
 
       const expiresAt = new Date();
@@ -151,39 +191,41 @@ router.post(
               userId,
               plan,
               region,
-              image,
-              linodeInstanceId: linodeInstance.id,
-              ip: linodeInstance.ipv4[0],
-              rdpUsername: "root",
-              rdpPasswordEncrypted: encrypt(rdpPassword),
+              image: image || "windows",
+              linodeInstanceId: tier === "basic" && typeof orderResult.instanceId === "number" ? orderResult.instanceId : null,
+              ip: orderResult.ip,
+              rdpUsername: orderResult.username,
+              rdpPasswordEncrypted: encrypt(orderResult.password),
               status: OrderStatus.ACTIVE,
               amount: totalAmount,
               durationDays,
               expiresAt,
+              metadata: {
+                tier,
+                ...(tier === "pro" ? { proInstanceId: String(orderResult.instanceId) } : {}),
+              },
             },
           });
         });
       } catch (err) {
-        logger.error({ err, linodeId: linodeInstance.id }, "DB transaction failed after Linode creation — cleaning up instance");
-        try {
-          await deleteInstance(linodeInstance.id);
-        } catch (cleanupErr) {
-          logger.error({ cleanupErr, linodeId: linodeInstance.id }, "Failed to clean up orphaned Linode instance");
+        logger.error({ err }, "DB transaction failed after instance creation");
+        if (tier === "basic" && typeof orderResult.instanceId === "number") {
+          try { await deleteInstance(orderResult.instanceId as number); } catch {}
         }
         sendError(res, "Failed to create order", 500);
         return;
       }
 
       const emailContent = generateRDPCredentialsEmail({
-        ip: linodeInstance.ipv4[0],
-        username: "root",
-        password: rdpPassword,
+        ip: orderResult.ip,
+        username: orderResult.username,
+        password: orderResult.password,
         expiresAt,
       });
 
       await sendEmail({
         to: req.user!.email,
-        subject: "Your RDP Credentials - Cyberise",
+        subject: "Your Server Credentials — Cyberise",
         html: emailContent.html,
         text: emailContent.text,
         userId,
@@ -195,16 +237,17 @@ router.post(
           action: "ORDER_CREATED",
           entity: "Order",
           entityId: order.id,
-          metadata: { plan, region, amount: totalAmount },
+          metadata: { plan, region, amount: totalAmount, tier },
         },
       });
 
       sendSuccess(res, {
         orderId: order.id,
-        ip: linodeInstance.ipv4[0],
-        username: "root",
-        password: rdpPassword,
+        ip: orderResult.ip,
+        username: orderResult.username,
+        password: orderResult.password,
         expiresAt,
+        tier,
       }, 201);
     } catch (error) {
       logger.error({ error }, "Failed to create order");

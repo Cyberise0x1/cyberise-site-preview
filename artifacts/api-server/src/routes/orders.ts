@@ -34,6 +34,7 @@ router.get("/orders", requireAuth, attachUser, async (req: AuthRequest, res) => 
     const ordersWithDecrypted = orders.map(order => ({
       ...order,
       rdpPassword: order.rdpPasswordEncrypted ? decrypt(order.rdpPasswordEncrypted) : null,
+      tier: (order.metadata as Record<string, unknown> | null)?.tier ?? "basic",
     }));
 
     sendSuccess(res, ordersWithDecrypted);
@@ -72,6 +73,7 @@ router.get("/orders/:id", requireAuth, attachUser, async (req: AuthRequest, res)
     const orderWithPassword = {
       ...order,
       rdpPassword: order.rdpPasswordEncrypted ? decrypt(order.rdpPasswordEncrypted) : null,
+      tier: (order.metadata as Record<string, unknown> | null)?.tier ?? "basic",
     };
 
     sendSuccess(res, orderWithPassword);

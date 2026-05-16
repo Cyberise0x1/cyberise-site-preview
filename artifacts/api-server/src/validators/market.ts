@@ -3,8 +3,9 @@ import { z } from "zod";
 export const createOrderSchema = z.object({
   plan: z.string().min(1, "Plan is required"),
   region: z.string().min(1, "Region is required"),
-  image: z.string().min(1, "Image is required"),
+  image: z.string().optional(),
   durationDays: z.number().int().min(7).max(365).default(30),
+  tier: z.enum(["basic", "pro"]).default("basic"),
 });
 
 export const orderIdSchema = z.object({

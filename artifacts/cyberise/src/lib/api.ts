@@ -11,7 +11,7 @@ export function useApi() {
 
   async function api<T>(endpoint: string, options: ApiOptions = {}): Promise<T> {
     const { requireAuth = true, ...fetchOptions } = options;
-    
+
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       ...((fetchOptions.headers as Record<string, string>) || {}),
@@ -41,6 +41,8 @@ export function useApi() {
   return { api };
 }
 
+export type PlanTier = "basic" | "pro";
+
 export type MarketData = {
   plans: Array<{
     id: string;
@@ -48,6 +50,7 @@ export type MarketData = {
     disk: number;
     ram: number;
     vcpus: number;
+    tier: PlanTier;
     price: {
       hourly: number;
       monthly: number;
@@ -57,6 +60,7 @@ export type MarketData = {
     id: string;
     label: string;
     country: string;
+    tier: PlanTier;
   }>;
   images: Array<{
     id: string;
@@ -75,4 +79,23 @@ export type Order = {
   expiresAt: string;
   createdAt: string;
   rdpPassword?: string | null;
+  tier?: PlanTier;
+  metadata?: Record<string, unknown> | null;
 };
+
+export function getDaysLeft(expiresAt: string): number {
+  const now = new Date();
+  const exp = new Date(expiresAt);
+  const diff = exp.getTime() - now.getTime();
+  return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+}
+
+export function getRegionFlag(country: string): string {
+  const flags: Record<string, string> = {
+    us: "🇺🇸", gb: "🇬🇧", de: "🇩🇪", fr: "🇫🇷", nl: "🇳🇱",
+    sg: "🇸🇬", jp: "🇯🇵", au: "🇦🇺", ca: "🇨🇦", in: "🇮🇳",
+    br: "🇧🇷", za: "🇿🇦", ng: "🇳🇬", ae: "🇦🇪", se: "🇸🇪",
+    it: "🇮🇹", es: "🇪🇸", id: "🇮🇩", kr: "🇰🇷", ch: "🇨🇭",
+  };
+  return flags[country?.toLowerCase()] ?? "🌐";
+}

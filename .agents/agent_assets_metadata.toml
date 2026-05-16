@@ -1,5 +1,4 @@
 uploads = []
-outputs = []
 
 [[generated]]
 id = "7ot65f-QFCyRD0-Hp0QWs"
@@ -18,3 +17,21 @@ id = "_EzGbBYVp2Jfq518PVR0z"
 uri = "file://attached_assets/cyberise-logo-horizontal.png"
 type = "image"
 title = "cyberise technology horizontal lockup"
+
+[[outputs]]
+id = "8Af75asQSiLKSpw0voViS"
+uri = "file://attached_assets/cyberise-logo-primary.png"
+type = "image"
+title = "Primary Logo — C mark + wordmark (square, for web/print)"
+
+[[outputs]]
+id = "gNzTzwGLJCsYW5O80EGEJ"
+uri = "file://attached_assets/cyberise-logo-icon.png"
+type = "image"
+title = "Icon/Badge — Hexagonal emblem only (favicon, app icon, avatar)"
+
+[[outputs]]
+id = "cbpwrGgi-Mx_o5wztCjJA"
+uri = "file://attached_assets/cyberise-logo-horizontal.png"
+type = "image"
+title = "Horizontal Lockup — Shield + wordmark side by side (headers, banners, emails)"

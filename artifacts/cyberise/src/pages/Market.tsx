@@ -1,13 +1,121 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth, SignIn } from "@clerk/clerk-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useApi, type MarketData } from "@/lib/api";
+import { useApi, type MarketData, type PlanTier, getRegionFlag } from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { Loader2, Server, Globe, HardDrive, Cpu } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogContent } from "@/components/ui/alert-dialog";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Loader2, Server, HardDrive, Cpu, Globe, Copy, Check,
+  Lock, Bitcoin, Zap, ChevronDown, Shield, Star
+} from "lucide-react";
 import { toast } from "sonner";
+import AppShell from "@/components/AppShell";
+
+type CredentialData = { orderId: string; ip: string; username: string; password: string; expiresAt: string; tier: PlanTier };
+
+function CopyButton({ value, label }: { value: string; label: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = () => {
+    navigator.clipboard.writeText(value);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  return (
+    <div className="flex items-center gap-2 bg-[#0a0a0f] rounded-lg px-3 py-2.5 border border-[rgba(255,255,255,0.06)]">
+      <div className="flex-1 min-w-0">
+        <p className="text-[#666] text-[10px] uppercase tracking-[1px] font-rajdhani mb-0.5">{label}</p>
+        <p className="text-white text-sm font-mono truncate">{value}</p>
+      </div>
+      <button onClick={copy} className="flex-shrink-0 text-[#a0a0b8] hover:text-[#00f0ff] transition-colors">
+        {copied ? <Check className="w-4 h-4 text-[#00f0ff]" /> : <Copy className="w-4 h-4" />}
+      </button>
+    </div>
+  );
+}
+
+function PlanCard({ plan, selected, onSelect }: {
+  plan: MarketData["plans"][0];
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const isPro = plan.tier === "pro";
+
+  const handleMouseEnter = useCallback(() => {
+    if (!cardRef.current) return;
+    cardRef.current.style.transform = "translateY(-4px) scale(1.015)";
+    cardRef.current.style.transition = "transform 0.2s ease";
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    if (!cardRef.current) return;
+    cardRef.current.style.transform = "translateY(0) scale(1)";
+    cardRef.current.style.transition = "transform 0.25s ease";
+  }, []);
+
+  return (
+    <div
+      ref={cardRef}
+      onClick={onSelect}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className={`relative cursor-pointer rounded-xl p-4 border-2 transition-colors ${
+        selected
+          ? isPro
+            ? "border-[#7b2ff7] bg-[rgba(123,47,247,0.08)]"
+            : "border-[#00f0ff] bg-[rgba(0,240,255,0.06)]"
+          : "border-[rgba(255,255,255,0.07)] hover:border-[rgba(255,255,255,0.15)] bg-[#0d0d14]"
+      }`}
+      style={{ willChange: "transform" }}
+    >
+      {selected && (
+        <div className={`absolute inset-0 rounded-xl pointer-events-none ${
+          isPro
+            ? "shadow-[0_0_24px_rgba(123,47,247,0.25)]"
+            : "shadow-[0_0_24px_rgba(0,240,255,0.18)]"
+        }`} />
+      )}
+
+      <div className="flex items-start justify-between mb-3">
+        <span className={`text-[10px] font-bold tracking-[1.5px] uppercase px-2 py-1 rounded-md font-rajdhani ${
+          isPro
+            ? "bg-[rgba(123,47,247,0.15)] text-[#a855f7] border border-[rgba(123,47,247,0.25)]"
+            : "bg-[rgba(0,240,255,0.08)] text-[#00f0ff] border border-[rgba(0,240,255,0.2)]"
+        }`}>
+          {isPro ? "⚡ Pro" : "Basic"}
+        </span>
+        {selected && (
+          <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
+            isPro ? "bg-[#7b2ff7]" : "bg-[#00f0ff]"
+          }`}>
+            <Check className="w-3 h-3 text-white" />
+          </div>
+        )}
+      </div>
+
+      <h3 className="text-white font-semibold text-sm mb-1 font-rajdhani">{plan.label}</h3>
+      <div className={`text-xl font-bold font-orbitron mb-3 ${isPro ? "text-[#a855f7]" : "text-[#00f0ff]"}`}>
+        ${plan.price.monthly.toFixed(2)}<span className="text-[#666] text-xs font-sans font-normal">/mo</span>
+      </div>
+
+      <div className="grid grid-cols-3 gap-1.5">
+        {[
+          { Icon: Cpu, val: `${plan.vcpus} vCPU` },
+          { Icon: HardDrive, val: `${(plan.ram / 1024).toFixed(plan.ram < 1024 ? 1 : 0)}GB RAM` },
+          { Icon: Server, val: `${Math.round(plan.disk / 1024)}GB SSD` },
+        ].map(({ Icon, val }) => (
+          <div key={val} className="flex flex-col items-center gap-1 bg-[rgba(255,255,255,0.03)] rounded-lg py-2 px-1">
+            <Icon className="w-3.5 h-3.5 text-[#666]" />
+            <span className="text-[10px] text-[#a0a0b8] font-medium leading-none">{val}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function Market() {
   const { api } = useApi();
@@ -16,271 +124,343 @@ export default function Market() {
   const [loading, setLoading] = useState(true);
   const [ordering, setOrdering] = useState(false);
   const [showSignIn, setShowSignIn] = useState(false);
+  const [credentials, setCredentials] = useState<CredentialData | null>(null);
+  const [tierTab, setTierTab] = useState<"all" | "basic" | "pro">("all");
 
   const [selectedPlan, setSelectedPlan] = useState<string>("");
   const [selectedRegion, setSelectedRegion] = useState<string>("");
   const [selectedImage, setSelectedImage] = useState<string>("");
   const [duration, setDuration] = useState(30);
 
-  useEffect(() => {
-    loadMarketData();
-  }, []);
+  useEffect(() => { loadMarketData(); }, []);
 
   async function loadMarketData() {
     try {
       setLoading(true);
       const response = await api<{ success: boolean; data: MarketData }>("/market/plans", { requireAuth: false });
       setMarketData(response.data);
-      if (response.data.plans.length > 0) setSelectedPlan(response.data.plans[0].id);
-      if (response.data.regions.length > 0) setSelectedRegion(response.data.regions[0].id);
+      const firstPlan = response.data.plans[0];
+      if (firstPlan) {
+        setSelectedPlan(firstPlan.id);
+        const matchingRegion = response.data.regions.find(r => r.tier === firstPlan.tier);
+        if (matchingRegion) setSelectedRegion(matchingRegion.id);
+      }
       if (response.data.images.length > 0) setSelectedImage(response.data.images[0].id);
-    } catch (error) {
-      toast.error("Failed to load market data");
+    } catch {
+      toast.error("Failed to load marketplace data");
     } finally {
       setLoading(false);
     }
   }
 
+  const filteredPlans = marketData?.plans.filter(p =>
+    tierTab === "all" ? true : p.tier === tierTab
+  ) ?? [];
+
   const selectedPlanData = marketData?.plans.find(p => p.id === selectedPlan);
+  const selectedTier = selectedPlanData?.tier ?? "basic";
+
+  const availableRegions = marketData?.regions.filter(r => r.tier === selectedTier) ?? [];
   const totalPrice = selectedPlanData ? selectedPlanData.price.monthly * (duration / 30) : 0;
+
+  function handlePlanSelect(planId: string) {
+    setSelectedPlan(planId);
+    const plan = marketData?.plans.find(p => p.id === planId);
+    if (plan) {
+      const firstRegion = marketData?.regions.find(r => r.tier === plan.tier);
+      if (firstRegion) setSelectedRegion(firstRegion.id);
+    }
+  }
 
   async function handleOrder() {
     if (!selectedPlan || !selectedRegion) {
       toast.error("Please select a plan and region");
       return;
     }
-
-    if (!isSignedIn) {
-      setShowSignIn(true);
-      return;
-    }
+    if (!isSignedIn) { setShowSignIn(true); return; }
 
     try {
       setOrdering(true);
-      const response = await api<{ success: boolean; data: { orderId: string; ip: string; username: string; password: string; expiresAt: string } }>("/market/order", {
+      const response = await api<{ success: boolean; data: CredentialData }>("/market/order", {
         method: "POST",
         body: JSON.stringify({
           plan: selectedPlan,
           region: selectedRegion,
-          image: selectedImage || "linode/windows10",
+          image: selectedTier === "basic" ? (selectedImage || "windows10") : "windows",
           durationDays: duration,
+          tier: selectedTier,
         }),
       });
-
-      toast.success("RDP instance created successfully!");
-      const { ip, username, password, expiresAt } = response.data;
-      alert(`Your RDP Credentials:\n\nIP: ${ip}\nUsername: ${username}\nPassword: ${password}\nExpires: ${new Date(expiresAt).toLocaleDateString()}`);
+      toast.success("Server deployed successfully!");
+      setCredentials(response.data);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to create order");
+      toast.error(error instanceof Error ? error.message : "Deployment failed");
     } finally {
       setOrdering(false);
     }
   }
 
+  const staggerContainer = { animate: { transition: { staggerChildren: 0.06 } } };
+  const staggerItem = {
+    initial: { opacity: 0, y: 12 },
+    animate: { opacity: 1, y: 0, transition: { duration: 0.35 } },
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#12121a] to-[#1a1a2e] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-[#00f0ff]" />
-      </div>
+      <AppShell>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="flex flex-col items-center gap-3">
+            <Loader2 className="w-8 h-8 animate-spin text-[#00f0ff]" />
+            <p className="text-[#a0a0b8] text-sm font-rajdhani tracking-widest uppercase">Loading marketplace...</p>
+          </div>
+        </div>
+      </AppShell>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#12121a] to-[#1a1a2e] py-20 px-4">
-      <div className="max-w-7xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 text-center">
-            <span className="bg-gradient-to-r from-[#00f0ff] to-[#7b2ff7] bg-clip-text text-transparent">
-              RDP Marketplace
-            </span>
+    <AppShell>
+      <div className="min-h-screen bg-[#0a0a0f] py-8 px-4 md:px-8">
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="mb-8">
+          <div className="flex items-center gap-2 mb-1">
+            <Shield className="w-4 h-4 text-[#00f0ff]" />
+            <span className="text-[#00f0ff] text-xs font-rajdhani tracking-[2px] uppercase">Instant Deployment</span>
+          </div>
+          <h1 className="text-3xl md:text-4xl font-orbitron font-bold text-white">
+            Server <span className="bg-gradient-to-r from-[#00f0ff] to-[#7b2ff7] bg-clip-text text-transparent">Marketplace</span>
           </h1>
-          <p className="text-[#a0a0b8] text-center mb-12 max-w-2xl mx-auto">
-            Deploy high-performance Windows RDP instances in seconds. Choose your configuration and get instant access.
-          </p>
+          <p className="text-[#a0a0b8] mt-1 text-sm">Deploy high-performance Windows servers globally. Get credentials instantly.</p>
         </motion.div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          <motion.div
-            className="lg:col-span-2 space-y-6"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-          >
-            <Card className="bg-[#12121a]/80 border-[#00f0ff]/20 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Server className="w-5 h-5 text-[#00f0ff]" />
-                  Select Plan
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid md:grid-cols-2 gap-4">
-                {marketData?.plans.map((plan) => (
-                  <div
-                    key={plan.id}
-                    onClick={() => setSelectedPlan(plan.id)}
-                    className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                      selectedPlan === plan.id
-                        ? "border-[#00f0ff] bg-[#00f0ff]/10"
-                        : "border-[#ffffff1a] hover:border-[#00f0ff]/50"
-                    }`}
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="text-white font-semibold">{plan.label}</h3>
-                      <span className="text-[#00f0ff] font-bold">${plan.price.monthly}/mo</span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2 text-sm text-[#a0a0b8]">
-                      <div className="flex items-center gap-1">
-                        <Cpu className="w-4 h-4" />
-                        {plan.vcpus} vCPU
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <HardDrive className="w-4 h-4" />
-                        {plan.ram / 1024}GB RAM
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Server className="w-4 h-4" />
-                        {plan.disk / 1024}GB SSD
-                      </div>
-                    </div>
-                  </div>
+        <div className="grid xl:grid-cols-[1fr_320px] gap-6">
+          <div className="space-y-5">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
+              <Tabs value={tierTab} onValueChange={v => setTierTab(v as typeof tierTab)}>
+                <TabsList className="bg-[#0d0d14] border border-[rgba(255,255,255,0.07)] p-1 h-auto rounded-xl">
+                  {(["all", "basic", "pro"] as const).map(t => (
+                    <TabsTrigger
+                      key={t}
+                      value={t}
+                      className={`rounded-lg px-5 py-2 text-xs font-rajdhani font-bold tracking-[1.5px] uppercase transition-all data-[state=active]:shadow-none ${
+                        t === "pro"
+                          ? "data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#7b2ff7] data-[state=active]:to-[#a855f7] data-[state=active]:text-white"
+                          : t === "basic"
+                          ? "data-[state=active]:bg-[rgba(0,240,255,0.12)] data-[state=active]:text-[#00f0ff]"
+                          : "data-[state=active]:bg-[rgba(255,255,255,0.07)] data-[state=active]:text-white"
+                      }`}
+                    >
+                      {t === "pro" ? "⚡ Pro" : t === "basic" ? "Basic" : "All Plans"}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
+            </motion.div>
+
+            {filteredPlans.length === 0 ? (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rounded-xl border border-[rgba(123,47,247,0.2)] bg-[rgba(123,47,247,0.05)] p-8 text-center">
+                <Star className="w-10 h-10 text-[#a855f7] mx-auto mb-3 opacity-50" />
+                <p className="text-white font-semibold mb-1">Pro Plans Coming Soon</p>
+                <p className="text-[#a0a0b8] text-sm">High-performance Pro servers are being added. Check back soon.</p>
+              </motion.div>
+            ) : (
+              <motion.div
+                variants={staggerContainer}
+                initial="initial"
+                animate="animate"
+                className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3"
+              >
+                {filteredPlans.map(plan => (
+                  <motion.div key={plan.id} variants={staggerItem}>
+                    <PlanCard
+                      plan={plan}
+                      selected={selectedPlan === plan.id}
+                      onSelect={() => handlePlanSelect(plan.id)}
+                    />
+                  </motion.div>
                 ))}
-              </CardContent>
-            </Card>
+              </motion.div>
+            )}
 
-            <Card className="bg-[#12121a]/80 border-[#00f0ff]/20 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Globe className="w-5 h-5 text-[#00f0ff]" />
-                  Region & Image
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="text-[#a0a0b8] text-sm mb-2 block">Region</label>
-                  <Select value={selectedRegion} onValueChange={setSelectedRegion}>
-                    <SelectTrigger className="bg-[#0a0a0f] border-[#ffffff1a] text-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#12121a] border-[#ffffff1a]">
-                      {marketData?.regions.map((region) => (
-                        <SelectItem key={region.id} value={region.id} className="text-white">
-                          {region.label} ({region.country})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+            {availableRegions.length > 0 && (
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
+                className="bg-[#0d0d14] rounded-xl border border-[rgba(255,255,255,0.07)] p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Globe className="w-4 h-4 text-[#00f0ff]" />
+                  <h3 className="text-white text-sm font-semibold font-rajdhani tracking-wide">Select Region</h3>
                 </div>
-
-                <div>
-                  <label className="text-[#a0a0b8] text-sm mb-2 block">Windows Image</label>
-                  <Select value={selectedImage} onValueChange={setSelectedImage}>
-                    <SelectTrigger className="bg-[#0a0a0f] border-[#ffffff1a] text-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#12121a] border-[#ffffff1a]">
-                      {marketData?.images.map((image) => (
-                        <SelectItem key={image.id} value={image.id} className="text-white">
-                          {image.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                  {availableRegions.map(region => (
+                    <button
+                      key={region.id}
+                      onClick={() => setSelectedRegion(region.id)}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all border ${
+                        selectedRegion === region.id
+                          ? "border-[#00f0ff]/50 bg-[rgba(0,240,255,0.08)] text-white"
+                          : "border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] text-[#a0a0b8] hover:text-white hover:border-[rgba(255,255,255,0.15)]"
+                      }`}
+                    >
+                      <span className="text-base leading-none">{getRegionFlag(region.country)}</span>
+                      <span className="truncate font-rajdhani">{region.label}</span>
+                    </button>
+                  ))}
                 </div>
-              </CardContent>
-            </Card>
-          </motion.div>
+              </motion.div>
+            )}
 
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <Card className="bg-[#12121a]/80 border-[#00f0ff]/20 backdrop-blur-sm sticky top-24">
-              <CardHeader>
-                <CardTitle className="text-white">Order Summary</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
+            {selectedTier === "basic" && marketData && marketData.images.length > 0 && (
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+                className="bg-[#0d0d14] rounded-xl border border-[rgba(255,255,255,0.07)] p-4">
+                <h3 className="text-white text-sm font-semibold font-rajdhani tracking-wide mb-3">Windows Image</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {marketData.images.map(img => (
+                    <button
+                      key={img.id}
+                      onClick={() => setSelectedImage(img.id)}
+                      className={`px-3 py-2 rounded-lg text-xs font-medium transition-all border text-left ${
+                        selectedImage === img.id
+                          ? "border-[#00f0ff]/50 bg-[rgba(0,240,255,0.08)] text-white"
+                          : "border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] text-[#a0a0b8] hover:text-white"
+                      }`}
+                    >
+                      {img.label}
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </div>
+
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}
+            className="xl:sticky xl:top-8 self-start">
+            <div className="bg-[#0d0d14] rounded-xl border border-[rgba(255,255,255,0.07)] overflow-hidden">
+              <div className="px-5 py-4 border-b border-[rgba(255,255,255,0.06)]">
+                <h2 className="text-white font-semibold font-rajdhani tracking-wide">Order Summary</h2>
+              </div>
+
+              <div className="p-5 space-y-5">
                 <div>
-                  <label className="text-[#a0a0b8] text-sm mb-2 block">
-                    Duration: {duration} days
-                  </label>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-[#a0a0b8] text-xs font-rajdhani uppercase tracking-[1px]">Duration</span>
+                    <span className="text-white text-sm font-semibold">{duration} days</span>
+                  </div>
                   <Slider
                     value={[duration]}
-                    onValueChange={(v) => setDuration(v[0])}
-                    min={7}
-                    max={365}
-                    step={1}
+                    onValueChange={v => setDuration(v[0])}
+                    min={7} max={365} step={1}
                     className="w-full"
                   />
-                  <div className="flex justify-between text-xs text-[#666] mt-1">
-                    <span>7 days</span>
-                    <span>365 days</span>
+                  <div className="flex justify-between text-[10px] text-[#555] mt-1.5">
+                    <span>7 days</span><span>365 days</span>
                   </div>
                 </div>
 
-                <div className="border-t border-[#ffffff1a] pt-4">
-                  <div className="flex justify-between mb-2">
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
                     <span className="text-[#a0a0b8]">Plan</span>
-                    <span className="text-white">{selectedPlanData?.label || "-"}</span>
+                    <span className="text-white truncate max-w-[140px] text-right">{selectedPlanData?.label || "—"}</span>
                   </div>
-                  <div className="flex justify-between mb-2">
-                    <span className="text-[#a0a0b8]">Duration</span>
-                    <span className="text-white">{duration} days</span>
-                  </div>
-                  <div className="flex justify-between items-center pt-4 border-t border-[#ffffff1a]">
-                    <span className="text-lg font-semibold text-white">Total</span>
-                    <span className="text-2xl font-bold text-[#00f0ff]">
-                      ${totalPrice.toFixed(2)}
+                  <div className="flex justify-between">
+                    <span className="text-[#a0a0b8]">Tier</span>
+                    <span className={selectedTier === "pro" ? "text-[#a855f7]" : "text-[#00f0ff]"}>
+                      {selectedTier === "pro" ? "⚡ Pro" : "Basic"}
                     </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#a0a0b8]">Region</span>
+                    <span className="text-white">
+                      {availableRegions.find(r => r.id === selectedRegion) ? (
+                        `${getRegionFlag(availableRegions.find(r => r.id === selectedRegion)!.country)} ${availableRegions.find(r => r.id === selectedRegion)!.label}`
+                      ) : "—"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="border-t border-[rgba(255,255,255,0.06)] pt-4">
+                  <div className="flex items-end justify-between">
+                    <span className="text-[#a0a0b8] text-sm">Total</span>
+                    <div className="text-right">
+                      <span className={`text-2xl font-bold font-orbitron ${selectedTier === "pro" ? "text-[#a855f7]" : "text-[#00f0ff]"}`}>
+                        ${totalPrice.toFixed(2)}
+                      </span>
+                      <p className="text-[#555] text-[10px]">for {duration} days</p>
+                    </div>
                   </div>
                 </div>
 
                 <Button
                   onClick={handleOrder}
                   disabled={ordering || !selectedPlan || !selectedRegion}
-                  className="w-full bg-gradient-to-r from-[#00f0ff] to-[#7b2ff7] hover:opacity-90 text-white font-semibold py-6"
+                  className={`w-full font-rajdhani font-bold tracking-[1.5px] uppercase py-5 text-sm transition-all ${
+                    selectedTier === "pro"
+                      ? "bg-gradient-to-r from-[#7b2ff7] to-[#a855f7] hover:opacity-90 text-white"
+                      : "bg-gradient-to-r from-[#00f0ff] to-[#7b2ff7] hover:opacity-90 text-[#0a0a0f]"
+                  }`}
                 >
                   {ordering ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Creating...
-                    </>
+                    <><Loader2 className="w-4 h-4 mr-2 animate-spin inline" />Deploying...</>
                   ) : (
-                    "Deploy RDP Instance"
+                    <><Zap className="w-4 h-4 mr-2 inline" />Deploy Now</>
                   )}
                 </Button>
-              </CardContent>
-            </Card>
+
+                <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)]">
+                  <Lock className="w-3.5 h-3.5 text-[#555] flex-shrink-0" />
+                  <div className="flex items-center gap-1.5 flex-1">
+                    <Bitcoin className="w-3.5 h-3.5 text-[#555]" />
+                    <span className="text-[#555] text-[11px] font-rajdhani">Crypto Payments</span>
+                  </div>
+                  <span className="text-[10px] bg-[rgba(255,255,255,0.05)] text-[#555] px-1.5 py-0.5 rounded font-rajdhani tracking-[1px] uppercase border border-[rgba(255,255,255,0.06)]">
+                    Soon
+                  </span>
+                </div>
+              </div>
+            </div>
           </motion.div>
         </div>
       </div>
 
-      <AnimatePresence>
-        {showSignIn && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-[#0a0a0f]/80 backdrop-blur-sm"
-            onClick={() => setShowSignIn(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#12121a] border border-[#00f0ff]/20 rounded-xl p-6 max-w-md w-full mx-4"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h2 className="text-xl font-bold text-white mb-6 text-center">Sign in to deploy</h2>
-              <SignIn />
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+      <Dialog open={!!credentials} onOpenChange={() => setCredentials(null)}>
+        <DialogContent className="bg-[#0d0d14] border border-[rgba(0,240,255,0.2)] max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white font-orbitron flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-[#00f0ff]/15 flex items-center justify-center">
+                <Check className="w-3.5 h-3.5 text-[#00f0ff]" />
+              </div>
+              Server Ready
+            </DialogTitle>
+          </DialogHeader>
+          {credentials && (
+            <div className="space-y-3 mt-2">
+              <p className="text-[#a0a0b8] text-sm">Your credentials have also been sent to your email.</p>
+              <CopyButton value={credentials.ip} label="IP Address" />
+              <CopyButton value={credentials.username} label="Username" />
+              <CopyButton value={credentials.password} label="Password" />
+              <div className="flex items-center gap-2 bg-[rgba(0,240,255,0.04)] rounded-lg px-3 py-2 border border-[rgba(0,240,255,0.1)]">
+                <Server className="w-3.5 h-3.5 text-[#00f0ff]" />
+                <span className="text-[#a0a0b8] text-xs">
+                  Expires {new Date(credentials.expiresAt).toLocaleDateString()}
+                </span>
+              </div>
+              <Button
+                onClick={() => setCredentials(null)}
+                className="w-full bg-gradient-to-r from-[#00f0ff] to-[#7b2ff7] text-[#0a0a0f] font-rajdhani font-bold uppercase tracking-[1px]"
+              >
+                Done
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showSignIn} onOpenChange={setShowSignIn}>
+        <DialogContent className="bg-[#0d0d14] border border-[rgba(0,240,255,0.2)] max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white font-orbitron text-center">Sign in to deploy</DialogTitle>
+          </DialogHeader>
+          <SignIn />
+        </DialogContent>
+      </Dialog>
+    </AppShell>
   );
 }
