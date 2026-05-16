@@ -52,3 +52,7 @@ Thumbs.db
 .upm/
 artifacts/*/.replit-artifact/
 .vercel
+
+# Auto-generated / agent artefacts
+attached_assets/screenshots/
+.agent_context.json
