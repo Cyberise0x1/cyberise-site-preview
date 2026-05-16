@@ -1,0 +1,20 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "7ot65f-QFCyRD0-Hp0QWs"
+uri = "file://attached_assets/cyberise-logo-primary.png"
+type = "image"
+title = "cyberise technology primary logo"
+
+[[generated]]
+id = "bGImvVR1TwRMGlQHAo057"
+uri = "file://attached_assets/cyberise-logo-icon.png"
+type = "image"
+title = "cyberise technology icon badge"
+
+[[generated]]
+id = "_EzGbBYVp2Jfq518PVR0z"
+uri = "file://attached_assets/cyberise-logo-horizontal.png"
+type = "image"
+title = "cyberise technology horizontal lockup"
