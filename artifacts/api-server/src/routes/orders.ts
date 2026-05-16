@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { OrderStatus } from "@workspace/db";
 import { prisma } from "@workspace/db";
 import { deleteInstance } from "../services/linode";
+import { deleteProInstance } from "../services/rdpmonster";
 import { sendEmail, generateTerminationEmail } from "../services/email";
 import { decrypt } from "../utils/encryption";
 import { sendSuccess, sendError, sendNotFound } from "../utils/responses";
@@ -112,11 +113,25 @@ router.post("/orders/:id/terminate", requireAuth, attachUser, requireActiveUser,
       return;
     }
 
-    if (order.linodeInstanceId) {
-      try {
-        await deleteInstance(order.linodeInstanceId);
-      } catch (error) {
-        logger.warn({ error, orderId: order.id }, "Failed to delete Linode instance");
+    const metadata = order.metadata as Record<string, unknown> | null;
+    const tier = metadata?.tier ?? "basic";
+
+    if (tier === "pro") {
+      const proInstanceId = metadata?.proInstanceId as string | undefined;
+      if (proInstanceId) {
+        try {
+          await deleteProInstance(proInstanceId);
+        } catch (error) {
+          logger.warn({ error, orderId: order.id, proInstanceId }, "Failed to delete Pro instance — DB will still be marked TERMINATED");
+        }
+      }
+    } else {
+      if (order.linodeInstanceId) {
+        try {
+          await deleteInstance(order.linodeInstanceId);
+        } catch (error) {
+          logger.warn({ error, orderId: order.id }, "Failed to delete Linode instance — DB will still be marked TERMINATED");
+        }
       }
     }
 

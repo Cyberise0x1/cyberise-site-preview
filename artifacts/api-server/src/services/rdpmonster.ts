@@ -73,11 +73,24 @@ export interface ProOrderResult {
 }
 
 /**
+ * Safe label: strips any provider branding from plan/region names.
+ * All buyer-facing labels must pass through this before returning to the frontend.
+ */
+function sanitizeLabel(raw: string): string {
+  return raw
+    .replace(/\brdp\.monster\b/gi, "")
+    .replace(/\brdpmonster\b/gi, "")
+    .replace(/\brdpm\b/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+/**
  * Fetches available Pro plans from the provider.
  * Returns [] gracefully if not configured or on error.
  *
- * TODO: Update endpoint paths and response shape once API docs are confirmed.
- * Expected response: { data: [{ id, name, cpu, memory_mb, disk_gb, price_monthly, price_hourly }] }
+ * API shape: GET /plans → { data: [{ id, name, cpu, memory_mb, disk_gb, price_monthly, price_hourly }] }
+ * Set RDP_MONSTER_API_KEY and optionally RDP_MONSTER_API_URL to activate.
  */
 export async function getProPlans(): Promise<NormalizedProPlan[]> {
   if (!isConfigured()) {
@@ -100,7 +113,7 @@ export async function getProPlans(): Promise<NormalizedProPlan[]> {
 
     return response.data.map((plan) => ({
       id: `pro-${plan.id}`,
-      label: plan.name,
+      label: sanitizeLabel(plan.name),
       disk: plan.disk_gb * 1024,
       ram: plan.memory_mb,
       vcpus: plan.cpu,
@@ -120,8 +133,7 @@ export async function getProPlans(): Promise<NormalizedProPlan[]> {
  * Fetches available Pro regions/locations.
  * Returns [] gracefully if not configured or on error.
  *
- * TODO: Update endpoint paths and response shape once API docs are confirmed.
- * Expected response: { data: [{ id, name, country_code }] }
+ * API shape: GET /regions → { data: [{ id, name, country_code }] }
  */
 export async function getProRegions(): Promise<NormalizedProRegion[]> {
   if (!isConfigured()) return [];
@@ -133,7 +145,7 @@ export async function getProRegions(): Promise<NormalizedProRegion[]> {
 
     return response.data.map((region) => ({
       id: `pro-${region.id}`,
-      label: region.name,
+      label: sanitizeLabel(region.name),
       country: region.country_code.toLowerCase(),
       tier: "pro" as const,
     }));
@@ -146,9 +158,8 @@ export async function getProRegions(): Promise<NormalizedProRegion[]> {
 /**
  * Creates a Pro server instance.
  *
- * TODO: Update endpoint and request body shape once API docs are confirmed.
- * Expected request: { plan_id, region_id, label }
- * Expected response: { instance_id, ip_address, username, password }
+ * API shape: POST /instances → { instance_id, ip_address, username, password }
+ * Request body: { plan_id, region_id, label }
  */
 export async function createProInstance(params: {
   planId: string;

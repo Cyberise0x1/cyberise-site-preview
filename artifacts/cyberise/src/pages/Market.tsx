@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth, SignIn } from "@clerk/clerk-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { gsap } from "gsap";
 import { useApi, type MarketData, type PlanTier, getRegionFlag } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -46,14 +47,12 @@ function PlanCard({ plan, selected, onSelect }: {
 
   const handleMouseEnter = useCallback(() => {
     if (!cardRef.current) return;
-    cardRef.current.style.transform = "translateY(-4px) scale(1.015)";
-    cardRef.current.style.transition = "transform 0.2s ease";
+    gsap.to(cardRef.current, { y: -5, scale: 1.018, duration: 0.2, ease: "power2.out" });
   }, []);
 
   const handleMouseLeave = useCallback(() => {
     if (!cardRef.current) return;
-    cardRef.current.style.transform = "translateY(0) scale(1)";
-    cardRef.current.style.transition = "transform 0.25s ease";
+    gsap.to(cardRef.current, { y: 0, scale: 1, duration: 0.28, ease: "power2.inOut" });
   }, []);
 
   return (
@@ -69,7 +68,6 @@ function PlanCard({ plan, selected, onSelect }: {
             : "border-[#00f0ff] bg-[rgba(0,240,255,0.06)]"
           : "border-[rgba(255,255,255,0.07)] hover:border-[rgba(255,255,255,0.15)] bg-[#0d0d14]"
       }`}
-      style={{ willChange: "transform" }}
     >
       {selected && (
         <div className={`absolute inset-0 rounded-xl pointer-events-none ${
