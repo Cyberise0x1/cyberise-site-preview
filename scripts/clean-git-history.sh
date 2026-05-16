@@ -8,6 +8,16 @@
 # This script uses PATTERN-BASED replacement — it never hardcodes the actual
 # secret values. Run this locally (file is gitignored after first use).
 #
+# Requirements: GNU coreutils (grep -P, sed -i -E, find).
+#   Linux/Replit: works as-is.
+#   macOS: install GNU tools first:
+#     brew install gnu-sed findutils grep
+#     export PATH="$(brew --prefix)/opt/gnu-sed/libexec/gnubin:$PATH"
+#
+# Note: this script is gitignored but still tracked in the repo index.
+# After running, optionally untrack it with:
+#   git rm --cached scripts/clean-git-history.sh && git push origin main
+#
 # Usage:
 #   chmod +x scripts/clean-git-history.sh
 #   ./scripts/clean-git-history.sh
