@@ -14,6 +14,11 @@
     { "ts": "2026-05-15T00:00:00Z", "file": "artifacts/cyberise/public/architecture-map-frontend.html", "action": "create", "summary": "Interactive frontend architecture map — 26 nodes, 37 edges, 6 clusters, critical purchase flow, filter chips, node selection with details panel" }
   ],
   "replit_log": [
+    { "ts": "2026-05-16T12:20:00Z", "file": "artifacts/cyberise/index.html", "action": "edit", "summary": "Full SEO/meta overhaul: lang=en, og:* tags fixed (was and:*), real description, og:image, canonical URL, Twitter @Cyberise_Tech card, JSON-LD Organization structured data, sitemap link" },
+    { "ts": "2026-05-16T12:20:00Z", "file": "artifacts/cyberise/public/sitemap.xml", "action": "create", "summary": "New sitemap.xml with all public routes (/, /market, /dashboard, /orders)" },
+    { "ts": "2026-05-16T12:20:00Z", "file": "artifacts/cyberise/src/main.tsx", "action": "edit", "summary": "Replaced deprecated afterSignInUrl/afterSignUpUrl with fallbackRedirectUrl/signInFallbackRedirectUrl/signUpFallbackRedirectUrl" },
+    { "ts": "2026-05-16T12:20:00Z", "file": "artifacts/cyberise/src/components/Footer.tsx", "action": "edit", "summary": "Twitter icon now links to https://x.com/Cyberise_Tech, services links anchored to #services, careers → #contact, copyright 2025→2026" },
+    { "ts": "2026-05-16T12:20:00Z", "file": "artifacts/cyberise/src/components/Navbar.tsx", "action": "edit", "summary": "Fixed anchor generation: replace() → replaceAll() in both desktop and mobile drawer so multi-word nav items (Why Us) always generate correct anchors" },
     { "ts": "2026-05-15T00:00:00Z", "file": "artifacts/cyberise/src/pages/AdminDev.tsx", "action": "create", "summary": "New admin Dev tab — agent activity feed (replit_log, commandcode_log, claims, conflicts) + architecture map iframes, auto-refreshes every 30s" },
     { "ts": "2026-05-15T00:00:00Z", "file": "artifacts/api-server/src/routes/admin.ts", "action": "edit", "summary": "Added GET /admin/agent-context endpoint — reads .agent_context.json from workspace root, admin-only" },
     { "ts": "2026-05-15T00:00:00Z", "file": "artifacts/cyberise/src/pages/AdminLayout.tsx", "action": "edit", "summary": "Added Dev nav item (Code2 icon) to admin sidebar, wired /admin/dev active state" },

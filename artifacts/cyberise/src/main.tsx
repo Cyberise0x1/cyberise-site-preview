@@ -24,8 +24,9 @@ createRoot(document.getElementById("root")!).render(
   <ClerkProvider
     publishableKey={publishableKey}
     clerkJSUrl="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js"
-    afterSignInUrl="/market"
-    afterSignUpUrl="/market"
+    fallbackRedirectUrl="/market"
+    signInFallbackRedirectUrl="/market"
+    signUpFallbackRedirectUrl="/market"
     afterSignOutUrl="/"
   >
     <QueryClientProvider client={queryClient}>

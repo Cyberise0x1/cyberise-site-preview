@@ -95,7 +95,7 @@ export default function Navbar() {
           (item) => (
             <li key={item}>
               <a
-                href={`#${item.toLowerCase().replace(" ", "-")}`}
+                href={`#${item.toLowerCase().replaceAll(" ", "-")}`}
                 className="text-[#a0a0b8] no-underline font-rajdhani text-[1rem] font-medium tracking-[1.5px] uppercase transition-all duration-300 relative hover:text-[#00f0ff] after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-[2px] after:bg-[linear-gradient(135deg,#00f0ff,#7b2ff7)] hover:after:w-full after:transition-all after:duration-300"
               >
                 {item}
@@ -182,7 +182,7 @@ export default function Navbar() {
               (item) => (
                 <li key={item}>
                   <a
-                    href={`#${item.toLowerCase().replace(" ", "-")}`}
+                    href={`#${item.toLowerCase().replaceAll(" ", "-")}`}
                     onClick={closeMenu}
                     className="text-[#a0a0b8] no-underline font-rajdhani text-[1.1rem] font-medium tracking-[1.5px] uppercase transition-all duration-300 relative hover:text-[#00f0ff] after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-[2px] after:bg-[linear-gradient(135deg,#00f0ff,#7b2ff7)] hover:after:w-full after:transition-all after:duration-300"
                   >

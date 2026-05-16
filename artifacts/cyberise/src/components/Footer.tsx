@@ -18,7 +18,7 @@ export default function Footer({ onOpenLegal }: FooterProps) {
             The elite force in global digital solutions and offensive cybersecurity. Securing the present, building the future.
           </p>
           <div className="flex gap-[15px] mt-[25px]">
-            <a href="#" className="w-[45px] h-[45px] rounded-[12px] bg-[rgba(0,240,255,0.05)] border border-[rgba(0,240,255,0.1)] flex items-center justify-center text-[#a0a0b8] transition-all hover:bg-[rgba(0,240,255,0.15)] hover:border-[#00f0ff] hover:text-[#00f0ff] hover:-translate-y-[3px]">
+            <a href="https://x.com/Cyberise_Tech" target="_blank" rel="noopener noreferrer" aria-label="Follow Cyberise on X" className="w-[45px] h-[45px] rounded-[12px] bg-[rgba(0,240,255,0.05)] border border-[rgba(0,240,255,0.1)] flex items-center justify-center text-[#a0a0b8] transition-all hover:bg-[rgba(0,240,255,0.15)] hover:border-[#00f0ff] hover:text-[#00f0ff] hover:-translate-y-[3px]">
               <Twitter className="w-5 h-5" />
             </a>
             <a href="#" className="w-[45px] h-[45px] rounded-[12px] bg-[rgba(0,240,255,0.05)] border border-[rgba(0,240,255,0.1)] flex items-center justify-center text-[#a0a0b8] transition-all hover:bg-[rgba(0,240,255,0.15)] hover:border-[#00f0ff] hover:text-[#00f0ff] hover:-translate-y-[3px]">
@@ -36,11 +36,11 @@ export default function Footer({ onOpenLegal }: FooterProps) {
         <div>
           <h4 className="font-orbitron text-[0.9rem] font-bold tracking-[2px] uppercase mb-[25px] text-white">Services</h4>
           <ul className="flex flex-col gap-[12px] list-none">
-            <li><a href="#" className="text-[#a0a0b8] text-[0.95rem] hover:text-[#00f0ff] hover:pl-[5px] transition-all inline-block">Web Development</a></li>
-            <li><a href="#" className="text-[#a0a0b8] text-[0.95rem] hover:text-[#00f0ff] hover:pl-[5px] transition-all inline-block">Mobile Applications</a></li>
-            <li><a href="#" className="text-[#a0a0b8] text-[0.95rem] hover:text-[#00f0ff] hover:pl-[5px] transition-all inline-block">Penetration Testing</a></li>
-            <li><a href="#" className="text-[#a0a0b8] text-[0.95rem] hover:text-[#00f0ff] hover:pl-[5px] transition-all inline-block">Govt Consultancy</a></li>
-            <li><a href="#" className="text-[#a0a0b8] text-[0.95rem] hover:text-[#00f0ff] hover:pl-[5px] transition-all inline-block">Hardware Procurement</a></li>
+            <li><a href="#services" className="text-[#a0a0b8] text-[0.95rem] hover:text-[#00f0ff] hover:pl-[5px] transition-all inline-block">Web Development</a></li>
+            <li><a href="#services" className="text-[#a0a0b8] text-[0.95rem] hover:text-[#00f0ff] hover:pl-[5px] transition-all inline-block">Mobile Applications</a></li>
+            <li><a href="#services" className="text-[#a0a0b8] text-[0.95rem] hover:text-[#00f0ff] hover:pl-[5px] transition-all inline-block">Penetration Testing</a></li>
+            <li><a href="#services" className="text-[#a0a0b8] text-[0.95rem] hover:text-[#00f0ff] hover:pl-[5px] transition-all inline-block">Govt Consultancy</a></li>
+            <li><a href="#services" className="text-[#a0a0b8] text-[0.95rem] hover:text-[#00f0ff] hover:pl-[5px] transition-all inline-block">Hardware Procurement</a></li>
           </ul>
         </div>
 
@@ -50,7 +50,7 @@ export default function Footer({ onOpenLegal }: FooterProps) {
             <li><a href="#about" className="text-[#a0a0b8] text-[0.95rem] hover:text-[#00f0ff] hover:pl-[5px] transition-all inline-block">About Us</a></li>
             <li><a href="#projects" className="text-[#a0a0b8] text-[0.95rem] hover:text-[#00f0ff] hover:pl-[5px] transition-all inline-block">Our Projects</a></li>
             <li><a href="#why-us" className="text-[#a0a0b8] text-[0.95rem] hover:text-[#00f0ff] hover:pl-[5px] transition-all inline-block">Why Cyberise</a></li>
-            <li><a href="#" className="text-[#a0a0b8] text-[0.95rem] hover:text-[#00f0ff] hover:pl-[5px] transition-all inline-block">Careers</a></li>
+            <li><a href="#contact" className="text-[#a0a0b8] text-[0.95rem] hover:text-[#00f0ff] hover:pl-[5px] transition-all inline-block">Careers</a></li>
             <li><a href="#contact" className="text-[#a0a0b8] text-[0.95rem] hover:text-[#00f0ff] hover:pl-[5px] transition-all inline-block">Contact</a></li>
           </ul>
         </div>
@@ -93,7 +93,7 @@ export default function Footer({ onOpenLegal }: FooterProps) {
 
       <div className="pt-[30px] border-t border-[rgba(255,255,255,0.05)] flex flex-col md:flex-row items-center justify-between gap-[15px] max-w-[1400px] mx-auto text-center md:text-left">
         <p className="text-[#a0a0b8] text-[0.85rem]">
-          © 2025 Cyberise Technology. All Rights Reserved.
+          © 2026 Cyberise Technology. All Rights Reserved.
         </p>
         <p className="text-[#a0a0b8] text-[0.85rem]">
           System Status: <span className="text-[#00f0ff]">SECURE & ONLINE</span>
