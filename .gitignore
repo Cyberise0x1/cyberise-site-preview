@@ -56,3 +56,6 @@ artifacts/*/.replit-artifact/
 # Auto-generated / agent artefacts
 attached_assets/screenshots/
 .agent_context.json
+
+# Local-only utility scripts (contain pattern refs, run locally before pushing)
+scripts/clean-git-history.sh

@@ -1,75 +1,86 @@
 #!/usr/bin/env bash
 # =============================================================================
 # clean-git-history.sh
-# Rewrites git history to remove exposed secrets, then force-pushes to origin.
 #
-# Secrets scrubbed:
-#   - Stripe live secret key (REDACTED_STRIPE_SK...)
-#   - Vercel PAT v1 (REDACTED_VERCEL_PAT...)
-#   - Vercel PAT v2 (REDACTED_VERCEL_PAT...)
+# Rewrites git history to remove all Stripe secret keys and Vercel PATs that
+# were accidentally committed, then force-pushes clean history to origin.
+#
+# This script uses PATTERN-BASED replacement — it never hardcodes the actual
+# secret values. Run this locally (file is gitignored after first use).
 #
 # Usage:
 #   chmod +x scripts/clean-git-history.sh
 #   ./scripts/clean-git-history.sh
 #
-# After running:
-#   1. Rotate your Stripe key at https://dashboard.stripe.com/apikeys
-#   2. Rotate your Vercel token at https://vercel.com/account/tokens
-#   3. Update VERCEL_TOKEN in your Replit Secrets with the new value
+# After running, rotate credentials:
+#   Stripe: https://dashboard.stripe.com/apikeys
+#   Vercel: https://vercel.com/account/tokens
 # =============================================================================
 
 set -euo pipefail
 
-STRIPE_KEY="REDACTED_STRIPE_SK"
-VERCEL_PAT_1="REDACTED_VERCEL_PAT"
-VERCEL_PAT_2="REDACTED_VERCEL_PAT"
+STRIPE_PATTERN='REDACTED_STRIPE_SK[A-Za-z0-9_]*'
+VERCEL_PATTERN='REDACTED_VERCEL_PAT[A-Za-z0-9]*'
 
-echo "=== Step 1: Verifying secrets exist in history ==="
-COUNT=$(git log --all -p 2>/dev/null | grep -cE "(REDACTED_STRIPE_SK|REDACTED_VERCEL_PAT|REDACTED_VERCEL_PAT)" || true)
-echo "Found $COUNT secret occurrence(s) in git history."
-if [ "$COUNT" -eq 0 ]; then
-  echo "No secrets found — history already clean. Exiting."
+echo "=== Step 1: Checking for secrets in history ==="
+STRIPE_COUNT=$(git log --all -p 2>/dev/null | grep -cP 'REDACTED_STRIPE_SK[A-Za-z0-9_]{10,}' || true)
+VERCEL_COUNT=$(git log --all -p 2>/dev/null | grep -cP 'REDACTED_VERCEL_PAT[A-Za-z0-9]{10,}' || true)
+echo "  Stripe key occurrences : $STRIPE_COUNT"
+echo "  Vercel PAT occurrences : $VERCEL_COUNT"
+
+TOTAL=$((STRIPE_COUNT + VERCEL_COUNT))
+if [ "$TOTAL" -eq 0 ]; then
+  echo "No secrets found — history already clean."
   exit 0
 fi
 
 echo ""
-echo "=== Step 2: Rewriting history (this may take a minute) ==="
+echo "=== Step 2: Rewriting history (may take a minute for ~47 commits) ==="
 FILTER_BRANCH_SQUELCH_WARNING=1 git filter-branch --force --tree-filter "
   find . -type f \
     -not -path './.git/*' \
     -not -path './node_modules/*' \
     -not -path './.cache/*' \
-    -exec sed -i \
-      -e 's|${STRIPE_KEY}|REDACTED_STRIPE_SK|g' \
-      -e 's|${VERCEL_PAT_1}|REDACTED_VERCEL_PAT_1|g' \
-      -e 's|${VERCEL_PAT_2}|REDACTED_VERCEL_PAT_2|g' \
-    {} \;
+    -exec sed -i -E \
+      -e 's/${STRIPE_PATTERN}/REDACTED_STRIPE_SK/g' \
+      -e 's/${VERCEL_PATTERN}/REDACTED_VERCEL_PAT/g' \
+    {} + 2>/dev/null || true
 " --tag-name-filter cat -- --all
+echo "  filter-branch complete."
 
 echo ""
-echo "=== Step 3: Verifying secrets are gone ==="
-REMAINING=$(git log --all -p 2>/dev/null | grep -cE "(REDACTED_STRIPE_SK|REDACTED_VERCEL_PAT|REDACTED_VERCEL_PAT)" || true)
+echo "=== Step 3: Verifying — scanning for remaining complete tokens ==="
+REMAINING_STRIPE=$(git log --all -p 2>/dev/null | grep -cP 'REDACTED_STRIPE_SK[A-Za-z0-9_]{10,}' || true)
+REMAINING_VERCEL=$(git log --all -p 2>/dev/null | grep -cP 'REDACTED_VERCEL_PAT[A-Za-z0-9]{10,}' || true)
+REMAINING=$((REMAINING_STRIPE + REMAINING_VERCEL))
+
 if [ "$REMAINING" -gt 0 ]; then
-  echo "ERROR: $REMAINING secret occurrence(s) still found! Do NOT push."
+  echo "ERROR: $REMAINING complete token(s) still found in history. Do NOT push."
+  echo "  Stripe: $REMAINING_STRIPE  |  Vercel: $REMAINING_VERCEL"
   exit 1
 fi
-echo "All secrets removed from history."
+echo "  All complete secret tokens removed."
 
 echo ""
-echo "=== Step 4: Removing filter-branch backup refs ==="
-git for-each-ref --format="%(refname)" refs/original/ | xargs -I{} git update-ref -d {} 2>/dev/null || true
+echo "=== Step 4: Cleaning up filter-branch backup refs ==="
+git for-each-ref --format="%(refname)" refs/original/ \
+  | xargs -I{} git update-ref -d {} 2>/dev/null || true
 git reflog expire --expire=now --all
 git gc --prune=now --aggressive
+echo "  Cleanup done."
 
 echo ""
-echo "=== Step 5: Force-pushing clean history to origin ==="
+echo "=== Step 5: Force-pushing clean history to origin/main ==="
 git push --force-with-lease origin main
+echo "  Push successful."
 
 echo ""
-echo "=== Done! ==="
-echo "New HEAD: $(git rev-parse HEAD)"
+echo "================================================================"
+echo " Done! New HEAD: $(git rev-parse HEAD)"
+echo "================================================================"
 echo ""
-echo "IMPORTANT — rotate these credentials immediately if not already done:"
-echo "  • Stripe: https://dashboard.stripe.com/apikeys"
-echo "  • Vercel: https://vercel.com/account/tokens"
-echo "  • Update VERCEL_TOKEN in Replit Secrets with the new value"
+echo " ACTION REQUIRED — rotate these credentials immediately:"
+echo "   Stripe  -> https://dashboard.stripe.com/apikeys"
+echo "   Vercel  -> https://vercel.com/account/tokens"
+echo "   Then update VERCEL_TOKEN in Replit Secrets with the new value."
+echo "================================================================"
