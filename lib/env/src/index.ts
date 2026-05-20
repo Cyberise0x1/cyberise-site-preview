@@ -16,6 +16,9 @@ export const serverEnvSchema = z.object({
   ENCRYPTION_SECRET: z.string().min(32),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   CRON_SECRET: z.string().optional(),
+  NOWPAYMENTS_API_KEY: z.string().min(1),
+  NOWPAYMENTS_IPN_SECRET: z.string().min(1),
+  NOWPAYMENTS_API_URL: z.string().default("https://api.nowpayments.io"),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;

@@ -118,4 +118,65 @@ router.post("/cron/expire-instances", async (req, res) => {
   }
 });
 
+router.post("/cron/expire-crypto-payments", async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+      sendError(res, "Unauthorized", 401);
+      return;
+    }
+
+    const cutoff = new Date(Date.now() - 60 * 60 * 1000);
+
+    const stalePayments = await prisma.cryptoPayment.findMany({
+      where: {
+        paymentStatus: { in: ["waiting", "confirming", "partially_paid"] },
+        createdAt: { lt: cutoff },
+      },
+      include: { order: true },
+    });
+
+    let expired = 0;
+    for (const payment of stalePayments) {
+      try {
+        if (payment.order.status === OrderStatus.PENDING) {
+          await prisma.order.update({
+            where: { id: payment.orderId },
+            data: { status: OrderStatus.FAILED },
+          });
+        }
+
+        await prisma.cryptoPayment.update({
+          where: { id: payment.id },
+          data: { paymentStatus: "expired", completedAt: new Date() },
+        });
+
+        await prisma.auditLog.create({
+          data: {
+            actorId: payment.order.userId,
+            action: "CRYPTO_PAYMENT_EXPIRED",
+            entity: "Order",
+            entityId: payment.orderId,
+            metadata: { paymentId: payment.paymentId },
+          },
+        });
+
+        expired++;
+      } catch (error) {
+        logger.error({ error, paymentId: payment.id }, "Failed to expire stale crypto payment");
+      }
+    }
+
+    logger.info({ expired }, "Crypto payment expiry cron complete");
+
+    sendSuccess(res, {
+      expired,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    logger.error({ error }, "Crypto payment expiry cron failed");
+    sendError(res, "Cron job failed");
+  }
+});
+
 export default router;

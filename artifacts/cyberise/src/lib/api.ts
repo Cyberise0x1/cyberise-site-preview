@@ -83,6 +83,42 @@ export type Order = {
   metadata?: Record<string, unknown> | null;
 };
 
+export type CryptoCurrency = {
+  id: number;
+  code: string;
+  name: string;
+  enable: boolean;
+  is_fiat: boolean;
+  precision: number;
+  icon_url?: string;
+};
+
+export type CryptoEstimate = {
+  currency_from: string;
+  amount_from: number;
+  currency_to: string;
+  estimated_amount: number;
+};
+
+export type CryptoOrderResponse = {
+  orderId: string;
+  paymentId: string;
+  payAddress: string;
+  payCurrency: string;
+  cryptoAmount: number;
+  fiatAmount: number;
+  paymentStatus: string;
+};
+
+export type CryptoPaymentStatusResponse = {
+  paymentId: string;
+  paymentStatus: string;
+  actuallyPaid: number;
+  payAmount: number;
+  payCurrency: string;
+  orderStatus: string;
+};
+
 export function getDaysLeft(expiresAt: string): number {
   const now = new Date();
   const exp = new Date(expiresAt);

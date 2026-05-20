@@ -57,13 +57,38 @@ model Order {
   terminationReason    String?
   metadata             Json?
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cryptoPayments CryptoPayment[]
 
   @@index([userId])
   @@index([status])
   @@index([expiresAt])
   @@index([createdAt])
   @@map("orders")
+}
+
+model CryptoPayment {
+  id            String    @id @default(uuid())
+  orderId       String
+  paymentId     String    @unique
+  payAddress    String
+  payCurrency   String
+  cryptoAmount  Decimal   @db.Decimal(18, 8)
+  fiatAmount    Decimal   @db.Decimal(10, 2)
+  fiatCurrency  String    @default("usd")
+  paymentStatus String
+  actuallyPaid  Decimal?  @db.Decimal(18, 8)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  completedAt   DateTime?
+  ipnReceivedAt DateTime?
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([paymentId])
+  @@index([orderId])
+  @@index([paymentStatus])
+  @@map("crypto_payments")
 }
 
 model MarketSettings {

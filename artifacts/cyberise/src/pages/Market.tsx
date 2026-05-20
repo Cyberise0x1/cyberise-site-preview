@@ -1,21 +1,32 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useAuth, SignIn } from "@clerk/clerk-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useAuth, SignIn, useUser } from "@clerk/clerk-react";
+import { motion } from "framer-motion";
 import { gsap } from "gsap";
-import { useApi, type MarketData, type PlanTier, getRegionFlag } from "@/lib/api";
+import { useApi, type MarketData, type PlanTier, type CryptoCurrency, type CryptoEstimate, type CryptoOrderResponse, type CryptoPaymentStatusResponse, getRegionFlag } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Loader2, Server, HardDrive, Cpu, Globe, Copy, Check,
-  Lock, Zap, Shield, Star, AlertTriangle
+  Lock, Zap, Shield, Star, AlertTriangle, Wallet, Clock
 } from "lucide-react";
-import { FaBitcoin, FaEthereum } from "react-icons/fa";
 import { toast } from "sonner";
 import AppShell from "@/components/AppShell";
 
 type CredentialData = { orderId: string; ip: string; username: string; password: string; expiresAt: string; tier: PlanTier };
+
+type PaymentMethod = "balance" | "crypto";
+
+type CryptoPaymentData = {
+  orderId: string;
+  paymentId: string;
+  payAddress: string;
+  payCurrency: string;
+  cryptoAmount: number;
+  fiatAmount: number;
+  paymentStatus: string;
+};
 
 function CopyButton({ value, label }: { value: string; label: string }) {
   const [copied, setCopied] = useState(false);
@@ -118,6 +129,7 @@ function PlanCard({ plan, selected, onSelect }: {
 export default function Market() {
   const { api } = useApi();
   const { isSignedIn } = useAuth();
+  const { user } = useUser();
   const [marketData, setMarketData] = useState<MarketData | null>(null);
   const [loading, setLoading] = useState(true);
   const [ordering, setOrdering] = useState(false);
@@ -130,7 +142,26 @@ export default function Market() {
   const [selectedImage, setSelectedImage] = useState<string>("");
   const [duration, setDuration] = useState(30);
 
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("balance");
+  const [payCurrency, setPayCurrency] = useState<string>("btc");
+  const [cryptoCurrencies, setCryptoCurrencies] = useState<CryptoCurrency[]>([]);
+  const [cryptoEstimate, setCryptoEstimate] = useState<CryptoEstimate | null>(null);
+  const [cryptoPayment, setCryptoPayment] = useState<CryptoPaymentData | null>(null);
+  const [cryptoPaymentStatus, setCryptoPaymentStatus] = useState<CryptoPaymentStatusResponse | null>(null);
+  const [paymentPolling, setPaymentPolling] = useState(false);
+
   useEffect(() => { loadMarketData(); }, []);
+
+  async function loadCryptoCurrencies() {
+    try {
+      const response = await api<{ success: boolean; data: CryptoCurrency[] }>("/market/crypto/currencies", { requireAuth: false });
+      setCryptoCurrencies(response.data.filter(c => c.enable && !c.is_fiat));
+    } catch {
+      // silent — crypto dropdown will show empty
+    }
+  }
+
+  useEffect(() => { loadCryptoCurrencies(); }, []);
 
   async function loadMarketData() {
     try {
@@ -196,6 +227,77 @@ export default function Market() {
     } finally {
       setOrdering(false);
     }
+  }
+
+  useEffect(() => {
+    if (paymentMethod !== "crypto" || !totalPrice) return;
+    const timer = setTimeout(async () => {
+      try {
+        const response = await api<{ success: boolean; data: CryptoEstimate }>("/market/crypto/estimate", {
+          requireAuth: false,
+          method: "POST",
+          body: JSON.stringify({ amount: totalPrice, currencyTo: payCurrency }),
+        });
+        setCryptoEstimate(response.data);
+      } catch {
+        setCryptoEstimate(null);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [paymentMethod, totalPrice, payCurrency]);
+
+  async function handleCryptoOrder() {
+    if (!selectedPlan || !selectedRegion) {
+      toast.error("Please select a plan and region");
+      return;
+    }
+    if (!isSignedIn) { setShowSignIn(true); return; }
+
+    try {
+      setOrdering(true);
+      const response = await api<{ success: boolean; data: CryptoOrderResponse }>("/market/crypto/order", {
+        method: "POST",
+        body: JSON.stringify({
+          plan: selectedPlan,
+          region: selectedRegion,
+          image: selectedTier === "basic" ? (selectedImage || "windows10") : "windows",
+          durationDays: duration,
+          tier: selectedTier,
+          payCurrency,
+        }),
+      });
+      setCryptoPayment(response.data);
+      pollCryptoPayment(response.data.paymentId);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Payment creation failed");
+    } finally {
+      setOrdering(false);
+    }
+  }
+
+  async function pollCryptoPayment(paymentId: string) {
+    setPaymentPolling(true);
+    const maxPolls = 120;
+    for (let i = 0; i < maxPolls; i++) {
+      try {
+        const status = await api<{ success: boolean; data: CryptoPaymentStatusResponse }>(
+          `/market/crypto/payment/${paymentId}`,
+        );
+        setCryptoPaymentStatus(status.data);
+        if (
+          status.data.orderStatus === "ACTIVE" ||
+          status.data.paymentStatus === "failed" ||
+          status.data.paymentStatus === "expired" ||
+          status.data.paymentStatus === "refunded"
+        ) {
+          break;
+        }
+      } catch {
+        // continue polling
+      }
+      await new Promise((r) => setTimeout(r, 5000));
+    }
+    setPaymentPolling(false);
   }
 
   const staggerContainer = { animate: { transition: { staggerChildren: 0.06 } } };
@@ -382,7 +484,7 @@ export default function Market() {
                 </div>
 
                 <div className="border-t border-[rgba(255,255,255,0.06)] pt-4">
-                  <div className="flex items-end justify-between">
+                  <div className="flex items-end justify-between mb-4">
                     <span className="text-[#a0a0b8] text-sm">Total</span>
                     <div className="text-right">
                       <span className={`text-2xl font-bold font-orbitron ${selectedTier === "pro" ? "text-[#a855f7]" : "text-[#00f0ff]"}`}>
@@ -391,35 +493,101 @@ export default function Market() {
                       <p className="text-[#555] text-[10px]">for {duration} days</p>
                     </div>
                   </div>
-                </div>
 
-                <Button
-                  onClick={handleOrder}
-                  disabled={ordering || !selectedPlan || !selectedRegion}
-                  className={`w-full font-rajdhani font-bold tracking-[1.5px] uppercase py-5 text-sm transition-all ${
-                    selectedTier === "pro"
-                      ? "bg-gradient-to-r from-[#7b2ff7] to-[#a855f7] hover:opacity-90 text-white"
-                      : "bg-gradient-to-r from-[#00f0ff] to-[#7b2ff7] hover:opacity-90 text-[#0a0a0f]"
-                  }`}
-                >
-                  {ordering ? (
-                    <><Loader2 className="w-4 h-4 mr-2 animate-spin inline" />Deploying...</>
-                  ) : (
-                    <><Zap className="w-4 h-4 mr-2 inline" />Deploy Now</>
-                  )}
-                </Button>
-
-                <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)]">
-                  <Lock className="w-3.5 h-3.5 text-[#555] flex-shrink-0" />
-                  <div className="flex items-center gap-2 flex-1">
-                    <FaBitcoin className="w-3.5 h-3.5 text-[#555]" style={{ width: 14, height: 14 }} />
-                    <FaEthereum className="w-3.5 h-3.5 text-[#555]" style={{ width: 14, height: 14 }} />
-                    <span className="text-[#555] text-[11px] font-rajdhani">Crypto payments</span>
+                  <div className="flex gap-1.5 mb-4">
+                    <button
+                      onClick={() => setPaymentMethod("balance")}
+                      className={`flex-1 py-2 rounded-lg text-xs font-rajdhani font-bold tracking-[1px] uppercase transition-all border ${
+                        paymentMethod === "balance"
+                          ? "border-[#00f0ff]/50 bg-[rgba(0,240,255,0.08)] text-white"
+                          : "border-[rgba(255,255,255,0.06)] bg-transparent text-[#555] hover:text-white"
+                      }`}
+                    >
+                      <Zap className="w-3.5 h-3.5 inline mr-1" />
+                      Balance
+                    </button>
+                    <button
+                      onClick={() => setPaymentMethod("crypto")}
+                      className={`flex-1 py-2 rounded-lg text-xs font-rajdhani font-bold tracking-[1px] uppercase transition-all border ${
+                        paymentMethod === "crypto"
+                          ? "border-[#7b2ff7]/50 bg-[rgba(123,47,247,0.08)] text-white"
+                          : "border-[rgba(255,255,255,0.06)] bg-transparent text-[#555] hover:text-white"
+                      }`}
+                    >
+                      <Wallet className="w-3.5 h-3.5 inline mr-1" />
+                      Crypto
+                    </button>
                   </div>
-                  <span className="text-[10px] bg-[rgba(255,255,255,0.05)] text-[#555] px-1.5 py-0.5 rounded font-rajdhani tracking-[1px] uppercase border border-[rgba(255,255,255,0.06)]">
-                    Coming Soon
-                  </span>
+
+                  {paymentMethod === "crypto" && (
+                    <div className="space-y-3 mb-4">
+                      <div>
+                        <label className="text-[10px] text-[#555] font-rajdhani uppercase tracking-[1px] mb-1 block">Currency</label>
+                        <select
+                          value={payCurrency}
+                          onChange={(e) => setPayCurrency(e.target.value)}
+                          className="w-full bg-[#0a0a0f] border border-[rgba(255,255,255,0.07)] rounded-lg px-3 py-2 text-white text-sm font-mono"
+                        >
+                          {cryptoCurrencies.length === 0 && (
+                            <option value="btc">BTC</option>
+                          )}
+                          {cryptoCurrencies.map((c) => (
+                            <option key={c.id} value={c.code}>
+                              {c.code.toUpperCase()}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      {cryptoEstimate && (
+                        <div className="flex items-center justify-between bg-[rgba(123,47,247,0.06)] rounded-lg px-3 py-2 border border-[rgba(123,47,247,0.15)]">
+                          <span className="text-[#a0a0b8] text-[11px] font-rajdhani uppercase tracking-[0.5px]">Estimate</span>
+                          <span className="text-[#a855f7] text-sm font-mono">
+                            ≈ {cryptoEstimate.estimated_amount.toFixed(cryptoCurrencies.find(c => c.code === payCurrency)?.precision ?? 8)} {payCurrency.toUpperCase()}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {paymentMethod === "balance" && (
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.05)] mb-4">
+                      <Lock className="w-3.5 h-3.5 text-[#555]" />
+                      <span className="text-[#a0a0b8] text-[11px] font-rajdhani">
+                        Balance: ${user?.publicMetadata?.balance ? Number(user.publicMetadata.balance).toFixed(2) : "0.00"}
+                      </span>
+                    </div>
+                  )}
                 </div>
+
+                {paymentMethod === "balance" ? (
+                  <Button
+                    onClick={handleOrder}
+                    disabled={ordering || !selectedPlan || !selectedRegion}
+                    className={`w-full font-rajdhani font-bold tracking-[1.5px] uppercase py-5 text-sm transition-all ${
+                      selectedTier === "pro"
+                        ? "bg-gradient-to-r from-[#7b2ff7] to-[#a855f7] hover:opacity-90 text-white"
+                        : "bg-gradient-to-r from-[#00f0ff] to-[#7b2ff7] hover:opacity-90 text-[#0a0a0f]"
+                    }`}
+                  >
+                    {ordering ? (
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin inline" />Deploying...</>
+                    ) : (
+                      <><Zap className="w-4 h-4 mr-2 inline" />Deploy Now</>
+                    )}
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleCryptoOrder}
+                    disabled={ordering || !selectedPlan || !selectedRegion}
+                    className="w-full font-rajdhani font-bold tracking-[1.5px] uppercase py-5 text-sm bg-gradient-to-r from-[#7b2ff7] to-[#a855f7] hover:opacity-90 text-white transition-all"
+                  >
+                    {ordering ? (
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin inline" />Creating Payment...</>
+                    ) : (
+                      <><Wallet className="w-4 h-4 mr-2 inline" />Pay with Crypto</>
+                    )}
+                  </Button>
+                )}
               </div>
             </div>
           </motion.div>
@@ -454,6 +622,96 @@ export default function Market() {
               >
                 Done
               </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!cryptoPayment} onOpenChange={() => { setCryptoPayment(null); setCryptoPaymentStatus(null); setPaymentPolling(false); }}>
+        <DialogContent className="bg-[#0d0d14] border border-[rgba(123,47,247,0.25)] max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white font-orbitron flex items-center gap-2">
+              <Wallet className="w-5 h-5 text-[#a855f7]" />
+              Crypto Payment
+            </DialogTitle>
+          </DialogHeader>
+          {cryptoPayment && (
+            <div className="space-y-4 mt-2">
+              <div className="bg-[#0a0a0f] rounded-lg p-4 border border-[rgba(123,47,247,0.2)]">
+                <p className="text-[#a0a0b8] text-[10px] font-rajdhani uppercase tracking-[1px] mb-2">Send exactly</p>
+                <p className="text-white text-2xl font-mono font-bold">
+                  {cryptoPayment.cryptoAmount} {cryptoPayment.payCurrency.toUpperCase()}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-[#a0a0b8] text-[10px] font-rajdhani uppercase tracking-[1px] mb-1.5">Wallet Address</p>
+                <div className="bg-[#0a0a0f] rounded-lg border border-[rgba(255,255,255,0.06)] flex items-center">
+                  <code className="flex-1 text-white text-xs font-mono px-3 py-2.5 break-all">
+                    {cryptoPayment.payAddress}
+                  </code>
+                  <button
+                    onClick={() => { navigator.clipboard.writeText(cryptoPayment.payAddress); toast.success("Address copied"); }}
+                    className="px-3 py-2.5 text-[#a0a0b8] hover:text-white transition-colors flex-shrink-0"
+                  >
+                    <Copy className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 bg-[rgba(123,47,247,0.06)] rounded-lg px-3 py-2 border border-[rgba(123,47,247,0.15)]">
+                <Clock className="w-3.5 h-3.5 text-[#a855f7]" />
+                <span className="text-[#a0a0b8] text-xs">Payment link expires in 1 hour</span>
+              </div>
+
+              {cryptoPaymentStatus && (
+                <div className={`rounded-lg p-3 ${
+                  cryptoPaymentStatus.paymentStatus === "partially_paid"
+                    ? "bg-[rgba(255,136,0,0.08)] border border-[rgba(255,136,0,0.25)]"
+                    : cryptoPaymentStatus.paymentStatus === "confirmed" || cryptoPaymentStatus.paymentStatus === "finished"
+                    ? "bg-[rgba(0,240,255,0.08)] border border-[rgba(0,240,255,0.2)]"
+                    : cryptoPaymentStatus.paymentStatus === "failed" || cryptoPaymentStatus.paymentStatus === "expired" || cryptoPaymentStatus.paymentStatus === "refunded"
+                    ? "bg-[rgba(255,68,68,0.08)] border border-[rgba(255,68,68,0.2)]"
+                    : "bg-[rgba(123,47,247,0.06)] border border-[rgba(123,47,247,0.15)]"
+                }`}>
+                  <div className="flex items-center gap-2">
+                    {paymentPolling && cryptoPaymentStatus.paymentStatus !== "confirmed" && cryptoPaymentStatus.paymentStatus !== "finished" && cryptoPaymentStatus.paymentStatus !== "failed" && cryptoPaymentStatus.paymentStatus !== "expired" && cryptoPaymentStatus.paymentStatus !== "refunded" && (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-[#a855f7]" />
+                    )}
+                    <span className="text-white text-sm font-rajdhani uppercase tracking-[1px]">
+                      Status: {cryptoPaymentStatus.paymentStatus}
+                    </span>
+                  </div>
+                  {cryptoPaymentStatus.paymentStatus === "partially_paid" && (
+                    <p className="text-[#ff8800] text-xs mt-1">
+                      Partially paid — send remaining to complete
+                    </p>
+                  )}
+                  {cryptoPaymentStatus.paymentStatus === "waiting" && paymentPolling && (
+                    <p className="text-[#a0a0b8] text-xs mt-1">Waiting for transaction to be detected...</p>
+                  )}
+                </div>
+              )}
+
+              {(cryptoPaymentStatus?.paymentStatus === "failed" || cryptoPaymentStatus?.paymentStatus === "expired" || cryptoPaymentStatus?.paymentStatus === "refunded") && (
+                <div className="space-y-2">
+                  <p className="text-[#ff4444] text-xs text-center">Payment was not completed</p>
+                  <Button
+                    onClick={() => { setCryptoPayment(null); setCryptoPaymentStatus(null); handleCryptoOrder(); }}
+                    className="w-full bg-gradient-to-r from-[#7b2ff7] to-[#a855f7] text-white font-rajdhani font-bold uppercase tracking-[1px] text-sm"
+                  >
+                    Try Again
+                  </Button>
+                </div>
+              )}
+
+              {cryptoPaymentStatus?.orderStatus === "ACTIVE" && !credentials && (
+                <div className="text-center space-y-2">
+                  <Check className="w-8 h-8 text-[#00f0ff] mx-auto" />
+                  <p className="text-white font-semibold">Payment Confirmed!</p>
+                  <p className="text-[#a0a0b8] text-xs">Your server is being provisioned. Check your email for credentials.</p>
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
