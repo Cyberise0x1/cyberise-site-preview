@@ -52,6 +52,7 @@ jobs:
           node-version: 20
           cache: pnpm
       - run: pnpm install --no-frozen-lockfile
+      - run: cd lib/db && pnpm run generate
       - run: pnpm run build
 
   Test:
