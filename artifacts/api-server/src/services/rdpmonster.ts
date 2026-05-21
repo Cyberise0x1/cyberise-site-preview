@@ -1,40 +1,81 @@
 /**
- * rdp.monster integration — INTERNAL ONLY
+ * rdp.monster reseller API integration — INTERNAL ONLY
  * Never expose provider name, brand, or API details to the frontend.
- * All plans/regions are returned under the "pro" tier label only.
+ * All plans are returned under the "pro" tier label only.
+ *
+ * Auth: HMAC-SHA256 token (rotated hourly) + email header
+ * Base: https://manager.rdp.monster/api.php
  */
 
+import crypto from "node:crypto";
 import { logger } from "../lib/logger";
 
-const RDP_MONSTER_BASE = process.env.RDP_MONSTER_API_URL || "https://api.rdp.monster/v1";
+const RDP_MONSTER_BASE =
+  process.env.RDP_MONSTER_API_URL || "https://manager.rdp.monster/api.php";
 const API_KEY = process.env.RDP_MONSTER_API_KEY;
+const EMAIL = process.env.RDP_MONSTER_EMAIL;
 
 function isConfigured(): boolean {
-  return Boolean(API_KEY);
+  return Boolean(API_KEY && EMAIL);
 }
 
-async function rdpFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const url = `${RDP_MONSTER_BASE}${endpoint}`;
+function buildToken(): string {
+  const now = new Date();
+  const iso = now.toISOString();
+  const datePart = iso
+    .slice(2, 13)
+    .replace(/[-T:]/g, " ")
+    .replace(" ", "-")
+    .replace(" ", "-");
+
+  const hmacKey = `${EMAIL}:${datePart}`;
+  const hex = crypto
+    .createHmac("sha256", hmacKey)
+    .update(API_KEY!)
+    .digest("hex");
+  return Buffer.from(hex).toString("base64");
+}
+
+async function rdpFetch<T>(
+  method: string,
+  endpoint: string,
+  body?: URLSearchParams,
+): Promise<T> {
+  const sep = endpoint.includes("?") ? "&" : "?";
+  const url = `${RDP_MONSTER_BASE}${endpoint}${sep}_=${Date.now()}`;
+
+  const headers: Record<string, string> = {
+    username: EMAIL!,
+    token: buildToken(),
+    Accept: "application/json",
+    "Cache-Control": "no-cache, no-store, must-revalidate",
+    Pragma: "no-cache",
+  };
+
+  if (method !== "GET") {
+    headers["Content-Type"] = "application/x-www-form-urlencoded";
+  }
+
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 15000);
+  const timeout = setTimeout(() => controller.abort(), 90000);
 
   try {
     const response = await fetch(url, {
-      ...options,
-      headers: {
-        "Authorization": `Bearer ${API_KEY}`,
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-        ...options.headers,
-      },
+      method,
+      headers,
+      body: body ? new URLSearchParams(body).toString() : undefined,
       signal: controller.signal,
+      cache: "no-store",
     });
 
     clearTimeout(timeout);
 
     if (!response.ok) {
       const error = await response.text();
-      logger.error({ endpoint, status: response.status, error }, "Pro provider API error");
+      logger.error(
+        { endpoint, status: response.status, error },
+        "Pro provider API error",
+      );
       throw new Error(`Provider API error: ${response.status}`);
     }
 
@@ -43,6 +84,37 @@ async function rdpFetch<T>(endpoint: string, options: RequestInit = {}): Promise
     clearTimeout(timeout);
     throw error;
   }
+}
+
+interface ProProduct {
+  id: number;
+  name: string;
+  integration: string;
+  billingCycles?: string[];
+  pricing?: Array<{
+    cycle: string;
+    currency: string;
+    price: number;
+    setupfee: number;
+  }>;
+  configOptions?: Record<
+    string,
+    {
+      optiontype: string;
+      qtyminimum?: number;
+      qtymaximum?: number;
+      configurableSubOptions?: Array<{
+        optionname: string;
+        hidden?: number;
+      }>;
+    }
+  >;
+}
+
+interface ProProductsResponse {
+  resut?: string;
+  result?: string;
+  data?: ProProduct[];
 }
 
 export interface NormalizedProPlan {
@@ -58,7 +130,7 @@ export interface NormalizedProPlan {
   tier: "pro";
 }
 
-export interface NormalizedProRegion {
+interface NormalizedProRegion {
   id: string;
   label: string;
   country: string;
@@ -72,10 +144,20 @@ export interface ProOrderResult {
   password: string;
 }
 
-/**
- * Safe label: strips any provider branding from plan/region names.
- * All buyer-facing labels must pass through this before returning to the frontend.
- */
+interface ProOrderResponse {
+  result?: string;
+  resut?: string;
+  error?: string;
+  service?: {
+    id: number;
+    domain?: string;
+    dedicatedip?: string;
+    username?: string;
+  };
+  orderid?: number;
+  invoiceid?: number;
+}
+
 function sanitizeLabel(raw: string): string {
   return raw
     .replace(/\brdp\.monster\b/gi, "")
@@ -85,13 +167,63 @@ function sanitizeLabel(raw: string): string {
     .trim();
 }
 
-/**
- * Fetches available Pro plans from the provider.
- * Returns [] gracefully if not configured or on error.
- *
- * API shape: GET /plans → { data: [{ id, name, cpu, memory_mb, disk_gb, price_monthly, price_hourly }] }
- * Set RDP_MONSTER_API_KEY and optionally RDP_MONSTER_API_URL to activate.
- */
+function parseDiskGB(configOptions: ProProduct["configOptions"]): number {
+  if (!configOptions) return 40;
+
+  for (const [rawKey, def] of Object.entries(configOptions)) {
+    if (rawKey.toLowerCase().includes("disk space")) {
+      const subs = def.configurableSubOptions ?? [];
+      const first = subs.find((s) => !s.hidden);
+      if (first) {
+        const value = first.optionname.split("|")[0].trim();
+        const gb = parseInt(value, 10);
+        if (!isNaN(gb)) return gb;
+      }
+    }
+  }
+
+  return 40;
+}
+
+function parseVcpus(
+  name: string,
+  configOptions: ProProduct["configOptions"],
+): number {
+  const vcpuOpt = Object.entries(configOptions ?? {}).find(([k]) =>
+    k.toLowerCase().includes("cpu"),
+  );
+  if (vcpuOpt) {
+    const def = vcpuOpt[1];
+    const min = def.qtyminimum ?? def.configurableSubOptions?.length ?? 1;
+    if (min > 0) return min;
+  }
+
+  return 2;
+}
+
+function parseRamMB(
+  name: string,
+  configOptions: ProProduct["configOptions"],
+): number {
+  const ramOpt = Object.entries(configOptions ?? {}).find(
+    ([k]) =>
+      k.toLowerCase().includes("ram") || k.toLowerCase().includes("memory"),
+  );
+  if (ramOpt) {
+    const subs = ramOpt[1].configurableSubOptions ?? [];
+    const first = subs.find((s) => !s.hidden);
+    if (first) {
+      const raw = first.optionname.split("|")[0].trim().toLowerCase();
+      const num = parseInt(raw, 10);
+      if (!isNaN(num)) {
+        return raw.includes("gb") ? num * 1024 : num;
+      }
+    }
+  }
+
+  return 1024;
+}
+
 export async function getProPlans(): Promise<NormalizedProPlan[]> {
   if (!isConfigured()) {
     logger.debug("Pro provider not configured — skipping pro plans");
@@ -99,112 +231,170 @@ export async function getProPlans(): Promise<NormalizedProPlan[]> {
   }
 
   try {
-    const response = await rdpFetch<{
-      data: Array<{
-        id: string;
-        name: string;
-        cpu: number;
-        memory_mb: number;
-        disk_gb: number;
-        price_monthly: number;
-        price_hourly: number;
-      }>;
-    }>("/plans");
+    const response = await rdpFetch<ProProductsResponse>("GET", "/products");
 
-    return response.data.map((plan) => ({
-      id: `pro-${plan.id}`,
-      label: sanitizeLabel(plan.name),
-      disk: plan.disk_gb * 1024,
-      ram: plan.memory_mb,
-      vcpus: plan.cpu,
-      price: {
-        hourly: plan.price_hourly,
-        monthly: plan.price_monthly,
-      },
-      tier: "pro" as const,
-    }));
+    const products = response.data ?? [];
+    const active = products.filter(
+      (p) =>
+        p.integration === "ProxmoxVPS" || p.integration?.includes("Proxmox"),
+    );
+
+    return active.map((product) => {
+      const monthlyPrice =
+        product.pricing?.find((p) => p.cycle === "monthly")?.price ?? 0;
+
+      return {
+        id: `pro-${product.id}`,
+        label: sanitizeLabel(product.name),
+        disk: parseDiskGB(product.configOptions) * 1024,
+        ram: parseRamMB(product.name, product.configOptions),
+        vcpus: parseVcpus(product.name, product.configOptions),
+        price: {
+          hourly: Number((monthlyPrice / 730).toFixed(4)),
+          monthly: monthlyPrice,
+        },
+        tier: "pro" as const,
+      };
+    });
   } catch (error) {
-    logger.error({ error }, "Failed to fetch pro plans — returning empty list");
+    logger.error({ error }, "Failed to fetch pro plans");
     return [];
   }
 }
 
-/**
- * Fetches available Pro regions/locations.
- * Returns [] gracefully if not configured or on error.
- *
- * API shape: GET /regions → { data: [{ id, name, country_code }] }
- */
 export async function getProRegions(): Promise<NormalizedProRegion[]> {
   if (!isConfigured()) return [];
 
-  try {
-    const response = await rdpFetch<{
-      data: Array<{ id: string; name: string; country_code: string }>;
-    }>("/regions");
-
-    return response.data.map((region) => ({
-      id: `pro-${region.id}`,
-      label: sanitizeLabel(region.name),
-      country: region.country_code.toLowerCase(),
+  return [
+    {
+      id: "pro-eu",
+      label: "Europe",
+      country: "nl",
       tier: "pro" as const,
-    }));
-  } catch (error) {
-    logger.error({ error }, "Failed to fetch pro regions — returning empty list");
-    return [];
-  }
+    },
+  ];
 }
 
-/**
- * Creates a Pro server instance.
- *
- * API shape: POST /instances → { instance_id, ip_address, username, password }
- * Request body: { plan_id, region_id, label }
- */
 export async function createProInstance(params: {
   planId: string;
   regionId: string;
   label: string;
+  password?: string;
 }): Promise<ProOrderResult> {
   if (!isConfigured()) {
     throw new Error("Pro provider not configured");
   }
 
   const rawPlanId = params.planId.replace("pro-", "");
-  const rawRegionId = params.regionId.replace("pro-", "");
+  const password = params.password ?? generateInstancePassword();
 
-  const response = await rdpFetch<{
-    instance_id: string;
-    ip_address: string;
-    username: string;
-    password: string;
-  }>("/instances", {
-    method: "POST",
-    body: JSON.stringify({
-      plan_id: rawPlanId,
-      region_id: rawRegionId,
-      label: params.label,
-    }),
-  });
+  const body = new URLSearchParams();
+  body.append("cycle", "monthly");
+  body.append("username", "Administrator");
+  body.append("password", password);
+  body.append(
+    "hostname",
+    params.label.replace(/[^A-Za-z0-9-]/g, "-").slice(0, 32),
+  );
+  body.append("nsprefix[0]", "ns1.rdp.monster");
+  body.append("nsprefix[1]", "ns2.rdp.monster");
+
+  const products = await rdpFetch<ProProductsResponse>("GET", "/products");
+  const product = (products.data ?? []).find((p) => String(p.id) === rawPlanId);
+
+  if (product?.configOptions) {
+    const diskKey = Object.keys(product.configOptions).find((k) =>
+      k.toLowerCase().startsWith("disk space"),
+    );
+    if (diskKey) {
+      const subs = product.configOptions[diskKey].configurableSubOptions ?? [];
+      const first = subs.find((s) => !s.hidden);
+      if (first) {
+        const diskValue = first.optionname.split("|")[0].trim();
+        body.append(
+          `configurations[${diskKey.split("|")[0].trim()}]`,
+          diskValue,
+        );
+      }
+    }
+
+    const templateKey = Object.keys(product.configOptions).find((k) =>
+      k.toLowerCase().startsWith("vm template"),
+    );
+    if (templateKey) {
+      const subs =
+        product.configOptions[templateKey].configurableSubOptions ?? [];
+      const windows = subs.find(
+        (s) => s.optionname.toLowerCase().includes("windows") && !s.hidden,
+      );
+      const fallback = subs.find((s) => !s.hidden);
+      const template = windows ?? fallback;
+      if (template) {
+        body.append(
+          `configurations[${templateKey.split("|")[0].trim()}]`,
+          template.optionname.split("|")[0].trim(),
+        );
+      }
+    }
+  }
+
+  const response = await rdpFetch<ProOrderResponse>(
+    "POST",
+    `/order/products/${rawPlanId}`,
+    body,
+  );
+
+  const service = response.service;
+  if (!service?.id) {
+    const errorMsg = response.error ?? "order_failed";
+    logger.error({ rawPlanId, response }, "Pro order failed");
+    throw new Error(errorMsg);
+  }
 
   return {
-    instanceId: response.instance_id,
-    ip: response.ip_address,
-    username: response.username,
-    password: response.password,
+    instanceId: String(service.id),
+    ip: service.dedicatedip ?? "",
+    username: service.username ?? "Administrator",
+    password,
   };
 }
 
-/**
- * Terminates a Pro server instance.
- */
 export async function deleteProInstance(instanceId: string): Promise<void> {
   if (!isConfigured()) return;
 
   try {
-    await rdpFetch(`/instances/${instanceId}`, { method: "DELETE" });
+    const service = await rdpFetch<{
+      id?: number;
+      status?: string;
+      error?: string;
+    }>("GET", `/services/${instanceId}`);
+
+    if (
+      service?.status === "Terminated" ||
+      service?.error?.includes("Terminated")
+    ) {
+      logger.info({ instanceId }, "Pro instance already terminated");
+      return;
+    }
+
+    logger.warn(
+      { instanceId },
+      "Pro provider does not support instance deletion via API — service must be cancelled in the rdp.monster dashboard",
+    );
   } catch (error) {
-    logger.error({ error, instanceId }, "Failed to delete pro instance");
+    logger.error({ error, instanceId }, "Failed to check pro instance status");
     throw error;
   }
+}
+
+function generateInstancePassword(): string {
+  const charset =
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+  const bytes = crypto.randomBytes(16);
+  let password = "";
+  for (let i = 0; i < 16; i++) {
+    password += charset[bytes[i] % charset.length];
+  }
+  password += "1";
+  return password;
 }

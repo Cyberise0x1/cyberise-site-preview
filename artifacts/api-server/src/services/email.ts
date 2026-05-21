@@ -13,7 +13,9 @@ interface EmailOptions {
   userId?: string;
 }
 
-export async function sendEmail(options: EmailOptions): Promise<{ success: boolean; error?: string }> {
+export async function sendEmail(
+  options: EmailOptions,
+): Promise<{ success: boolean; error?: string }> {
   try {
     const { error } = await resend.emails.send({
       from: `Cyberise RDP <${env.RESEND_SENDER_ADDRESS}>`,
@@ -176,7 +178,9 @@ export function generateRenewalReminderEmail(params: {
   expiresAt: Date;
 }): { html: string; text: string } {
   const { ip, expiresAt } = params;
-  const daysLeft = Math.ceil((expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+  const daysLeft = Math.ceil(
+    (expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
+  );
 
   const html = `<!DOCTYPE html>
 <html lang="en">

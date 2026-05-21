@@ -59,7 +59,7 @@ export default function CustomCursor() {
           "fixed pointer-events-none z-[99998] rounded-full border-2 transition-all duration-150 ease-out hidden md:block",
           hovered
             ? "w-[60px] h-[60px] border-[#ff2d55] bg-[rgba(255,45,85,0.1)]"
-            : "w-[40px] h-[40px] border-[rgba(0,240,255,0.5)]"
+            : "w-[40px] h-[40px] border-[rgba(0,240,255,0.5)]",
         )}
         style={{
           left: `${position.x}px`,

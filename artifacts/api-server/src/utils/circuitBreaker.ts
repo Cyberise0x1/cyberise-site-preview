@@ -54,7 +54,10 @@ class CircuitBreaker {
     this.lastFailure = Date.now();
     if (this.failures >= this.config.failureThreshold) {
       this.state = "open";
-      logger.warn({ breaker: this.name, failures: this.failures }, "Circuit breaker opened");
+      logger.warn(
+        { breaker: this.name, failures: this.failures },
+        "Circuit breaker opened",
+      );
       if (this.config.onOpen) {
         this.config.onOpen(this.name);
       }
@@ -67,21 +70,30 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   return Promise.race([
     promise,
     new Promise<T>((_, reject) =>
-      setTimeout(() => reject(new Error(`Operation timed out after ${ms}ms`)), ms)
+      setTimeout(
+        () => reject(new Error(`Operation timed out after ${ms}ms`)),
+        ms,
+      ),
     ),
   ]);
 }
 
 const breakers = new Map<string, CircuitBreaker>();
 
-export function getBreaker(name: string, config?: Partial<CircuitBreakerConfig>): CircuitBreaker {
+export function getBreaker(
+  name: string,
+  config?: Partial<CircuitBreakerConfig>,
+): CircuitBreaker {
   if (!breakers.has(name)) {
-    breakers.set(name, new CircuitBreaker(name, {
-      failureThreshold: 3,
-      cooldownMs: 30000,
-      timeoutMs: 30000,
-      ...config,
-    }));
+    breakers.set(
+      name,
+      new CircuitBreaker(name, {
+        failureThreshold: 3,
+        cooldownMs: 30000,
+        timeoutMs: 30000,
+        ...config,
+      }),
+    );
   }
   return breakers.get(name)!;
 }

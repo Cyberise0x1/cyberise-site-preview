@@ -14,7 +14,8 @@ export function decrypt(encryptedText: string): string {
 }
 
 export function generatePassword(length = 16): string {
-  const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+  const charset =
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
   const bytes = crypto.randomBytes(length);
   let password = "";
   for (let i = 0; i < length; i++) {

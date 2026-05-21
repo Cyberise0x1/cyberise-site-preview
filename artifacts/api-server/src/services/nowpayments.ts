@@ -92,7 +92,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const headers: Record<string, string> = {
     "x-api-key": env.NOWPAYMENTS_API_KEY,
     "Content-Type": "application/json",
-    ...(options.headers as Record<string, string> ?? {}),
+    ...((options.headers as Record<string, string>) ?? {}),
   };
 
   const res = await fetch(url, { ...options, headers });
@@ -100,7 +100,11 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   if (!res.ok) {
     const body = await res.text();
     logger.error({ status: res.status, url, body }, "NowPayments API error");
-    throw new NowPaymentsError(`NowPayments API error: ${res.status}`, res.status, body);
+    throw new NowPaymentsError(
+      `NowPayments API error: ${res.status}`,
+      res.status,
+      body,
+    );
   }
 
   return res.json() as Promise<T>;

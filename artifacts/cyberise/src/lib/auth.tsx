@@ -1,4 +1,10 @@
-import { ClerkProvider, useAuth, RedirectToSignIn, SignedIn, SignedOut } from "@clerk/clerk-react";
+import {
+  ClerkProvider,
+  useAuth,
+  RedirectToSignIn,
+  SignedIn,
+  SignedOut,
+} from "@clerk/clerk-react";
 import { createContext, useContext, useEffect, type ReactNode } from "react";
 
 const AuthContext = createContext<ReturnType<typeof useAuth> | null>(null);
@@ -11,9 +17,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <ClerkProvider publishableKey={publishableKey}>
-      {children}
-    </ClerkProvider>
+    <ClerkProvider publishableKey={publishableKey}>{children}</ClerkProvider>
   );
 }
 

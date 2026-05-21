@@ -1,9 +1,15 @@
 export default function Marquee() {
   const items = [
-    "Web Development", "Mobile Apps", "Penetration Testing", "Red Team Operations", 
-    "Government Consultancy", "Cyber Equipment", "Threat Intelligence", "Bandit Tracking"
+    "Web Development",
+    "Mobile Apps",
+    "Penetration Testing",
+    "Red Team Operations",
+    "Government Consultancy",
+    "Cyber Equipment",
+    "Threat Intelligence",
+    "Bandit Tracking",
   ];
-  
+
   // Duplicate items for continuous scroll effect
   const displayItems = [...items, ...items, ...items];
 

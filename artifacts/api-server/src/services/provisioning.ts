@@ -32,14 +32,13 @@ export async function provisionInstance(
     const proPlans = await getProPlans();
     const selectedPlan = proPlans.find((p) => p.id === plan);
     if (!selectedPlan) {
-      throw Object.assign(new Error("Invalid plan selected"), { statusCode: 400 });
+      throw Object.assign(new Error("Invalid plan selected"), {
+        statusCode: 400,
+      });
     }
 
-    const monthlyPrice =
-      selectedPlan.price.monthly * (1 + markupPercent / 100);
-    const totalAmount = Number(
-      (monthlyPrice * (durationDays / 30)).toFixed(2),
-    );
+    const monthlyPrice = selectedPlan.price.monthly * (1 + markupPercent / 100);
+    const totalAmount = Number((monthlyPrice * (durationDays / 30)).toFixed(2));
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + durationDays);
 
@@ -63,14 +62,13 @@ export async function provisionInstance(
   const basicPlans = await getPlans();
   const selectedPlan = basicPlans.find((p) => p.id === plan);
   if (!selectedPlan) {
-    throw Object.assign(new Error("Invalid plan selected"), { statusCode: 400 });
+    throw Object.assign(new Error("Invalid plan selected"), {
+      statusCode: 400,
+    });
   }
 
-  const monthlyPrice =
-    selectedPlan.price.monthly * (1 + markupPercent / 100);
-  const totalAmount = Number(
-    (monthlyPrice * (durationDays / 30)).toFixed(2),
-  );
+  const monthlyPrice = selectedPlan.price.monthly * (1 + markupPercent / 100);
+  const totalAmount = Number((monthlyPrice * (durationDays / 30)).toFixed(2));
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + durationDays);
 

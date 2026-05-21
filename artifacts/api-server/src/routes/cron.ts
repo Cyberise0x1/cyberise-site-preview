@@ -38,7 +38,10 @@ router.post("/cron/expire-instances", async (req, res) => {
           try {
             await deleteInstance(order.linodeInstanceId);
           } catch (err) {
-            logger.error({ err, linodeId: order.linodeInstanceId, orderId: order.id }, "Failed to delete expired Linode instance — instance may be orphaned");
+            logger.error(
+              { err, linodeId: order.linodeInstanceId, orderId: order.id },
+              "Failed to delete expired Linode instance — instance may be orphaned",
+            );
             deleteFailed = true;
           }
         }
@@ -58,13 +61,21 @@ router.post("/cron/expire-instances", async (req, res) => {
             action: "ORDER_EXPIRED",
             entity: "Order",
             entityId: order.id,
-            metadata: deleteFailed ? { linodeOrphaned: true, linodeInstanceId: order.linodeInstanceId } : undefined,
+            metadata: deleteFailed
+              ? {
+                  linodeOrphaned: true,
+                  linodeInstanceId: order.linodeInstanceId,
+                }
+              : undefined,
           },
         });
 
         terminated++;
       } catch (error) {
-        logger.error({ error, orderId: order.id }, "Failed to terminate expired order");
+        logger.error(
+          { error, orderId: order.id },
+          "Failed to terminate expired order",
+        );
       }
     }
 
@@ -163,7 +174,10 @@ router.post("/cron/expire-crypto-payments", async (req, res) => {
 
         expired++;
       } catch (error) {
-        logger.error({ error, paymentId: payment.id }, "Failed to expire stale crypto payment");
+        logger.error(
+          { error, paymentId: payment.id },
+          "Failed to expire stale crypto payment",
+        );
       }
     }
 

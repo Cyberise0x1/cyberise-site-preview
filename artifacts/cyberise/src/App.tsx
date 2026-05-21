@@ -46,21 +46,33 @@ function HomePage() {
         if (entry.isIntersecting) {
           entry.target.classList.add("active");
           if (entry.target.classList.contains("stat-item")) {
-            const numElement = entry.target.querySelector(".stat-number") as HTMLElement;
+            const numElement = entry.target.querySelector(
+              ".stat-number",
+            ) as HTMLElement;
             if (numElement && !numElement.classList.contains("counted")) {
               numElement.classList.add("counted");
-              const target = parseInt(numElement.getAttribute("data-target") || "0", 10);
+              const target = parseInt(
+                numElement.getAttribute("data-target") || "0",
+                10,
+              );
               let count = 0;
               const duration = 2000;
               const interval = 20;
-              const step = Math.max(1, Math.floor(target / (duration / interval)));
+              const step = Math.max(
+                1,
+                Math.floor(target / (duration / interval)),
+              );
               const counter = setInterval(() => {
                 count += step;
                 if (count >= target) {
-                  numElement.innerText = target.toString() + (numElement.getAttribute("data-suffix") || "");
+                  numElement.innerText =
+                    target.toString() +
+                    (numElement.getAttribute("data-suffix") || "");
                   clearInterval(counter);
                 } else {
-                  numElement.innerText = count.toString() + (numElement.getAttribute("data-suffix") || "");
+                  numElement.innerText =
+                    count.toString() +
+                    (numElement.getAttribute("data-suffix") || "");
                 }
               }, interval);
             }
@@ -71,7 +83,10 @@ function HomePage() {
 
     const reveals = document.querySelectorAll(".reveal");
     reveals.forEach((element) => observer.observe(element));
-    return () => { reveals.forEach((element) => observer.unobserve(element)); observer.disconnect(); };
+    return () => {
+      reveals.forEach((element) => observer.unobserve(element));
+      observer.disconnect();
+    };
   }, []);
 
   return (
@@ -101,23 +116,42 @@ function HomePage() {
 
 const pageTransition = {
   initial: { opacity: 0, y: 8 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" as const } },
-  exit: { opacity: 0, y: -8, transition: { duration: 0.2, ease: "easeIn" as const } },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.3, ease: "easeOut" as const },
+  },
+  exit: {
+    opacity: 0,
+    y: -8,
+    transition: { duration: 0.2, ease: "easeIn" as const },
+  },
 };
 
 function AppRoutes() {
   const [location] = useLocation();
-  const isAppPage = ["/market", "/dashboard", "/orders"].some(p => location.startsWith(p));
+  const isAppPage = ["/market", "/dashboard", "/orders"].some((p) =>
+    location.startsWith(p),
+  );
 
   return (
     <AnimatePresence mode="wait">
-      <motion.div key={location} variants={isAppPage ? pageTransition : {}} initial="initial" animate="animate" exit="exit">
+      <motion.div
+        key={location}
+        variants={isAppPage ? pageTransition : {}}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+      >
         <Switch location={location}>
           <Route path="/" component={HomePage} />
           <Route path="/market" component={Market} />
           <Route path="/dashboard" component={Dashboard} />
           <Route path="/orders" component={Orders} />
-          <Route path="/admin" component={() => <Redirect to="/admin/users" />} />
+          <Route
+            path="/admin"
+            component={() => <Redirect to="/admin/users" />}
+          />
           <Route path="/admin/users" component={AdminUsers} />
           <Route path="/admin/orders" component={AdminOrders} />
           <Route path="/admin/settings" component={AdminSettings} />

@@ -19,7 +19,9 @@
     { "ts": "2026-05-20T00:00:00Z", "file": "artifacts/api-server/src/routes/cron.ts", "action": "edit", "summary": "Added POST /cron/expire-crypto-payments — marks orders FAILED after 1h of unpaid crypto payments" },
     { "ts": "2026-05-20T00:00:00Z", "file": "artifacts/cyberise/src/lib/api.ts", "action": "edit", "summary": "Added CryptoCurrency, CryptoEstimate, CryptoOrderResponse, CryptoPaymentStatusResponse types" },
     { "ts": "2026-05-20T00:00:00Z", "file": "artifacts/cyberise/src/pages/Market.tsx", "action": "edit", "summary": "Replaced crypto coming-soon badge with functional payment method selector (Balance/Crypto), currency dropdown, live estimate, crypto payment modal with address copying + status polling + retry UI" },
-    { "ts": "2026-05-20T00:00:00Z", "file": ".github/workflows/cron-expire-crypto.yml", "action": "create", "summary": "GitHub Actions scheduled workflow — pings /api/cron/expire-crypto-payments every 30min with CRON_SECRET bearer token" }
+    { "ts": "2026-05-20T00:00:00Z", "file": ".github/workflows/cron-expire-crypto.yml", "action": "create", "summary": "GitHub Actions scheduled workflow — pings /api/cron/expire-crypto-payments every 30min with CRON_SECRET bearer token" },
+    { "ts": "2026-05-20T00:00:00Z", "file": "artifacts/api-server/src/services/rdpmonster.ts", "action": "rewrite", "summary": "Rewrote rdp.monster for real reseller API — HMAC-SHA256 token auth (rotated hourly), GET /products catalog with dynamic configOptions parsing, POST /order/products/{id} with form-urlencoded body, generates own password, no-regions design with synthetic EU placeholder" },
+    { "ts": "2026-05-20T00:00:00Z", "file": "lib/env/src/index.ts", "action": "edit", "summary": "Added RDP_MONSTER_EMAIL env var, changed RDP_MONSTER_API_URL default to https://manager.rdp.monster/api.php" }
   ],
   "replit_log": [
     { "ts": "2026-05-16T13:12:00Z", "file": "artifacts/api-server/src/services/rdpmonster.ts", "action": "create", "summary": "New Pro provider (rdp.monster) service — getProPlans, getProRegions, createProInstance, deleteProInstance. Gracefully returns [] if RDP_MONSTER_API_KEY not set. Never exposes provider name." },
@@ -64,7 +66,8 @@
     "CLERK: fallbackRedirectUrl is NOT a valid prop — use signInFallbackRedirectUrl/signUpFallbackRedirectUrl",
     "CRYPTO: NowPayments.io integrated — /api/market/crypto/order creates PENDING order + crypto payment, IPN at /api/webhooks/nowpayments provisions on 'confirmed' status, cron at /api/cron/expire-crypto-payments expires unpaid orders after 1h, partial payments shown in UI with top-up prompt",
     "CRYPTO: Env vars needed — NOWPAYMENTS_API_KEY, NOWPAYMENTS_IPN_SECRET (both required), NOWPAYMENTS_API_URL (defaults to https://api.nowpayments.io)",
-    "CRYPTO: Prisma migration 'add_crypto_payments' must be applied before crypto features work"
+    "CRYPTO: Prisma migration 'add_crypto_payments' must be applied before crypto features work",
+    "RDP_MONSTER: Real reseller API — requires both RDP_MONSTER_API_KEY and RDP_MONSTER_EMAIL. Auth is HMAC-SHA256. Plans come from /products (ProxmoxVPS), ordering via POST /order/products/{id}. No deletion endpoint — services must be cancelled in dashboard."
   ],
 
   "conflicts": []

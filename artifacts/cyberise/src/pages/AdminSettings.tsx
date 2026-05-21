@@ -33,7 +33,9 @@ export default function AdminSettings() {
 
   async function loadSettings() {
     try {
-      const response = await api<{ success: boolean; data: Settings }>("/admin/settings");
+      const response = await api<{ success: boolean; data: Settings }>(
+        "/admin/settings",
+      );
       setSettings(response.data);
     } catch {
       toast.error("Failed to load settings");
@@ -59,7 +61,7 @@ export default function AdminSettings() {
   }
 
   function update(key: string, value: unknown) {
-    setSettings(prev => prev ? { ...prev, [key]: value } : prev);
+    setSettings((prev) => (prev ? { ...prev, [key]: value } : prev));
   }
 
   if (loading) {
@@ -74,11 +76,19 @@ export default function AdminSettings() {
 
   return (
     <AdminLayout>
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-1">Market Settings</h1>
-            <p className="text-[#a0a0b8]">Configure pricing, regions, and platform behavior</p>
+            <h1 className="text-3xl font-bold text-white mb-1">
+              Market Settings
+            </h1>
+            <p className="text-[#a0a0b8]">
+              Configure pricing, regions, and platform behavior
+            </p>
           </div>
           <Button
             onClick={saveSettings}
@@ -97,30 +107,42 @@ export default function AdminSettings() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label className="text-[#a0a0b8] text-sm">Markup Percentage (%)</Label>
+                <Label className="text-[#a0a0b8] text-sm">
+                  Markup Percentage (%)
+                </Label>
                 <Input
                   type="number"
                   value={settings?.markup_percentage ?? 20}
-                  onChange={(e) => update("markup_percentage", Number(e.target.value))}
+                  onChange={(e) =>
+                    update("markup_percentage", Number(e.target.value))
+                  }
                   className="bg-[#0a0a0f] border-[#ffffff1a] text-white mt-1"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-[#a0a0b8] text-sm">Min Order Days</Label>
+                  <Label className="text-[#a0a0b8] text-sm">
+                    Min Order Days
+                  </Label>
                   <Input
                     type="number"
                     value={settings?.min_order_days ?? 7}
-                    onChange={(e) => update("min_order_days", Number(e.target.value))}
+                    onChange={(e) =>
+                      update("min_order_days", Number(e.target.value))
+                    }
                     className="bg-[#0a0a0f] border-[#ffffff1a] text-white mt-1"
                   />
                 </div>
                 <div>
-                  <Label className="text-[#a0a0b8] text-sm">Max Order Days</Label>
+                  <Label className="text-[#a0a0b8] text-sm">
+                    Max Order Days
+                  </Label>
                   <Input
                     type="number"
                     value={settings?.max_order_days ?? 365}
-                    onChange={(e) => update("max_order_days", Number(e.target.value))}
+                    onChange={(e) =>
+                      update("max_order_days", Number(e.target.value))
+                    }
                     className="bg-[#0a0a0f] border-[#ffffff1a] text-white mt-1"
                   />
                 </div>
@@ -130,31 +152,55 @@ export default function AdminSettings() {
 
           <Card className="bg-[#12121a]/80 border-[#7b2ff7]/20 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="text-white text-lg">Enabled Regions</CardTitle>
+              <CardTitle className="text-white text-lg">
+                Enabled Regions
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <Input
                 value={settings?.enabled_regions?.join(", ") ?? ""}
-                onChange={(e) => update("enabled_regions", e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
+                onChange={(e) =>
+                  update(
+                    "enabled_regions",
+                    e.target.value
+                      .split(",")
+                      .map((s) => s.trim())
+                      .filter(Boolean),
+                  )
+                }
                 placeholder="us-east, us-west, eu-west"
                 className="bg-[#0a0a0f] border-[#ffffff1a] text-white"
               />
-              <p className="text-[#666] text-xs mt-2">Comma-separated region IDs from Linode API</p>
+              <p className="text-[#666] text-xs mt-2">
+                Comma-separated region IDs from Linode API
+              </p>
             </CardContent>
           </Card>
 
           <Card className="bg-[#12121a]/80 border-[#7b2ff7]/20 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="text-white text-lg">Enabled Plans</CardTitle>
+              <CardTitle className="text-white text-lg">
+                Enabled Plans
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <Input
                 value={settings?.enabled_plans?.join(", ") ?? ""}
-                onChange={(e) => update("enabled_plans", e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
+                onChange={(e) =>
+                  update(
+                    "enabled_plans",
+                    e.target.value
+                      .split(",")
+                      .map((s) => s.trim())
+                      .filter(Boolean),
+                  )
+                }
                 placeholder="g6-nanode-1, g6-standard-1"
                 className="bg-[#0a0a0f] border-[#ffffff1a] text-white"
               />
-              <p className="text-[#666] text-xs mt-2">Comma-separated plan IDs from Linode API</p>
+              <p className="text-[#666] text-xs mt-2">
+                Comma-separated plan IDs from Linode API
+              </p>
             </CardContent>
           </Card>
 
@@ -166,7 +212,9 @@ export default function AdminSettings() {
               <div className="flex items-center justify-between">
                 <div>
                   <Label className="text-white text-sm">Fallback Regions</Label>
-                  <p className="text-[#666] text-xs">Suggest nearby regions when capacity is full</p>
+                  <p className="text-[#666] text-xs">
+                    Suggest nearby regions when capacity is full
+                  </p>
                 </div>
                 <Switch
                   checked={settings?.fallback_enabled ?? true}
@@ -175,8 +223,12 @@ export default function AdminSettings() {
               </div>
               <div className="flex items-center justify-between">
                 <div>
-                  <Label className="text-white text-sm">Auto-Terminate Expired</Label>
-                  <p className="text-[#666] text-xs">Automatically destroy expired instances via cron</p>
+                  <Label className="text-white text-sm">
+                    Auto-Terminate Expired
+                  </Label>
+                  <p className="text-[#666] text-xs">
+                    Automatically destroy expired instances via cron
+                  </p>
                 </div>
                 <Switch
                   checked={settings?.auto_terminate_expired ?? true}

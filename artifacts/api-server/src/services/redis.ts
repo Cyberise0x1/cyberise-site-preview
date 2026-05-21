@@ -19,7 +19,11 @@ export async function getCache<T>(key: string): Promise<T | null> {
   return value ?? null;
 }
 
-export async function setCache<T>(key: string, value: T, ttlSeconds = 300): Promise<void> {
+export async function setCache<T>(
+  key: string,
+  value: T,
+  ttlSeconds = 300,
+): Promise<void> {
   const client = getRedis();
   await client.set(key, value, { ex: ttlSeconds });
 }
@@ -29,11 +33,16 @@ export async function deleteCache(key: string): Promise<void> {
   await client.del(key);
 }
 
-export async function checkRateLimit(identifier: string, endpoint: string, maxRequests: number, windowSeconds = 60): Promise<{ allowed: boolean; remaining: number; resetAt: Date }> {
+export async function checkRateLimit(
+  identifier: string,
+  endpoint: string,
+  maxRequests: number,
+  windowSeconds = 60,
+): Promise<{ allowed: boolean; remaining: number; resetAt: Date }> {
   const key = `rate_limit:${endpoint}:${identifier}`;
   const client = getRedis();
 
-  const current = await client.get<number>(key) ?? 0;
+  const current = (await client.get<number>(key)) ?? 0;
   const ttl = await client.ttl(key);
 
   const resetAt = new Date(Date.now() + (ttl > 0 ? ttl : windowSeconds) * 1000);

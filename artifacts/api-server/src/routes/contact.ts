@@ -23,12 +23,19 @@ const WINDOW_MS = 15 * 60 * 1000;
 
 const successMap = new Map<string, { count: number; resetAt: number }>();
 
-function checkLimit(ip: string): { limited: boolean; retryAfterSeconds: number } {
+function checkLimit(ip: string): {
+  limited: boolean;
+  retryAfterSeconds: number;
+} {
   const now = Date.now();
   const entry = successMap.get(ip);
-  if (!entry || entry.resetAt <= now) return { limited: false, retryAfterSeconds: 0 };
+  if (!entry || entry.resetAt <= now)
+    return { limited: false, retryAfterSeconds: 0 };
   if (entry.count >= SUCCESS_LIMIT) {
-    return { limited: true, retryAfterSeconds: Math.ceil((entry.resetAt - now) / 1000) };
+    return {
+      limited: true,
+      retryAfterSeconds: Math.ceil((entry.resetAt - now) / 1000),
+    };
   }
   return { limited: false, retryAfterSeconds: 0 };
 }
@@ -57,7 +64,9 @@ router.post("/contact", async (req, res) => {
   const { limited, retryAfterSeconds } = checkLimit(ip);
   if (limited) {
     res.setHeader("Retry-After", String(retryAfterSeconds));
-    res.status(429).json({ error: "Too many requests. Please try again later." });
+    res
+      .status(429)
+      .json({ error: "Too many requests. Please try again later." });
     return;
   }
 
@@ -86,7 +95,9 @@ router.post("/contact", async (req, res) => {
   const apiKey = process.env["RESEND_API_KEY"];
 
   if (!apiKey || !RECIPIENT_EMAIL || !SENDER_ADDRESS) {
-    logger.error("Email service environment variables are not fully configured");
+    logger.error(
+      "Email service environment variables are not fully configured",
+    );
     res.status(503).json({ error: "Email service is not configured." });
     return;
   }
@@ -111,8 +122,13 @@ router.post("/contact", async (req, res) => {
     });
 
     if (bizError) {
-      logger.error({ error: bizError }, "Resend API error (business notification)");
-      res.status(502).json({ error: "Failed to send message. Please try again." });
+      logger.error(
+        { error: bizError },
+        "Resend API error (business notification)",
+      );
+      res
+        .status(502)
+        .json({ error: "Failed to send message. Please try again." });
       return;
     }
 
@@ -134,10 +150,11 @@ router.post("/contact", async (req, res) => {
       ].join("\n"),
       html: `<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>We received your message</title></head><body style="margin:0;padding:0;background:#0a0a0f;font-family:sans-serif;"><table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:40px 16px;"><table width="100%" style="max-width:600px;" cellpadding="0" cellspacing="0"><tr><td style="background:#12121a;border:1px solid #00f0ff22;border-radius:12px;padding:40px;"><h1 style="color:#fff;margin:0 0 8px;">Hi ${safeName},</h1><p style="color:#a0a0b8;">Thank you for reaching out. We received your inquiry about <strong style="color:#fff;">${safeService}</strong> and will get back to you within 1–2 business days.</p><p style="color:#a0a0b8;font-size:12px;">Your message: ${safeMessage}</p></td></tr></table></td></tr></table></body></html>`,
     });
-
   } catch (err) {
     logger.error({ err }, "Resend transport error");
-    res.status(502).json({ error: "Failed to send message. Please try again." });
+    res
+      .status(502)
+      .json({ error: "Failed to send message. Please try again." });
     return;
   }
 

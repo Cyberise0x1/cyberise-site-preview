@@ -24,7 +24,11 @@ export const requireAuth = ClerkExpressRequireAuth({
   },
 });
 
-export async function attachUser(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+export async function attachUser(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     if (!req.auth?.userId) {
       return next();
@@ -59,7 +63,11 @@ export async function attachUser(req: AuthRequest, res: Response, next: NextFunc
   }
 }
 
-export function requireAdmin(req: AuthRequest, res: Response, next: NextFunction): void {
+export function requireAdmin(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+): void {
   if (!req.user) {
     sendUnauthorized(res);
     return;
@@ -73,7 +81,11 @@ export function requireAdmin(req: AuthRequest, res: Response, next: NextFunction
   next();
 }
 
-export function requireActiveUser(req: AuthRequest, res: Response, next: NextFunction): void {
+export function requireActiveUser(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+): void {
   if (!req.user) {
     sendUnauthorized(res);
     return;

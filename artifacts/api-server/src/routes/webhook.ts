@@ -43,7 +43,9 @@ router.post("/webhooks/clerk", async (req, res) => {
       case "user.created": {
         const primaryEmailId = data.primary_email_address_id;
         const email = data.email_addresses?.find(
-          e => e.email_address === primaryEmailId || data.email_addresses?.[0]?.email_address
+          (e) =>
+            e.email_address === primaryEmailId ||
+            data.email_addresses?.[0]?.email_address,
         )?.email_address;
 
         if (!email) {
@@ -70,7 +72,7 @@ router.post("/webhooks/clerk", async (req, res) => {
       case "user.updated": {
         const primaryEmailId = data.primary_email_address_id;
         const email = data.email_addresses?.find(
-          e => e.email_address === primaryEmailId
+          (e) => e.email_address === primaryEmailId,
         )?.email_address;
 
         if (email) {
@@ -110,7 +112,10 @@ router.post(
   raw({ type: "application/json" }),
   async (req, res) => {
     try {
-      const rawBody = req.body instanceof Buffer ? req.body.toString("utf-8") : String(req.body ?? "");
+      const rawBody =
+        req.body instanceof Buffer
+          ? req.body.toString("utf-8")
+          : String(req.body ?? "");
       const signature = (req.headers["x-nowpayments-sig"] as string) || "";
 
       if (!verifyIpnSignature(rawBody, signature)) {
@@ -171,8 +176,7 @@ router.post(
           const settingsMap = Object.fromEntries(
             settings.map((s) => [s.key, s.value]),
           );
-          const markupPercent =
-            (settingsMap.markup_percentage as number) ?? 20;
+          const markupPercent = (settingsMap.markup_percentage as number) ?? 20;
 
           const provisionResult = await provisionInstance({
             plan: order.plan,

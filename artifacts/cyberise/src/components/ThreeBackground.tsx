@@ -1,7 +1,10 @@
 import { useEffect, useRef, Component, ReactNode } from "react";
 import * as THREE from "three";
 
-class WebGLErrorBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, { hasError: boolean }> {
+class WebGLErrorBoundary extends Component<
+  { children: ReactNode; fallback: ReactNode },
+  { hasError: boolean }
+> {
   constructor(props: { children: ReactNode; fallback: ReactNode }) {
     super(props);
     this.state = { hasError: false };
@@ -22,7 +25,8 @@ function CSSParticleFallback() {
         style={{
           position: "absolute",
           inset: 0,
-          background: "radial-gradient(ellipse at 20% 50%, rgba(123,47,247,0.07) 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(0,240,255,0.07) 0%, transparent 60%)",
+          background:
+            "radial-gradient(ellipse at 20% 50%, rgba(123,47,247,0.07) 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(0,240,255,0.07) 0%, transparent 60%)",
         }}
       />
       {Array.from({ length: 40 }).map((_, i) => (
@@ -33,7 +37,8 @@ function CSSParticleFallback() {
             width: Math.random() * 3 + 1 + "px",
             height: Math.random() * 3 + 1 + "px",
             borderRadius: "50%",
-            background: i % 3 === 0 ? "#00f0ff" : i % 3 === 1 ? "#7b2ff7" : "#00ff88",
+            background:
+              i % 3 === 0 ? "#00f0ff" : i % 3 === 1 ? "#7b2ff7" : "#00ff88",
             left: Math.random() * 100 + "%",
             top: Math.random() * 100 + "%",
             opacity: Math.random() * 0.4 + 0.1,
@@ -61,7 +66,12 @@ function ThreeScene() {
     if (!mountRef.current) return;
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(
+      75,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      1000,
+    );
     camera.position.z = 30;
 
     let renderer: THREE.WebGLRenderer;
@@ -96,8 +106,14 @@ function ThreeScene() {
       colorsArray[i + 2] = c.b;
     }
 
-    particlesGeometry.setAttribute("position", new THREE.BufferAttribute(posArray, 3));
-    particlesGeometry.setAttribute("color", new THREE.BufferAttribute(colorsArray, 3));
+    particlesGeometry.setAttribute(
+      "position",
+      new THREE.BufferAttribute(posArray, 3),
+    );
+    particlesGeometry.setAttribute(
+      "color",
+      new THREE.BufferAttribute(colorsArray, 3),
+    );
 
     const particlesMaterial = new THREE.PointsMaterial({
       size: 0.15,
@@ -107,22 +123,36 @@ function ThreeScene() {
       blending: THREE.AdditiveBlending,
     });
 
-    const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+    const particlesMesh = new THREE.Points(
+      particlesGeometry,
+      particlesMaterial,
+    );
     scene.add(particlesMesh);
 
     const torus = new THREE.Mesh(
       new THREE.TorusGeometry(10, 3, 16, 100),
-      new THREE.MeshBasicMaterial({ color: 0x00f0ff, wireframe: true, transparent: true, opacity: 0.05 })
+      new THREE.MeshBasicMaterial({
+        color: 0x00f0ff,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.05,
+      }),
     );
     scene.add(torus);
 
     const icosahedron = new THREE.Mesh(
       new THREE.IcosahedronGeometry(7, 1),
-      new THREE.MeshBasicMaterial({ color: 0x7b2ff7, wireframe: true, transparent: true, opacity: 0.08 })
+      new THREE.MeshBasicMaterial({
+        color: 0x7b2ff7,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.08,
+      }),
     );
     scene.add(icosahedron);
 
-    let mouseX = 0, mouseY = 0;
+    let mouseX = 0,
+      mouseY = 0;
     const onMouseMove = (e: MouseEvent) => {
       mouseX = e.clientX - window.innerWidth / 2;
       mouseY = e.clientY - window.innerHeight / 2;
@@ -156,14 +186,19 @@ function ThreeScene() {
       cancelAnimationFrame(animId);
       window.removeEventListener("resize", onResize);
       document.removeEventListener("mousemove", onMouseMove);
-      if (mountRef.current && renderer.domElement.parentNode === mountRef.current) {
+      if (
+        mountRef.current &&
+        renderer.domElement.parentNode === mountRef.current
+      ) {
         mountRef.current.removeChild(renderer.domElement);
       }
       renderer.dispose();
     };
   }, []);
 
-  return <div ref={mountRef} className="fixed inset-0 z-0 pointer-events-none" />;
+  return (
+    <div ref={mountRef} className="fixed inset-0 z-0 pointer-events-none" />
+  );
 }
 
 export default function ThreeBackground() {

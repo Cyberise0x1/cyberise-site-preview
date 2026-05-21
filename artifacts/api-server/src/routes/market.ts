@@ -1,13 +1,29 @@
 import { Router, type IRouter } from "express";
 import { OrderStatus } from "@workspace/db";
 import { prisma } from "@workspace/db";
-import { getPlans, getRegions, getWindowsImages, deleteInstance } from "../services/linode";
-import { getProPlans, getProRegions, deleteProInstance } from "../services/rdpmonster";
+import {
+  getPlans,
+  getRegions,
+  getWindowsImages,
+  deleteInstance,
+} from "../services/linode";
+import {
+  getProPlans,
+  getProRegions,
+  deleteProInstance,
+} from "../services/rdpmonster";
 import { getCache, setCache } from "../services/redis";
 import { sendEmail, generateRDPCredentialsEmail } from "../services/email";
 import { encrypt } from "../utils/encryption";
-import { provisionInstance, type ProvisionResult } from "../services/provisioning";
-import { sendSuccess, sendError, sendValidationError } from "../utils/responses";
+import {
+  provisionInstance,
+  type ProvisionResult,
+} from "../services/provisioning";
+import {
+  sendSuccess,
+  sendError,
+  sendValidationError,
+} from "../utils/responses";
 import { requireAuth, attachUser, requireActiveUser } from "../middleware/auth";
 import { marketRateLimit, orderRateLimit } from "../middleware/rateLimit";
 import { createOrderSchema } from "../validators/market";
@@ -45,45 +61,70 @@ router.get("/market/plans", marketRateLimit, async (_req, res) => {
     }
 
     const settings = await prisma.marketSettings.findMany();
-    const settingsMap = Object.fromEntries(settings.map(s => [s.key, s.value]));
+    const settingsMap = Object.fromEntries(
+      settings.map((s) => [s.key, s.value]),
+    );
 
-    const [basicPlans, basicRegions, images, proPlans, proRegions] = await Promise.all([
-      getPlans(),
-      getRegions(),
-      getWindowsImages(),
-      getProPlans(),
-      getProRegions(),
-    ]);
+    const [basicPlans, basicRegions, images, proPlans, proRegions] =
+      await Promise.all([
+        getPlans(),
+        getRegions(),
+        getWindowsImages(),
+        getProPlans(),
+        getProRegions(),
+      ]);
 
-    const enabledRegions = settingsMap.enabled_regions as string[] ?? basicRegions.map(r => r.id);
-    const enabledPlans = settingsMap.enabled_plans as string[] ?? basicPlans.map(p => p.id);
+    const enabledRegions =
+      (settingsMap.enabled_regions as string[]) ??
+      basicRegions.map((r) => r.id);
+    const enabledPlans =
+      (settingsMap.enabled_plans as string[]) ?? basicPlans.map((p) => p.id);
 
     const filteredBasicRegions = basicRegions
-      .filter(r => enabledRegions.includes(r.id))
-      .map(r => ({ ...r, label: sanitizeBasicLabel(r.label), tier: "basic" as const }));
+      .filter((r) => enabledRegions.includes(r.id))
+      .map((r) => ({
+        ...r,
+        label: sanitizeBasicLabel(r.label),
+        tier: "basic" as const,
+      }));
 
     const filteredBasicPlans = basicPlans
-      .filter(p => enabledPlans.includes(p.id))
-      .map(p => ({ ...p, label: sanitizeBasicLabel(p.label), tier: "basic" as const }));
+      .filter((p) => enabledPlans.includes(p.id))
+      .map((p) => ({
+        ...p,
+        label: sanitizeBasicLabel(p.label),
+        tier: "basic" as const,
+      }));
 
-    const markupPercent = settingsMap.markup_percentage as number ?? 20;
-    const basicPlansWithPricing = filteredBasicPlans.map(plan => ({
+    const markupPercent = (settingsMap.markup_percentage as number) ?? 20;
+    const basicPlansWithPricing = filteredBasicPlans.map((plan) => ({
       ...plan,
       price: {
-        hourly: Number((plan.price.hourly * (1 + markupPercent / 100)).toFixed(4)),
-        monthly: Number((plan.price.monthly * (1 + markupPercent / 100)).toFixed(2)),
+        hourly: Number(
+          (plan.price.hourly * (1 + markupPercent / 100)).toFixed(4),
+        ),
+        monthly: Number(
+          (plan.price.monthly * (1 + markupPercent / 100)).toFixed(2),
+        ),
       },
     }));
 
-    const proPlansWithPricing = proPlans.map(plan => ({
+    const proPlansWithPricing = proPlans.map((plan) => ({
       ...plan,
       price: {
-        hourly: Number((plan.price.hourly * (1 + markupPercent / 100)).toFixed(4)),
-        monthly: Number((plan.price.monthly * (1 + markupPercent / 100)).toFixed(2)),
+        hourly: Number(
+          (plan.price.hourly * (1 + markupPercent / 100)).toFixed(4),
+        ),
+        monthly: Number(
+          (plan.price.monthly * (1 + markupPercent / 100)).toFixed(2),
+        ),
       },
     }));
 
-    const proRegionsTagged = proRegions.map(r => ({ ...r, tier: "pro" as const }));
+    const proRegionsTagged = proRegions.map((r) => ({
+      ...r,
+      tier: "pro" as const,
+    }));
 
     const data = {
       plans: [...basicPlansWithPricing, ...proPlansWithPricing],
@@ -126,16 +167,17 @@ router.post(
         }),
       ]);
 
-      const settingsMap = Object.fromEntries(settings.map(s => [s.key, s.value]));
-      const maxActiveOrders = settingsMap.max_active_orders as number ?? 5;
+      const settingsMap = Object.fromEntries(
+        settings.map((s) => [s.key, s.value]),
+      );
+      const maxActiveOrders = (settingsMap.max_active_orders as number) ?? 5;
 
       if (existingActive >= maxActiveOrders) {
         sendError(res, "Maximum active orders reached", 400);
         return;
       }
 
-      const markupPercent =
-        (settingsMap.markup_percentage as number) ?? 20;
+      const markupPercent = (settingsMap.markup_percentage as number) ?? 20;
 
       let orderResult: ProvisionResult;
       try {
@@ -180,7 +222,10 @@ router.post(
               plan,
               region,
               image: image ?? "unknown",
-              linodeInstanceId: tier === "basic" && typeof orderResult.instanceId === "number" ? orderResult.instanceId : null,
+              linodeInstanceId:
+                tier === "basic" && typeof orderResult.instanceId === "number"
+                  ? orderResult.instanceId
+                  : null,
               ip: orderResult.ip,
               rdpUsername: orderResult.username,
               rdpPasswordEncrypted: encrypt(orderResult.password),
@@ -190,20 +235,38 @@ router.post(
               expiresAt,
               metadata: {
                 tier,
-                ...(tier === "pro" ? { proInstanceId: String(orderResult.instanceId) } : {}),
+                ...(tier === "pro"
+                  ? { proInstanceId: String(orderResult.instanceId) }
+                  : {}),
               },
             },
           });
         });
       } catch (err) {
-        logger.error({ err }, "DB transaction failed after instance creation — attempting provider cleanup");
+        logger.error(
+          { err },
+          "DB transaction failed after instance creation — attempting provider cleanup",
+        );
         if (tier === "pro" && orderResult.instanceId) {
-          try { await deleteProInstance(String(orderResult.instanceId)); } catch (cleanupErr) {
-            logger.error({ cleanupErr, proInstanceId: orderResult.instanceId }, "Pro instance cleanup failed after DB rollback");
+          try {
+            await deleteProInstance(String(orderResult.instanceId));
+          } catch (cleanupErr) {
+            logger.error(
+              { cleanupErr, proInstanceId: orderResult.instanceId },
+              "Pro instance cleanup failed after DB rollback",
+            );
           }
-        } else if (tier === "basic" && typeof orderResult.instanceId === "number") {
-          try { await deleteInstance(orderResult.instanceId as number); } catch (cleanupErr) {
-            logger.error({ cleanupErr, linodeInstanceId: orderResult.instanceId }, "Basic instance cleanup failed after DB rollback");
+        } else if (
+          tier === "basic" &&
+          typeof orderResult.instanceId === "number"
+        ) {
+          try {
+            await deleteInstance(orderResult.instanceId as number);
+          } catch (cleanupErr) {
+            logger.error(
+              { cleanupErr, linodeInstanceId: orderResult.instanceId },
+              "Basic instance cleanup failed after DB rollback",
+            );
           }
         }
         sendError(res, "Failed to create order", 500);
@@ -235,19 +298,23 @@ router.post(
         },
       });
 
-      sendSuccess(res, {
-        orderId: order.id,
-        ip: orderResult.ip,
-        username: orderResult.username,
-        password: orderResult.password,
-        expiresAt,
-        tier,
-      }, 201);
+      sendSuccess(
+        res,
+        {
+          orderId: order.id,
+          ip: orderResult.ip,
+          username: orderResult.username,
+          password: orderResult.password,
+          expiresAt,
+          tier,
+        },
+        201,
+      );
     } catch (error) {
       logger.error({ error }, "Failed to create order");
       sendError(res, "Failed to create order");
     }
-  }
+  },
 );
 
 router.get("/market/crypto/currencies", async (_req, res) => {
@@ -315,8 +382,7 @@ router.post(
         return;
       }
 
-      const markupPercent =
-        (settingsMap.markup_percentage as number) ?? 20;
+      const markupPercent = (settingsMap.markup_percentage as number) ?? 20;
 
       let orderResult: ProvisionResult;
       try {

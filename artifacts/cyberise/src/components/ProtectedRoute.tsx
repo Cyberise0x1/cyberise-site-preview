@@ -9,7 +9,10 @@ interface ProtectedRouteProps {
   requireAdmin?: boolean;
 }
 
-export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRouteProps) {
+export function ProtectedRoute({
+  children,
+  requireAdmin = false,
+}: ProtectedRouteProps) {
   const { isLoaded, isSignedIn } = useAuth();
   const { user } = useUser();
   const [dismissed, setDismissed] = useState(false);
@@ -52,21 +55,23 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
                 >
                   ✕
                 </button>
-                <h2 className="text-xl font-bold text-white mb-6 text-center">Sign in required</h2>
+                <h2 className="text-xl font-bold text-white mb-6 text-center">
+                  Sign in required
+                </h2>
                 <SignIn />
               </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
-        {dismissed && (
-          <Redirect to="/" />
-        )}
+        {dismissed && <Redirect to="/" />}
       </div>
     );
   }
 
   if (requireAdmin) {
-    const isAdmin = user?.publicMetadata?.role === "ADMIN" || user?.unsafeMetadata?.role === "ADMIN";
+    const isAdmin =
+      user?.publicMetadata?.role === "ADMIN" ||
+      user?.unsafeMetadata?.role === "ADMIN";
     if (!isAdmin) {
       return <Redirect to="/dashboard" />;
     }

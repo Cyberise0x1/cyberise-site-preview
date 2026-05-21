@@ -52,15 +52,30 @@ _Populate as you build — sharp edges, "always run X before Y" rules._
    - Read `notes[]` for project conventions and warnings.
 
 2. **CLAIM YOUR FILES:** Before editing any file, set `active_claims.replit`:
+
    ```json
-   { "replit": { "since": "<ISO timestamp>", "files": ["path/to/file.tsx"], "task": "What you are doing" } }
+   {
+     "replit": {
+       "since": "<ISO timestamp>",
+       "files": ["path/to/file.tsx"],
+       "task": "What you are doing"
+     }
+   }
    ```
+
    Clear it when done.
 
 3. **WRITEBACK:** After each file edit, append to `replit_log`:
+
    ```json
-   { "ts": "<ISO timestamp>", "file": "path/to/file.tsx", "action": "edit|create|delete", "summary": "What changed" }
+   {
+     "ts": "<ISO timestamp>",
+     "file": "path/to/file.tsx",
+     "action": "edit|create|delete",
+     "summary": "What changed"
+   }
    ```
+
    Keep log capped at 50 entries — remove oldest if exceeded.
 
 4. **LOCKING:** If `active_claims.commandcode` exists and the task is backend-related, focus on frontend work to avoid merge conflicts.
@@ -70,6 +85,7 @@ _Populate as you build — sharp edges, "always run X before Y" rules._
 6. **LAST UPDATED:** Set `last_updated_by` to `"replit"` and `last_updated_at` to current timestamp after every write.
 
 ### Protocol Files
+
 - `.agent_context.json` — shared state (claims, logs, notes, conflicts)
 - `AGENT_PROTOCOL.md` — full protocol documentation
 

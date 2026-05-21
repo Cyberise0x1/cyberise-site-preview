@@ -7,16 +7,20 @@ export default function About() {
     "Government Trusted",
     "24/7 SOC Support",
     "NDA Guaranteed",
-    "Zero-Compromise Security"
+    "Zero-Compromise Security",
   ];
 
   return (
     <section id="about" className="bg-[rgba(18,18,26,0.3)]">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-[40px] lg:gap-[80px] max-w-[1400px] mx-auto items-center">
-        
         <div className="h-[300px] lg:h-[500px] flex items-center justify-center relative perspective-[1000px] reveal">
-          <div className="w-[200px] h-[200px] relative transform-style-[preserve-3d] animate-[spin-slow_20s_linear_infinite]" style={{ transformStyle: 'preserve-3d' }}>
-            <style dangerouslySetInnerHTML={{__html: `
+          <div
+            className="w-[200px] h-[200px] relative transform-style-[preserve-3d] animate-[spin-slow_20s_linear_infinite]"
+            style={{ transformStyle: "preserve-3d" }}
+          >
+            <style
+              dangerouslySetInnerHTML={{
+                __html: `
               @keyframes spin-slow {
                 0% { transform: rotateX(0) rotateY(0); }
                 100% { transform: rotateX(360deg) rotateY(360deg); }
@@ -43,7 +47,9 @@ export default function About() {
               .face-left { transform: rotateY(-90deg) translateZ(100px); }
               .face-top { transform: rotateX(90deg) translateZ(100px); }
               .face-bottom { transform: rotateX(-90deg) translateZ(100px); }
-            `}} />
+            `,
+              }}
+            />
             <div className="cube-face face-front">CYBER</div>
             <div className="cube-face face-back">SECURE</div>
             <div className="cube-face face-right">CODE</div>
@@ -58,22 +64,30 @@ export default function About() {
             Who We Are
           </div>
           <h2 className="font-orbitron text-[clamp(2rem,3vw,3rem)] font-extrabold leading-[1.2] mb-[25px]">
-            A Global Force in Digital Innovation & <span className="text-gradient-1">Cybersecurity</span>
+            A Global Force in Digital Innovation &{" "}
+            <span className="text-gradient-1">Cybersecurity</span>
           </h2>
           <p className="text-[1.1rem] text-[#a0a0b8] leading-[1.8] mb-[30px]">
-            Cyberise Technology was founded with a singular vision: to bridge the gap between cutting-edge technology and real-world security challenges. Based in Nigeria, operating globally.
+            Cyberise Technology was founded with a singular vision: to bridge
+            the gap between cutting-edge technology and real-world security
+            challenges. Based in Nigeria, operating globally.
           </p>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-[15px] mb-[40px]">
             {features.map((feature, i) => (
-              <div key={i} className="flex items-center gap-[10px] text-[#ffffff] font-medium">
+              <div
+                key={i}
+                className="flex items-center gap-[10px] text-[#ffffff] font-medium"
+              >
                 <CheckCircle2 className="w-5 h-5 text-[#00ff88]" />
                 {feature}
               </div>
             ))}
           </div>
-          
-          <a href="#contact" className="btn-primary inline-block">Partner With Us</a>
+
+          <a href="#contact" className="btn-primary inline-block">
+            Partner With Us
+          </a>
         </div>
       </div>
     </section>

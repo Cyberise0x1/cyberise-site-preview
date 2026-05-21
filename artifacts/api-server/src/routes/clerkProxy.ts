@@ -8,7 +8,9 @@ const clerkDomain = process.env.CLERK_SECRET_KEY
       const pk = process.env.CLERK_PUBLISHABLE_KEY || "";
       const suffix = pk.replace(/^pk_(live|test)_/, "");
       try {
-        return Buffer.from(suffix, "base64").toString("utf8").replace(/\$$/, "");
+        return Buffer.from(suffix, "base64")
+          .toString("utf8")
+          .replace(/\$$/, "");
       } catch {
         return "clerk.cyberise.org";
       }
@@ -26,7 +28,7 @@ router.use(
         res.status(502).json({ error: "Clerk proxy error" });
       },
     },
-  })
+  }),
 );
 
 export default router;

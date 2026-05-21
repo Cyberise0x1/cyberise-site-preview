@@ -18,7 +18,7 @@ export default function Preloader() {
     <div
       className={cn(
         "fixed inset-0 z-[100000] flex flex-col items-center justify-center transition-all duration-800 ease-in-out",
-        hidden ? "opacity-0 invisible" : "bg-[#0a0a0f]"
+        hidden ? "opacity-0 invisible" : "bg-[#0a0a0f]",
       )}
     >
       <div className="font-orbitron text-[2.5rem] font-black text-gradient-1 mb-10 animate-[pulse-glow_2s_ease-in-out_infinite]">

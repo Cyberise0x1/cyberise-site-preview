@@ -5,7 +5,12 @@ import { OrderStatus, Prisma } from "@workspace/db";
 import { prisma } from "@workspace/db";
 import { deleteInstance } from "../services/linode";
 import { deleteCache } from "../services/redis";
-import { sendSuccess, sendError, sendNotFound, sendValidationError } from "../utils/responses";
+import {
+  sendSuccess,
+  sendError,
+  sendNotFound,
+  sendValidationError,
+} from "../utils/responses";
 import { requireAuth, attachUser, requireAdmin } from "../middleware/auth";
 import { strictRateLimit } from "../middleware/rateLimit";
 import { updateSettingsSchema, paginationSchema } from "../validators/admin";
@@ -64,57 +69,65 @@ router.get("/admin/users", async (req: AuthRequest, res) => {
   }
 });
 
-router.patch("/admin/users/:id/ban", strictRateLimit, async (req: AuthRequest, res) => {
-  try {
-    const userId = String(req.params.id);
+router.patch(
+  "/admin/users/:id/ban",
+  strictRateLimit,
+  async (req: AuthRequest, res) => {
+    try {
+      const userId = String(req.params.id);
 
-    const user = await prisma.user.update({
-      where: { id: userId },
-      data: { banned: true },
-    });
+      const user = await prisma.user.update({
+        where: { id: userId },
+        data: { banned: true },
+      });
 
-    await prisma.auditLog.create({
-      data: {
-        actorId: req.user!.id,
-        action: "USER_BANNED",
-        entity: "User",
-        entityId: userId,
-        metadata: { email: user.email },
-      },
-    });
+      await prisma.auditLog.create({
+        data: {
+          actorId: req.user!.id,
+          action: "USER_BANNED",
+          entity: "User",
+          entityId: userId,
+          metadata: { email: user.email },
+        },
+      });
 
-    sendSuccess(res, user);
-  } catch (error) {
-    logger.error({ error }, "Failed to ban user");
-    sendError(res, "Failed to ban user");
-  }
-});
+      sendSuccess(res, user);
+    } catch (error) {
+      logger.error({ error }, "Failed to ban user");
+      sendError(res, "Failed to ban user");
+    }
+  },
+);
 
-router.patch("/admin/users/:id/unban", strictRateLimit, async (req: AuthRequest, res) => {
-  try {
-    const userId = String(req.params.id);
+router.patch(
+  "/admin/users/:id/unban",
+  strictRateLimit,
+  async (req: AuthRequest, res) => {
+    try {
+      const userId = String(req.params.id);
 
-    const user = await prisma.user.update({
-      where: { id: userId },
-      data: { banned: false },
-    });
+      const user = await prisma.user.update({
+        where: { id: userId },
+        data: { banned: false },
+      });
 
-    await prisma.auditLog.create({
-      data: {
-        actorId: req.user!.id,
-        action: "USER_UNBANNED",
-        entity: "User",
-        entityId: userId,
-        metadata: { email: user.email },
-      },
-    });
+      await prisma.auditLog.create({
+        data: {
+          actorId: req.user!.id,
+          action: "USER_UNBANNED",
+          entity: "User",
+          entityId: userId,
+          metadata: { email: user.email },
+        },
+      });
 
-    sendSuccess(res, user);
-  } catch (error) {
-    logger.error({ error }, "Failed to unban user");
-    sendError(res, "Failed to unban user");
-  }
-});
+      sendSuccess(res, user);
+    } catch (error) {
+      logger.error({ error }, "Failed to unban user");
+      sendError(res, "Failed to unban user");
+    }
+  },
+);
 
 router.get("/admin/orders", async (req: AuthRequest, res) => {
   try {
@@ -132,7 +145,11 @@ router.get("/admin/orders", async (req: AuthRequest, res) => {
           OR: [
             { id: { contains: search } },
             { ip: { contains: search } },
-            { user: { email: { contains: search, mode: "insensitive" as const } } },
+            {
+              user: {
+                email: { contains: search, mode: "insensitive" as const },
+              },
+            },
           ],
         }
       : {};
@@ -165,56 +182,66 @@ router.get("/admin/orders", async (req: AuthRequest, res) => {
   }
 });
 
-router.delete("/admin/orders/:id", strictRateLimit, async (req: AuthRequest, res) => {
-  try {
-    const orderId = String(req.params.id);
+router.delete(
+  "/admin/orders/:id",
+  strictRateLimit,
+  async (req: AuthRequest, res) => {
+    try {
+      const orderId = String(req.params.id);
 
-    const order = await prisma.order.findUnique({
-      where: { id: orderId },
-    });
+      const order = await prisma.order.findUnique({
+        where: { id: orderId },
+      });
 
-    if (!order) {
-      sendNotFound(res, "Order");
-      return;
-    }
-
-    if (order.linodeInstanceId && (order.status === OrderStatus.ACTIVE || order.status === OrderStatus.PENDING)) {
-      try {
-        await deleteInstance(order.linodeInstanceId);
-      } catch (error) {
-        logger.warn({ error, orderId }, "Failed to delete Linode instance");
+      if (!order) {
+        sendNotFound(res, "Order");
+        return;
       }
+
+      if (
+        order.linodeInstanceId &&
+        (order.status === OrderStatus.ACTIVE ||
+          order.status === OrderStatus.PENDING)
+      ) {
+        try {
+          await deleteInstance(order.linodeInstanceId);
+        } catch (error) {
+          logger.warn({ error, orderId }, "Failed to delete Linode instance");
+        }
+      }
+
+      const updatedOrder = await prisma.order.update({
+        where: { id: orderId },
+        data: {
+          status: OrderStatus.TERMINATED,
+          terminatedAt: new Date(),
+          terminationReason: "Admin action",
+        },
+      });
+
+      await prisma.auditLog.create({
+        data: {
+          actorId: req.user!.id,
+          action: "ORDER_TERMINATED_ADMIN",
+          entity: "Order",
+          entityId: orderId,
+        },
+      });
+
+      sendSuccess(res, updatedOrder);
+    } catch (error) {
+      logger.error({ error }, "Failed to terminate order");
+      sendError(res, "Failed to terminate order");
     }
-
-    const updatedOrder = await prisma.order.update({
-      where: { id: orderId },
-      data: {
-        status: OrderStatus.TERMINATED,
-        terminatedAt: new Date(),
-        terminationReason: "Admin action",
-      },
-    });
-
-    await prisma.auditLog.create({
-      data: {
-        actorId: req.user!.id,
-        action: "ORDER_TERMINATED_ADMIN",
-        entity: "Order",
-        entityId: orderId,
-      },
-    });
-
-    sendSuccess(res, updatedOrder);
-  } catch (error) {
-    logger.error({ error }, "Failed to terminate order");
-    sendError(res, "Failed to terminate order");
-  }
-});
+  },
+);
 
 router.get("/admin/settings", async (_req: AuthRequest, res) => {
   try {
     const settings = await prisma.marketSettings.findMany();
-    const settingsMap = Object.fromEntries(settings.map(s => [s.key, s.value]));
+    const settingsMap = Object.fromEntries(
+      settings.map((s) => [s.key, s.value]),
+    );
     sendSuccess(res, settingsMap);
   } catch (error) {
     logger.error({ error }, "Failed to fetch settings");
@@ -222,42 +249,48 @@ router.get("/admin/settings", async (_req: AuthRequest, res) => {
   }
 });
 
-router.patch("/admin/settings", strictRateLimit, async (req: AuthRequest, res) => {
-  try {
-    const parsed = updateSettingsSchema.safeParse(req.body);
-    if (!parsed.success) {
-      sendValidationError(res, parsed.error.flatten().fieldErrors);
-      return;
+router.patch(
+  "/admin/settings",
+  strictRateLimit,
+  async (req: AuthRequest, res) => {
+    try {
+      const parsed = updateSettingsSchema.safeParse(req.body);
+      if (!parsed.success) {
+        sendValidationError(res, parsed.error.flatten().fieldErrors);
+        return;
+      }
+
+      const updates = Object.entries(parsed.data).map(([key, value]) =>
+        prisma.marketSettings.upsert({
+          where: { key },
+          update: { value: value as Prisma.InputJsonValue },
+          create: { key, value: value as Prisma.InputJsonValue },
+        }),
+      );
+
+      await Promise.all(updates);
+      await deleteCache("market:data");
+
+      await prisma.auditLog.create({
+        data: {
+          actorId: req.user!.id,
+          action: "SETTINGS_UPDATED",
+          entity: "MarketSettings",
+          metadata: { updatedKeys: Object.keys(parsed.data) },
+        },
+      });
+
+      const settings = await prisma.marketSettings.findMany();
+      const settingsMap = Object.fromEntries(
+        settings.map((s) => [s.key, s.value]),
+      );
+      sendSuccess(res, settingsMap);
+    } catch (error) {
+      logger.error({ error }, "Failed to update settings");
+      sendError(res, "Failed to update settings");
     }
-
-    const updates = Object.entries(parsed.data).map(([key, value]) =>
-      prisma.marketSettings.upsert({
-        where: { key },
-        update: { value: value as Prisma.InputJsonValue },
-        create: { key, value: value as Prisma.InputJsonValue },
-      })
-    );
-
-    await Promise.all(updates);
-    await deleteCache("market:data");
-
-    await prisma.auditLog.create({
-      data: {
-        actorId: req.user!.id,
-        action: "SETTINGS_UPDATED",
-        entity: "MarketSettings",
-        metadata: { updatedKeys: Object.keys(parsed.data) },
-      },
-    });
-
-    const settings = await prisma.marketSettings.findMany();
-    const settingsMap = Object.fromEntries(settings.map(s => [s.key, s.value]));
-    sendSuccess(res, settingsMap);
-  } catch (error) {
-    logger.error({ error }, "Failed to update settings");
-    sendError(res, "Failed to update settings");
-  }
-});
+  },
+);
 
 router.get("/admin/agent-context", async (_req: AuthRequest, res) => {
   try {
@@ -267,7 +300,10 @@ router.get("/admin/agent-context", async (_req: AuthRequest, res) => {
     ];
     let content: string | null = null;
     for (const p of candidates) {
-      try { content = await fs.readFile(p, "utf-8"); break; } catch {}
+      try {
+        content = await fs.readFile(p, "utf-8");
+        break;
+      } catch {}
     }
     if (!content) {
       sendError(res, ".agent_context.json not found");

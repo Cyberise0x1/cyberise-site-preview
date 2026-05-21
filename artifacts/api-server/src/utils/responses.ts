@@ -19,7 +19,7 @@ export function sendError(
   res: Response,
   error: string,
   status = 500,
-  details?: Record<string, unknown>
+  details?: Record<string, unknown>,
 ): void {
   const response: ApiResponse = {
     success: false,
@@ -31,7 +31,7 @@ export function sendError(
 
 export function sendValidationError(
   res: Response,
-  details: Record<string, unknown>
+  details: Record<string, unknown>,
 ): void {
   sendError(res, "Validation failed", 400, details);
 }
@@ -40,7 +40,10 @@ export function sendNotFound(res: Response, resource = "Resource"): void {
   sendError(res, `${resource} not found`, 404);
 }
 
-export function sendUnauthorized(res: Response, message = "Unauthorized"): void {
+export function sendUnauthorized(
+  res: Response,
+  message = "Unauthorized",
+): void {
   sendError(res, message, 401);
 }
 

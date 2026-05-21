@@ -9,7 +9,10 @@ interface ApiOptions extends RequestInit {
 export function useApi() {
   const { getToken } = useAuth();
 
-  async function api<T>(endpoint: string, options: ApiOptions = {}): Promise<T> {
+  async function api<T>(
+    endpoint: string,
+    options: ApiOptions = {},
+  ): Promise<T> {
     const { requireAuth = true, ...fetchOptions } = options;
 
     const headers: Record<string, string> = {
@@ -128,10 +131,26 @@ export function getDaysLeft(expiresAt: string): number {
 
 export function getRegionFlag(country: string): string {
   const flags: Record<string, string> = {
-    us: "🇺🇸", gb: "🇬🇧", de: "🇩🇪", fr: "🇫🇷", nl: "🇳🇱",
-    sg: "🇸🇬", jp: "🇯🇵", au: "🇦🇺", ca: "🇨🇦", in: "🇮🇳",
-    br: "🇧🇷", za: "🇿🇦", ng: "🇳🇬", ae: "🇦🇪", se: "🇸🇪",
-    it: "🇮🇹", es: "🇪🇸", id: "🇮🇩", kr: "🇰🇷", ch: "🇨🇭",
+    us: "🇺🇸",
+    gb: "🇬🇧",
+    de: "🇩🇪",
+    fr: "🇫🇷",
+    nl: "🇳🇱",
+    sg: "🇸🇬",
+    jp: "🇯🇵",
+    au: "🇦🇺",
+    ca: "🇨🇦",
+    in: "🇮🇳",
+    br: "🇧🇷",
+    za: "🇿🇦",
+    ng: "🇳🇬",
+    ae: "🇦🇪",
+    se: "🇸🇪",
+    it: "🇮🇹",
+    es: "🇪🇸",
+    id: "🇮🇩",
+    kr: "🇰🇷",
+    ch: "🇨🇭",
   };
   return flags[country?.toLowerCase()] ?? "🌐";
 }

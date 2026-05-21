@@ -14,11 +14,18 @@ export const serverEnvSchema = z.object({
   RESEND_SENDER_ADDRESS: z.string().email(),
   CONTACT_RECIPIENT_EMAIL: z.string().email(),
   ENCRYPTION_SECRET: z.string().min(32),
-  NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+  NODE_ENV: z
+    .enum(["development", "production", "test"])
+    .default("development"),
   CRON_SECRET: z.string().optional(),
   NOWPAYMENTS_API_KEY: z.string().min(1),
   NOWPAYMENTS_IPN_SECRET: z.string().min(1),
   NOWPAYMENTS_API_URL: z.string().default("https://api.nowpayments.io"),
+  RDP_MONSTER_API_KEY: z.string().optional(),
+  RDP_MONSTER_EMAIL: z.string().optional(),
+  RDP_MONSTER_API_URL: z
+    .string()
+    .default("https://manager.rdp.monster/api.php"),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;

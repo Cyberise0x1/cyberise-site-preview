@@ -62,7 +62,10 @@ const linodeBreaker = getBreaker("linode-api", {
   timeoutMs: 30000,
 });
 
-async function linodeFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+async function linodeFetch<T>(
+  endpoint: string,
+  options: RequestInit = {},
+): Promise<T> {
   const url = `${LINODE_API_BASE}${endpoint}`;
 
   return linodeBreaker.call(async () => {
@@ -84,7 +87,10 @@ async function linodeFetch<T>(endpoint: string, options: RequestInit = {}): Prom
 
       if (!response.ok) {
         const error = await response.text();
-        logger.error({ endpoint, status: response.status, error }, "Linode API error");
+        logger.error(
+          { endpoint, status: response.status, error },
+          "Linode API error",
+        );
         throw new Error(`Linode API error: ${response.status} - ${error}`);
       }
 
@@ -98,25 +104,28 @@ async function linodeFetch<T>(endpoint: string, options: RequestInit = {}): Prom
 
 export async function getPlans(): Promise<LinodePlan[]> {
   const response = await linodeFetch<{ data: LinodePlan[] }>("/linode/types");
-  return response.data.filter(plan =>
-    plan.class === "standard" || plan.class === "nanode"
+  return response.data.filter(
+    (plan) => plan.class === "standard" || plan.class === "nanode",
   );
 }
 
 export async function getRegions(): Promise<LinodeRegion[]> {
   const response = await linodeFetch<{ data: LinodeRegion[] }>("/regions");
-  return response.data.filter(region =>
-    region.status === "ok" &&
-    region.capabilities.includes("Linodes")
+  return response.data.filter(
+    (region) =>
+      region.status === "ok" && region.capabilities.includes("Linodes"),
   );
 }
 
 export async function getWindowsImages(): Promise<LinodeImage[]> {
-  const response = await linodeFetch<{ data: LinodeImage[] }>("/images?type=manual");
-  return response.data.filter(img =>
-    (img.label.toLowerCase().includes("windows") ||
-     img.description?.toLowerCase().includes("windows")) &&
-    !img.deprecated
+  const response = await linodeFetch<{ data: LinodeImage[] }>(
+    "/images?type=manual",
+  );
+  return response.data.filter(
+    (img) =>
+      (img.label.toLowerCase().includes("windows") ||
+        img.description?.toLowerCase().includes("windows")) &&
+      !img.deprecated,
   );
 }
 
@@ -150,4 +159,9 @@ export async function deleteInstance(instanceId: number): Promise<void> {
   });
 }
 
-export { type LinodePlan, type LinodeRegion, type LinodeImage, type LinodeInstance };
+export {
+  type LinodePlan,
+  type LinodeRegion,
+  type LinodeImage,
+  type LinodeInstance,
+};
