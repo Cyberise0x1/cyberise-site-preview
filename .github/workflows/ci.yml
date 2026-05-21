@@ -44,6 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PORT: "3000"
+      BASE_PATH: "/"
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
