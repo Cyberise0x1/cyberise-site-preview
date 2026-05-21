@@ -116,7 +116,19 @@ Each log entry:
 }
 ```
 
-- `ts`: ISO 8601 UTC timestamp
+- `ts`: ISO 8601 UTC timestamp with **real HH:MM:SS** (never `T00:00:00Z` unless you actually committed at midnight UTC)
 - `file`: relative path from project root
 - `action`: what kind of change
 - `summary`: one-line description — enough for the other agent to understand
+
+### Timestamp policy (enforced)
+
+Batched end-of-session logging — where every entry shares the same `T00:00:00Z` — is **not allowed** for entries on or after `2026-05-21`. Earlier entries are grandfathered.
+
+Rules:
+
+1. Use real `HH:MM:SS` UTC. Get the current time with `date -u +"%Y-%m-%dT%H:%M:%SZ"` before each append.
+2. Don't reuse the same `ts` across 3+ entries — if you batched multiple edits, spread them by at least 1 second.
+3. `last_updated_at` follows the same rules.
+
+The pre-commit hook (`.husky/pre-commit`) runs `pnpm --filter @workspace/scripts run check:agent-context` whenever `.agent_context.json` is staged. Violations block the commit.

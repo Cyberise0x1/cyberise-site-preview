@@ -1,10 +1,10 @@
 {
-  "protocol_version": 1,
-  "last_updated_by": "commandcode",
-  "last_updated_at": "2026-05-20T00:00:00Z",
-  "_protocol_note": "Both agents: read replit.md § 'Agent Collaboration Protocol' for full rules. This file IS the shared state — claims, logs, notes, conflicts all live here.",
+  "protocol_version": 2,
+  "last_updated_by": "claude",
+  "last_updated_at": "2026-05-21T21:42:37Z",
+  "_protocol_note": "All three agents: read AGENT_PROTOCOL.md § for your section's full rules. This file IS the shared state — claims, logs, notes, conflicts all live here.",
 
-  "sprint_goal": "",
+  "sprint_goal": "Ship crypto payments end-to-end on crypto-payments branch; resolve CI before merge to main.",
 
   "active_claims": {},
 
@@ -24,6 +24,12 @@
     { "ts": "2026-05-20T00:00:00Z", "file": "lib/env/src/index.ts", "action": "edit", "summary": "Added RDP_MONSTER_EMAIL env var, changed RDP_MONSTER_API_URL default to https://manager.rdp.monster/api.php" }
   ],
   "replit_log": [
+    { "ts": "2026-05-21T11:31:04Z", "file": "(multi-file)", "action": "edit", "summary": "Run prettier formatting across repo + fix CI typecheck by adding prisma generate step (commit ac81dbf, backfilled from git)" },
+    { "ts": "2026-05-21T11:22:54Z", "file": ".github/workflows/ci.yml", "action": "edit", "summary": "Fix CI: pin pnpm version 9 in action-setup (commit 557d201, backfilled from git)" },
+    { "ts": "2026-05-21T11:21:38Z", "file": ".github/workflows/ci.yml", "action": "create", "summary": "Add CI workflow — TypeCheck, Lint, Build, Test, Secret Scan jobs (commit 4c94126, backfilled from git)" },
+    { "ts": "2026-05-21T11:38:59Z", "file": "(ci)", "action": "edit", "summary": "5x 'Retrigger CI checks' commits between 11:17 and 11:38 UTC (00a4838, a57054d, ed278ba, 18848ff, 659a9d9, e452c2c) — CI on crypto-payments not green yet (backfilled from git)" },
+    { "ts": "2026-05-16T21:26:53Z", "file": "scripts/clean-git-history.sh", "action": "edit", "summary": "Add instructions for running the git-history scrub script (commit f7cc5ab, backfilled from git)" },
+    { "ts": "2026-05-16T21:25:48Z", "file": "scripts/clean-git-history.sh", "action": "create", "summary": "Task #9: clean git history — deliver safe, pattern-based scrub script (commit 73b71e3, backfilled from git)" },
     { "ts": "2026-05-16T13:12:00Z", "file": "artifacts/api-server/src/services/rdpmonster.ts", "action": "create", "summary": "New Pro provider (rdp.monster) service — getProPlans, getProRegions, createProInstance, deleteProInstance. Gracefully returns [] if RDP_MONSTER_API_KEY not set. Never exposes provider name." },
     { "ts": "2026-05-16T13:12:00Z", "file": "artifacts/api-server/src/routes/market.ts", "action": "rewrite", "summary": "Dual-provider market route — merges Basic (Linode) + Pro (rdp.monster) plans with tier tags, markup applied to both, Pro plans gracefully absent if API key not configured." },
     { "ts": "2026-05-16T13:12:00Z", "file": "artifacts/api-server/src/validators/market.ts", "action": "edit", "summary": "Added tier field (enum: basic|pro, default: basic) to createOrderSchema. image is now optional for Pro tier." },
@@ -40,26 +46,24 @@
     { "ts": "2026-05-15T00:00:00Z", "file": "artifacts/cyberise/src/pages/AdminDev.tsx", "action": "create", "summary": "New admin Dev tab — agent activity feed + architecture map iframes" },
     { "ts": "2026-05-15T00:00:00Z", "file": "artifacts/api-server/src/routes/admin.ts", "action": "edit", "summary": "Added GET /admin/agent-context endpoint" }
   ],
+  "claude_log": [
+    { "ts": "2026-05-21T21:42:37Z", "file": ".agent_context.json", "action": "edit", "summary": "Protocol-hygiene pass: dropped 6 protocol-restatement notes (live in AGENT_PROTOCOL.md), set sprint_goal, added CI struggle note, added log-hygiene note flagging legacy batched timestamps, backfilled replit_log with 6 entries from git (real commit timestamps)" }
+  ],
 
   "notes": [
-    "PROTOCOL: Before any edit, check active_claims.replit — skip files claimed by Replit Agent",
-    "PROTOCOL: Claim your files in active_claims.commandcode before editing, release when done",
-    "PROTOCOL: After each file edit, append to commandcode_log (ts, file, action, summary). Cap at 50.",
-    "PROTOCOL: Set last_updated_by to 'commandcode' and last_updated_at after each update",
-    "PROTOCOL: If Replit has a file you need claimed, add to conflicts[] and move on",
-    "PROTOCOL: Read replit_log before starting to see what Replit recently changed",
+    "Three-agent setup — CommandCode (backend/heavy-lifting), Replit (frontend/UI), Claude (specialist/overflow). Protocol details live in AGENT_PROTOCOL.md, not here.",
     "Cyberise is an RDP marketplace — users buy RDP/VPS servers provisioned on Linode (Basic) or rdp.monster (Pro)",
     "Tier system: Basic = Linode-backed, Pro = rdp.monster-backed. NEVER show provider names to buyers.",
     "Frontend: Vite + React (artifacts/cyberise/), API: Express 5 (artifacts/api-server/)",
     "Auth is handled by Clerk — middleware validates JWT tokens",
-    "Database is PostgreSQL via Prisma ORM (lib/db/)",
+    "Database is PostgreSQL via Prisma ORM (lib/db/) — schema at lib/db/prisma/schema.prisma. Commands: pnpm --filter @workspace/db run db:push | migrate | generate",
     "Rate limiting uses Upstash Redis — three presets: market(30/min), order(5/min), strict(10/min)",
     "RDP passwords are AES-encrypted at rest via CryptoJS",
     "Order.metadata Json field stores { tier, proInstanceId } — no DB migration needed for tier",
     "AppShell wraps Market, Dashboard, Orders pages individually — landing page is untouched",
     "RDP_MONSTER_API_KEY env var: when not set, Pro plans gracefully return [] (Pro tab shows coming-soon placeholder)",
     "GSAP installed in @workspace/cyberise — used for plan card hover transforms in Market.tsx",
-    "Don't touch lib/db/schema.prisma without coordinating between agents",
+    "Don't touch lib/db/prisma/schema.prisma without coordinating between agents",
     "Deployment target is Vercel — Vite builds frontend, esbuild bundles API",
     "GITHUB: Push to origin is blocked by secret scanning — old commits contain real Stripe key + Vercel PAT in .replit. User must click GitHub unblock URLs OR rewrite history. Both keys must be rotated.",
     "CLERK: Production keys only work on cyberise.org domain — login errors in Replit dev sandbox are EXPECTED, not a bug",
@@ -67,7 +71,9 @@
     "CRYPTO: NowPayments.io integrated — /api/market/crypto/order creates PENDING order + crypto payment, IPN at /api/webhooks/nowpayments provisions on 'confirmed' status, cron at /api/cron/expire-crypto-payments expires unpaid orders after 1h, partial payments shown in UI with top-up prompt",
     "CRYPTO: Env vars needed — NOWPAYMENTS_API_KEY, NOWPAYMENTS_IPN_SECRET (both required), NOWPAYMENTS_API_URL (defaults to https://api.nowpayments.io)",
     "CRYPTO: Prisma migration 'add_crypto_payments' must be applied before crypto features work",
-    "RDP_MONSTER: Real reseller API — requires both RDP_MONSTER_API_KEY and RDP_MONSTER_EMAIL. Auth is HMAC-SHA256. Plans come from /products (ProxmoxVPS), ordering via POST /order/products/{id}. No deletion endpoint — services must be cancelled in dashboard."
+    "RDP_MONSTER: Real reseller API — requires both RDP_MONSTER_API_KEY and RDP_MONSTER_EMAIL. Auth is HMAC-SHA256. Plans come from /products (ProxmoxVPS), ordering via POST /order/products/{id}. No deletion endpoint — services must be cancelled in dashboard.",
+    "CI: crypto-payments branch had 5x 'Retrigger CI checks' commits between 2026-05-21 11:17 and 11:38 UTC. Root cause not yet diagnosed — investigate before next feature work. CI workflow lives at .github/workflows/ci.yml.",
+    "LOG HYGIENE: commandcode_log entries dated 2026-05-20T00:00:00Z and earlier replit_log entries dated T00:00:00Z / T13:12:00Z are batched end-of-session timestamps, not per-edit. Going forward all agents MUST use real HH:MM:SS UTC timestamps. Enforced by scripts/src/check-agent-context.ts (run via `pnpm --filter @workspace/scripts run check:agent-context`)."
   ],
 
   "conflicts": []

@@ -5,20 +5,25 @@ _Replace the heading above with the project's name, and this line with one sente
 ## Run & Operate
 
 - `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/cyberise run dev` — run the frontend (Vite, host 0.0.0.0)
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- `pnpm --filter @workspace/db run db:push` — push Prisma schema changes (dev only)
+- `pnpm --filter @workspace/db run migrate` — create + apply a new Prisma migration
+- `pnpm --filter @workspace/db run generate` — regenerate Prisma client
+- Required env: `DATABASE_URL` — Postgres connection string (see `lib/env/src/index.ts` for full list)
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
+- Frontend: React 19 + Vite, wouter router, Radix UI + Tailwind, Clerk auth
 - API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- DB: PostgreSQL + Prisma 6 (schema at `lib/db/prisma/schema.prisma`)
+- Validation: Zod (catalog version)
+- API codegen: Orval (from OpenAPI spec, in `lib/api-spec`)
+- Build: esbuild (CJS bundle for API), Vite (frontend)
+- Integrations: Linode (Basic VPS), rdp.monster (Pro RDP), NOWPayments (crypto), Resend (email), Upstash Redis (rate limit + cache)
 
 ## Where things live
 

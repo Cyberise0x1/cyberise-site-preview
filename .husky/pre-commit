@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+# Validate .agent_context.json when it's part of the commit.
+# Enforces real HH:MM:SS UTC timestamps in agent logs (see scripts/src/check-agent-context.ts).
+
+if git diff --cached --name-only --diff-filter=ACMR | grep -q '^\.agent_context\.json$'; then
+  echo "[husky] .agent_context.json changed — running check:agent-context"
+  pnpm --filter @workspace/scripts run check:agent-context || {
+    echo "[husky] FAIL — fix the issues above or skip this hook only if absolutely necessary."
+    exit 1
+  }
+fi
