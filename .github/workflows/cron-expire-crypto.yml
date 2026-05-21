@@ -1,0 +1,15 @@
+name: Expire Crypto Payments
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+
+jobs:
+  expire:
+    name: Expire stale crypto payments
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -f -X POST \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            https://cyberise.org/api/cron/expire-crypto-payments

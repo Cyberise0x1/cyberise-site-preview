@@ -5,7 +5,14 @@ import { AdminLayout } from "./AdminLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Search, Server, Clock, Ban, ExternalLink } from "lucide-react";
+import {
+  Loader2,
+  Search,
+  Server,
+  Clock,
+  Ban,
+  ExternalLink,
+} from "lucide-react";
 import { toast } from "sonner";
 
 interface AdminOrder {
@@ -24,7 +31,12 @@ interface AdminOrder {
 
 interface PaginatedOrders {
   orders: AdminOrder[];
-  pagination: { page: number; limit: number; total: number; totalPages: number };
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 const statusColors: Record<string, string> = {
@@ -46,7 +58,9 @@ export default function AdminOrders() {
       setLoading(true);
       const params = new URLSearchParams({ page: String(page), limit: "20" });
       if (search) params.set("search", search);
-      const response = await api<{ success: boolean; data: PaginatedOrders }>(`/admin/orders?${params}`);
+      const response = await api<{ success: boolean; data: PaginatedOrders }>(
+        `/admin/orders?${params}`,
+      );
       setData(response.data);
     } catch {
       toast.error("Failed to load orders");
@@ -71,18 +85,29 @@ export default function AdminOrders() {
 
   return (
     <AdminLayout>
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-1">Order Management</h1>
-            <p className="text-[#a0a0b8]">{data?.pagination.total ?? 0} total orders</p>
+            <h1 className="text-3xl font-bold text-white mb-1">
+              Order Management
+            </h1>
+            <p className="text-[#a0a0b8]">
+              {data?.pagination.total ?? 0} total orders
+            </p>
           </div>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#a0a0b8]" />
             <Input
               placeholder="Search orders..."
               value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
               className="pl-9 bg-[#0a0a0f] border-[#ffffff1a] text-white w-64"
             />
           </div>
@@ -113,27 +138,45 @@ export default function AdminOrders() {
                         <Server className="w-5 h-5 text-[#00f0ff]" />
                         <div>
                           <div className="flex items-center gap-2 mb-1">
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[order.status]}`}>
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[order.status]}`}
+                            >
                               {order.status}
                             </span>
-                            <span className="text-white font-medium">{order.plan}</span>
+                            <span className="text-white font-medium">
+                              {order.plan}
+                            </span>
                             <span className="text-[#666]">|</span>
-                            <span className="text-[#a0a0b8] text-sm">{order.region}</span>
+                            <span className="text-[#a0a0b8] text-sm">
+                              {order.region}
+                            </span>
                           </div>
                           <div className="text-[#a0a0b8] text-sm space-y-0.5">
-                            <p>User: {order.user?.email || order.userId.slice(0, 12)}...</p>
-                            <p>IP: {order.ip || "N/A"} · Instance: {order.linodeInstanceId || "N/A"} · ${Number(order.amount).toFixed(2)}</p>
+                            <p>
+                              User:{" "}
+                              {order.user?.email || order.userId.slice(0, 12)}
+                              ...
+                            </p>
+                            <p>
+                              IP: {order.ip || "N/A"} · Instance:{" "}
+                              {order.linodeInstanceId || "N/A"} · $
+                              {Number(order.amount).toFixed(2)}
+                            </p>
                             <p className="flex items-center gap-1 text-xs">
                               <Clock className="w-3 h-3" />
                               {new Date(order.createdAt).toLocaleDateString()}
-                              {order.expiresAt && ` → ${new Date(order.expiresAt).toLocaleDateString()}`}
+                              {order.expiresAt &&
+                                ` → ${new Date(order.expiresAt).toLocaleDateString()}`}
                             </p>
                           </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-[#666] text-xs font-mono">{order.id.slice(0, 8)}</span>
-                        {(order.status === "ACTIVE" || order.status === "PENDING") && (
+                        <span className="text-[#666] text-xs font-mono">
+                          {order.id.slice(0, 8)}
+                        </span>
+                        {(order.status === "ACTIVE" ||
+                          order.status === "PENDING") && (
                           <Button
                             size="sm"
                             variant="outline"
@@ -154,9 +197,27 @@ export default function AdminOrders() {
 
         {data && data.pagination.totalPages > 1 && (
           <div className="flex items-center justify-center gap-2 mt-6">
-            <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)} className="border-[#ffffff1a] text-[#a0a0b8]">Previous</Button>
-            <span className="text-[#a0a0b8] text-sm">Page {data.pagination.page} of {data.pagination.totalPages}</span>
-            <Button variant="outline" size="sm" disabled={page >= data.pagination.totalPages} onClick={() => setPage(p => p + 1)} className="border-[#ffffff1a] text-[#a0a0b8]">Next</Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => p - 1)}
+              className="border-[#ffffff1a] text-[#a0a0b8]"
+            >
+              Previous
+            </Button>
+            <span className="text-[#a0a0b8] text-sm">
+              Page {data.pagination.page} of {data.pagination.totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page >= data.pagination.totalPages}
+              onClick={() => setPage((p) => p + 1)}
+              className="border-[#ffffff1a] text-[#a0a0b8]"
+            >
+              Next
+            </Button>
           </div>
         )}
       </motion.div>

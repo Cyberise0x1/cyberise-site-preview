@@ -9,11 +9,15 @@ interface RateLimitConfig {
 }
 
 export function createRateLimit(config: RateLimitConfig) {
-  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  return async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       const identifier = config.keyGenerator
         ? config.keyGenerator(req)
-        : req.ip ?? "anonymous";
+        : (req.ip ?? "anonymous");
 
       const endpoint = req.route?.path ?? req.path;
 
@@ -21,7 +25,7 @@ export function createRateLimit(config: RateLimitConfig) {
         identifier,
         endpoint,
         config.maxRequests,
-        config.windowSeconds
+        config.windowSeconds,
       );
 
       res.setHeader("RateLimit-Limit", String(config.maxRequests));
@@ -29,7 +33,10 @@ export function createRateLimit(config: RateLimitConfig) {
       res.setHeader("RateLimit-Reset", resetAt.toISOString());
 
       if (!allowed) {
-        res.setHeader("Retry-After", String(Math.ceil((resetAt.getTime() - Date.now()) / 1000)));
+        res.setHeader(
+          "Retry-After",
+          String(Math.ceil((resetAt.getTime() - Date.now()) / 1000)),
+        );
         res.status(429).json({
           success: false,
           error: "Too many requests",

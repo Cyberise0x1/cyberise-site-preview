@@ -106,6 +106,7 @@ When both agents need the same file and neither can yield:
 ## Log Format
 
 Each log entry:
+
 ```json
 {
   "ts": "2026-05-14T10:30:00Z",

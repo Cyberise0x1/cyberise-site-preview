@@ -31,7 +31,7 @@ export default function Navbar() {
       setDrawerVisible(false);
       unmountTimer.current = setTimeout(
         () => setDrawerMounted(false),
-        DRAWER_MS + 20
+        DRAWER_MS + 20,
       );
       document.body.style.overflow = "";
     }
@@ -58,7 +58,7 @@ export default function Navbar() {
         "fixed top-0 left-0 w-full flex items-center justify-between z-[1000] transition-all duration-400 ease-in-out",
         scrolled
           ? "bg-[rgba(10,10,15,0.85)] backdrop-blur-[20px] px-8 md:px-[60px] py-[15px] border-b border-[rgba(0,240,255,0.1)]"
-          : "px-8 md:px-[60px] py-[20px] bg-transparent backdrop-blur-none border-b border-transparent"
+          : "px-8 md:px-[60px] py-[20px] bg-transparent backdrop-blur-none border-b border-transparent",
       )}
     >
       <a
@@ -101,7 +101,7 @@ export default function Navbar() {
                 {item}
               </a>
             </li>
-          )
+          ),
         )}
         <li>
           <a
@@ -122,19 +122,19 @@ export default function Navbar() {
         <span
           className={cn(
             "w-[30px] h-[2px] bg-[#00f0ff] transition-all duration-300",
-            menuOpen && "rotate-45 translate-x-[6px] translate-y-[6px]"
+            menuOpen && "rotate-45 translate-x-[6px] translate-y-[6px]",
           )}
         />
         <span
           className={cn(
             "w-[30px] h-[2px] bg-[#00f0ff] transition-all duration-300",
-            menuOpen && "opacity-0"
+            menuOpen && "opacity-0",
           )}
         />
         <span
           className={cn(
             "w-[30px] h-[2px] bg-[#00f0ff] transition-all duration-300",
-            menuOpen && "-rotate-45 translate-x-[6px] -translate-y-[6px]"
+            menuOpen && "-rotate-45 translate-x-[6px] -translate-y-[6px]",
           )}
         />
       </div>
@@ -189,7 +189,7 @@ export default function Navbar() {
                     {item}
                   </a>
                 </li>
-              )
+              ),
             )}
             <li>
               <a

@@ -10,13 +10,18 @@ async function seed() {
 
   if (!existingAdmin) {
     console.log("Creating default admin user placeholder...");
-    console.log("Note: Create an admin user through Clerk and update their role in the database");
+    console.log(
+      "Note: Create an admin user through Clerk and update their role in the database",
+    );
   }
 
   const defaultSettings = [
     { key: "markup_percentage", value: 20 },
     { key: "enabled_regions", value: ["us-east", "us-west", "eu-west"] },
-    { key: "enabled_plans", value: ["g6-nanode-1", "g6-standard-1", "g6-standard-2"] },
+    {
+      key: "enabled_plans",
+      value: ["g6-nanode-1", "g6-standard-1", "g6-standard-2"],
+    },
     { key: "fallback_enabled", value: true },
     { key: "auto_terminate_expired", value: true },
     { key: "min_order_days", value: 7 },

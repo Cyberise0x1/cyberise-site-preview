@@ -9,7 +9,10 @@ interface ApiOptions extends RequestInit {
 export function useApi() {
   const { getToken } = useAuth();
 
-  async function api<T>(endpoint: string, options: ApiOptions = {}): Promise<T> {
+  async function api<T>(
+    endpoint: string,
+    options: ApiOptions = {},
+  ): Promise<T> {
     const { requireAuth = true, ...fetchOptions } = options;
 
     const headers: Record<string, string> = {
@@ -83,6 +86,42 @@ export type Order = {
   metadata?: Record<string, unknown> | null;
 };
 
+export type CryptoCurrency = {
+  id: number;
+  code: string;
+  name: string;
+  enable: boolean;
+  is_fiat: boolean;
+  precision: number;
+  icon_url?: string;
+};
+
+export type CryptoEstimate = {
+  currency_from: string;
+  amount_from: number;
+  currency_to: string;
+  estimated_amount: number;
+};
+
+export type CryptoOrderResponse = {
+  orderId: string;
+  paymentId: string;
+  payAddress: string;
+  payCurrency: string;
+  cryptoAmount: number;
+  fiatAmount: number;
+  paymentStatus: string;
+};
+
+export type CryptoPaymentStatusResponse = {
+  paymentId: string;
+  paymentStatus: string;
+  actuallyPaid: number;
+  payAmount: number;
+  payCurrency: string;
+  orderStatus: string;
+};
+
 export function getDaysLeft(expiresAt: string): number {
   const now = new Date();
   const exp = new Date(expiresAt);
@@ -92,10 +131,26 @@ export function getDaysLeft(expiresAt: string): number {
 
 export function getRegionFlag(country: string): string {
   const flags: Record<string, string> = {
-    us: "🇺🇸", gb: "🇬🇧", de: "🇩🇪", fr: "🇫🇷", nl: "🇳🇱",
-    sg: "🇸🇬", jp: "🇯🇵", au: "🇦🇺", ca: "🇨🇦", in: "🇮🇳",
-    br: "🇧🇷", za: "🇿🇦", ng: "🇳🇬", ae: "🇦🇪", se: "🇸🇪",
-    it: "🇮🇹", es: "🇪🇸", id: "🇮🇩", kr: "🇰🇷", ch: "🇨🇭",
+    us: "🇺🇸",
+    gb: "🇬🇧",
+    de: "🇩🇪",
+    fr: "🇫🇷",
+    nl: "🇳🇱",
+    sg: "🇸🇬",
+    jp: "🇯🇵",
+    au: "🇦🇺",
+    ca: "🇨🇦",
+    in: "🇮🇳",
+    br: "🇧🇷",
+    za: "🇿🇦",
+    ng: "🇳🇬",
+    ae: "🇦🇪",
+    se: "🇸🇪",
+    it: "🇮🇹",
+    es: "🇪🇸",
+    id: "🇮🇩",
+    kr: "🇰🇷",
+    ch: "🇨🇭",
   };
   return flags[country?.toLowerCase()] ?? "🌐";
 }

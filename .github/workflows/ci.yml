@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  TypeCheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --no-frozen-lockfile
+      - run: cd lib/db && pnpm run generate
+      - run: pnpm run typecheck
+
+  Lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm exec prettier --check "**/*.{ts,tsx,js,jsx,json,md}"
+
+  Build:
+    runs-on: ubuntu-latest
+    env:
+      PORT: "3000"
+      BASE_PATH: "/"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --no-frozen-lockfile
+      - run: cd lib/db && pnpm run generate
+      - run: pnpm run build
+
+  Test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "No test suite configured — passing trivially."
+
+  Secret-Scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Scan git history for leaked secrets
+        run: |
+          PATTERNS=(
+            "sk_live_[a-zA-Z0-9]{20,}"
+            "vcp_[a-zA-Z0-9]{40,}"
+            "gho_[a-zA-Z0-9]{30,}"
+            "ghp_[a-zA-Z0-9]{30,}"
+          )
+          FAILED=0
+          for pattern in "${PATTERNS[@]}"; do
+            if git log --all -p | grep -qE "$pattern"; then
+              echo "FAIL: found potential secret matching pattern: $pattern"
+              FAILED=1
+            fi
+          done
+          if [ "$FAILED" -eq 1 ]; then
+            echo "Secret scan failed — leaked secrets found in git history."
+            exit 1
+          fi
+          echo "Secret scan passed — no secrets found in git history."
