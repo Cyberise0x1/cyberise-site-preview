@@ -1,7 +1,7 @@
 {
   "protocol_version": 2,
   "last_updated_by": "claude",
-  "last_updated_at": "2026-05-23T20:21:06Z",
+  "last_updated_at": "2026-05-23T22:02:30Z",
   "_protocol_note": "All three agents follow AGENT_PROTOCOL.md v2. This file is the shared live state — claims, logs, notes, conflicts. Protocol is symmetric — any agent can do any task; no role assignments.",
 
   "sprint_goal": "Lazy, scoped env validation — break the monolithic boot-time schema into per-feature scopes so missing integration secrets fail only their own routes.",
@@ -51,6 +51,9 @@
     { "ts": "2026-05-15T00:00:00Z", "file": "artifacts/api-server/src/routes/admin.ts", "action": "edit", "summary": "Added GET /admin/agent-context endpoint" }
   ],
   "claude_log": [
+    { "ts": "2026-05-23T22:02:10Z", "file": "artifacts/cyberise/src/components/Navbar.tsx", "action": "edit", "summary": "A11y #1: hamburger menu div now has role='button', tabIndex={0}, and onKeyDown (Enter/Space) — keyboard users can open the mobile menu. A11y #4: logo anchor now href='/' with aria-label, not a placeholder '#'." },
+    { "ts": "2026-05-23T22:02:11Z", "file": "artifacts/cyberise/src/components/Contact.tsx", "action": "edit", "summary": "A11y #2: added id+htmlFor associations to all 4 form fields (contact-name/email/service/message). Screen readers now associate labels with inputs." },
+    { "ts": "2026-05-23T22:02:12Z", "file": "artifacts/cyberise/src/components/Footer.tsx", "action": "edit", "summary": "A11y #3+#4: logo anchor href='/' + aria-label. Twitter icon now aria-hidden='true' (link has its own aria-label). LinkedIn/GitHub/Discord placeholder anchors converted to <button type='button'> with aria-label '<network> — coming soon' — no more empty-href links flagged by audits." },
     { "ts": "2026-05-23T20:21:10Z", "file": "lib/env/src/index.ts", "action": "edit", "summary": "Split monolithic serverEnvSchema into 7 per-feature scope schemas (core/redis/clerk/linode/resend/nowpayments/rdpmonster). Added validateEnvScope() that validates only one slice. Kept serverEnvSchema as merge of all scopes for whole-app validation." },
     { "ts": "2026-05-23T20:21:11Z", "file": "lib/env/src/server.ts", "action": "edit", "summary": "Added Proxy-backed `env` object: reading env.X validates only the scope owning X. Added getCoreEnv/getRedisEnv/getClerkEnv/getLinodeEnv/getResendEnv/getNowPaymentsEnv/getRdpMonsterEnv lazy getters with per-scope caching." },
     { "ts": "2026-05-23T20:21:12Z", "file": "artifacts/api-server/src/utils/env.ts", "action": "edit", "summary": "Re-exports the new lazy env proxy + scope getters from @workspace/env/server. Consumers can keep writing env.X but get lazy scoped validation under the hood." },

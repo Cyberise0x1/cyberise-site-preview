@@ -62,7 +62,8 @@ export default function Navbar() {
       )}
     >
       <a
-        href="#"
+        href="/"
+        aria-label="Cyberise Technology — home"
         className="font-orbitron text-xl md:text-[1.5rem] font-extrabold tracking-[2px] text-gradient-1 no-underline"
       >
         CYBERISE{" "}
@@ -116,6 +117,14 @@ export default function Navbar() {
       <div
         className="md:hidden flex flex-col gap-[6px] cursor-pointer z-[1002]"
         onClick={toggleMenu}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            toggleMenu();
+          }
+        }}
         aria-label={menuOpen ? "Close menu" : "Open menu"}
         aria-expanded={menuOpen}
       >

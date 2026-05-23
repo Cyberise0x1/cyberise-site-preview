@@ -161,22 +161,30 @@ export default function Contact() {
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-[20px] mb-[25px]">
             <div className="form-group mb-0">
-              <label className="block font-rajdhani text-[0.85rem] font-semibold tracking-[1.5px] uppercase text-[#a0a0b8] mb-[10px]">
+              <label
+                htmlFor="contact-name"
+                className="block font-rajdhani text-[0.85rem] font-semibold tracking-[1.5px] uppercase text-[#a0a0b8] mb-[10px]"
+              >
                 Name / Callsign
               </label>
               <input
                 required
+                id="contact-name"
                 name="name"
                 type="text"
                 className="w-full p-[14px_20px] bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[12px] text-white font-sans text-[1rem] transition-all outline-none focus:border-[#00f0ff] focus:shadow-[0_0_20px_rgba(0,240,255,0.1)] focus:bg-[rgba(0,240,255,0.03)]"
               />
             </div>
             <div className="form-group mb-0">
-              <label className="block font-rajdhani text-[0.85rem] font-semibold tracking-[1.5px] uppercase text-[#a0a0b8] mb-[10px]">
+              <label
+                htmlFor="contact-email"
+                className="block font-rajdhani text-[0.85rem] font-semibold tracking-[1.5px] uppercase text-[#a0a0b8] mb-[10px]"
+              >
                 Email Address
               </label>
               <input
                 required
+                id="contact-email"
                 name="email"
                 type="email"
                 className="w-full p-[14px_20px] bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[12px] text-white font-sans text-[1rem] transition-all outline-none focus:border-[#00f0ff] focus:shadow-[0_0_20px_rgba(0,240,255,0.1)] focus:bg-[rgba(0,240,255,0.03)]"
@@ -185,11 +193,15 @@ export default function Contact() {
           </div>
 
           <div className="form-group mb-[25px]">
-            <label className="block font-rajdhani text-[0.85rem] font-semibold tracking-[1.5px] uppercase text-[#a0a0b8] mb-[10px]">
+            <label
+              htmlFor="contact-service"
+              className="block font-rajdhani text-[0.85rem] font-semibold tracking-[1.5px] uppercase text-[#a0a0b8] mb-[10px]"
+            >
               Service Required
             </label>
             <select
               required
+              id="contact-service"
               name="service"
               className="w-full p-[14px_20px] bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[12px] text-white font-sans text-[1rem] transition-all outline-none focus:border-[#00f0ff] focus:shadow-[0_0_20px_rgba(0,240,255,0.1)] focus:bg-[rgba(0,240,255,0.03)] appearance-none cursor-pointer"
             >
@@ -215,11 +227,15 @@ export default function Contact() {
           </div>
 
           <div className="form-group mb-[30px]">
-            <label className="block font-rajdhani text-[0.85rem] font-semibold tracking-[1.5px] uppercase text-[#a0a0b8] mb-[10px]">
+            <label
+              htmlFor="contact-message"
+              className="block font-rajdhani text-[0.85rem] font-semibold tracking-[1.5px] uppercase text-[#a0a0b8] mb-[10px]"
+            >
               Transmission Details
             </label>
             <textarea
               required
+              id="contact-message"
               name="message"
               className="w-full p-[14px_20px] bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[12px] text-white font-sans text-[1rem] transition-all outline-none focus:border-[#00f0ff] focus:shadow-[0_0_20px_rgba(0,240,255,0.1)] focus:bg-[rgba(0,240,255,0.03)] h-[140px] resize-y"
             ></textarea>
