@@ -65,7 +65,8 @@ jobs:
       - uses: actions/checkout@v4
       - run: echo "No test suite configured — passing trivially."
 
-  "Secret Scan":
+  Secret-Scan:
+    name: Secret Scan
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

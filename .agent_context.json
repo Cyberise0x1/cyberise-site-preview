@@ -1,7 +1,7 @@
 {
   "protocol_version": 2,
   "last_updated_by": "claude",
-  "last_updated_at": "2026-05-23T19:29:30Z",
+  "last_updated_at": "2026-05-23T19:32:00Z",
   "_protocol_note": "All three agents follow AGENT_PROTOCOL.md v2. This file is the shared live state — claims, logs, notes, conflicts. Protocol is symmetric — any agent can do any task; no role assignments.",
 
   "sprint_goal": "Ship crypto payments end-to-end on crypto-payments branch; resolve CI before merge to main.",
@@ -51,6 +51,7 @@
     { "ts": "2026-05-15T00:00:00Z", "file": "artifacts/api-server/src/routes/admin.ts", "action": "edit", "summary": "Added GET /admin/agent-context endpoint" }
   ],
   "claude_log": [
+    { "ts": "2026-05-23T19:31:55Z", "file": ".github/workflows/ci.yml", "action": "edit", "summary": "Properly fixed Secret Scan name: job_id stays `Secret-Scan` (identifier-safe), added `name: Secret Scan` for the display/required-check name. Previous attempt (caeae52) used 'Secret Scan' as job_id which is invalid YAML for GitHub Actions — entire workflow failed to parse and no jobs ran." },
     { "ts": "2026-05-23T19:29:25Z", "file": ".github/workflows/ci.yml", "action": "edit", "summary": "Renamed Secret-Scan job to 'Secret Scan' (with space, quoted) — matches branch-protection's required_status_checks context name. PR was stuck on mergeable_state=blocked because GitHub treated 'Secret Scan' as missing." },
     { "ts": "2026-05-23T19:23:25Z", "file": "AGENT_PROTOCOL.md", "action": "edit", "summary": "Ran prettier --write — added blank lines between ### headings and content. Cosmetic only, no semantic changes. Fixes Lint job that was failing on this file." },
     { "ts": "2026-05-23T19:23:26Z", "file": "scripts/src/check-agent-context.ts", "action": "edit", "summary": "Ran prettier --write — wrapped long lines (type def, function args, error messages). Cosmetic only, no semantic changes. Fixes Lint job that was failing on this file." },
