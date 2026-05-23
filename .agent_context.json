@@ -1,7 +1,7 @@
 {
   "protocol_version": 2,
   "last_updated_by": "claude",
-  "last_updated_at": "2026-05-23T17:48:57Z",
+  "last_updated_at": "2026-05-23T19:08:52Z",
   "_protocol_note": "All three agents follow AGENT_PROTOCOL.md v2. This file is the shared live state — claims, logs, notes, conflicts. Protocol is symmetric — any agent can do any task; no role assignments.",
 
   "sprint_goal": "Ship crypto payments end-to-end on crypto-payments branch; resolve CI before merge to main.",
@@ -51,6 +51,9 @@
     { "ts": "2026-05-15T00:00:00Z", "file": "artifacts/api-server/src/routes/admin.ts", "action": "edit", "summary": "Added GET /admin/agent-context endpoint" }
   ],
   "claude_log": [
+    { "ts": "2026-05-23T19:08:50Z", "file": "package.json", "action": "edit", "summary": "Added \"packageManager\": \"pnpm@10.26.1\" field — single source of truth for pnpm version across Replit dev, local dev, and CI" },
+    { "ts": "2026-05-23T19:08:51Z", "file": ".github/workflows/ci.yml", "action": "edit", "summary": "Removed `with: version: 9` from all 3 pnpm/action-setup blocks (TypeCheck/Lint/Build) — action now reads pnpm version from packageManager field. Fixes ERR_PNPM_LOCKFILE_CONFIG_MISMATCH caused by pnpm 9 (CI) vs pnpm 10 (Replit) override-handling drift." },
+    { "ts": "2026-05-23T18:55:30Z", "file": "(branch)", "action": "rewrite", "summary": "Clean-rebuilt crypto-payments: reset to origin/main, cherry-picked b76c4fc/60a746c/f48aa62 as 18d8a08/197daad/0ce6897. Tree hash identical to original f48aa62. Force-pushed with --force-with-lease. PR diff went from 187 files/+12.8k to 8 files/+324. Fixes mergeable_state=dirty that was silently blocking GitHub Actions dispatch. Backup branch backup/crypto-payments-pre-rebuild kept locally." },
     { "ts": "2026-05-23T17:48:58Z", "file": "AGENT_PROTOCOL.md", "action": "rewrite", "summary": "Bumped protocol to v2 — agent-neutral (no role assignments), reflects real HH:MM:SS enforcement + pre-commit hook, documents claim race condition, includes paste-ready system prompt identical for all three agents" },
     { "ts": "2026-05-23T17:48:59Z", "file": ".agent_context.json", "action": "edit", "summary": "Bumped last_updated_at, expanded active_claims to explicit per-agent shape, de-biased _protocol_note + notes[0] (dropped role assignments), preserved sprint_goal + all other state" },
     { "ts": "2026-05-21T21:42:37Z", "file": ".agent_context.json", "action": "edit", "summary": "Protocol-hygiene pass: dropped 6 protocol-restatement notes (live in AGENT_PROTOCOL.md), set sprint_goal, added CI struggle note, added log-hygiene note flagging legacy batched timestamps, backfilled replit_log with 6 entries from git (real commit timestamps)" }
@@ -58,6 +61,7 @@
 
   "notes": [
     "Three-agent setup — Replit Agent, CommandCode, Claude. Any agent can do any task; no role assignments. Protocol details live in AGENT_PROTOCOL.md (v2), not here.",
+    "PNPM VERSION: pinned via package.json's \"packageManager\": \"pnpm@10.26.1\" field. CI's pnpm/action-setup@v4 reads this automatically — DO NOT add `with: version: X` back to action-setup blocks, that re-introduces version drift. Bump packageManager when upgrading pnpm.",
     "Cyberise is an RDP marketplace — users buy RDP/VPS servers provisioned on Linode (Basic) or rdp.monster (Pro)",
     "Tier system: Basic = Linode-backed, Pro = rdp.monster-backed. NEVER show provider names to buyers.",
     "Frontend: Vite + React (artifacts/cyberise/), API: Express 5 (artifacts/api-server/)",
