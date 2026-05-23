@@ -1,12 +1,16 @@
 {
   "protocol_version": 2,
   "last_updated_by": "claude",
-  "last_updated_at": "2026-05-21T21:42:37Z",
-  "_protocol_note": "All three agents: read AGENT_PROTOCOL.md § for your section's full rules. This file IS the shared state — claims, logs, notes, conflicts all live here.",
+  "last_updated_at": "2026-05-23T17:48:57Z",
+  "_protocol_note": "All three agents follow AGENT_PROTOCOL.md v2. This file is the shared live state — claims, logs, notes, conflicts. Protocol is symmetric — any agent can do any task; no role assignments.",
 
   "sprint_goal": "Ship crypto payments end-to-end on crypto-payments branch; resolve CI before merge to main.",
 
-  "active_claims": {},
+  "active_claims": {
+    "replit":      { "since": "", "files": [], "task": "" },
+    "commandcode": { "since": "", "files": [], "task": "" },
+    "claude":      { "since": "", "files": [], "task": "" }
+  },
 
   "commandcode_log": [
     { "ts": "2026-05-20T00:00:00Z", "file": "lib/db/prisma/schema.prisma", "action": "edit", "summary": "Added CryptoPayment model with relations to Order — paymentId, payAddress, payCurrency, cryptoAmount, fiatAmount, paymentStatus, actuallyPaid, timestamps" },
@@ -47,11 +51,13 @@
     { "ts": "2026-05-15T00:00:00Z", "file": "artifacts/api-server/src/routes/admin.ts", "action": "edit", "summary": "Added GET /admin/agent-context endpoint" }
   ],
   "claude_log": [
+    { "ts": "2026-05-23T17:48:58Z", "file": "AGENT_PROTOCOL.md", "action": "rewrite", "summary": "Bumped protocol to v2 — agent-neutral (no role assignments), reflects real HH:MM:SS enforcement + pre-commit hook, documents claim race condition, includes paste-ready system prompt identical for all three agents" },
+    { "ts": "2026-05-23T17:48:59Z", "file": ".agent_context.json", "action": "edit", "summary": "Bumped last_updated_at, expanded active_claims to explicit per-agent shape, de-biased _protocol_note + notes[0] (dropped role assignments), preserved sprint_goal + all other state" },
     { "ts": "2026-05-21T21:42:37Z", "file": ".agent_context.json", "action": "edit", "summary": "Protocol-hygiene pass: dropped 6 protocol-restatement notes (live in AGENT_PROTOCOL.md), set sprint_goal, added CI struggle note, added log-hygiene note flagging legacy batched timestamps, backfilled replit_log with 6 entries from git (real commit timestamps)" }
   ],
 
   "notes": [
-    "Three-agent setup — CommandCode (backend/heavy-lifting), Replit (frontend/UI), Claude (specialist/overflow). Protocol details live in AGENT_PROTOCOL.md, not here.",
+    "Three-agent setup — Replit Agent, CommandCode, Claude. Any agent can do any task; no role assignments. Protocol details live in AGENT_PROTOCOL.md (v2), not here.",
     "Cyberise is an RDP marketplace — users buy RDP/VPS servers provisioned on Linode (Basic) or rdp.monster (Pro)",
     "Tier system: Basic = Linode-backed, Pro = rdp.monster-backed. NEVER show provider names to buyers.",
     "Frontend: Vite + React (artifacts/cyberise/), API: Express 5 (artifacts/api-server/)",
