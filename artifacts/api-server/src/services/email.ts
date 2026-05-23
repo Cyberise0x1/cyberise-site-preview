@@ -3,7 +3,13 @@ import { env } from "../utils/env";
 import { logger } from "../lib/logger";
 import { prisma } from "@workspace/db";
 
-const resend = new Resend(env.RESEND_API_KEY);
+let resendClient: Resend | null = null;
+function getResend(): Resend {
+  if (!resendClient) {
+    resendClient = new Resend(env.RESEND_API_KEY);
+  }
+  return resendClient;
+}
 
 interface EmailOptions {
   to: string;
@@ -17,7 +23,7 @@ export async function sendEmail(
   options: EmailOptions,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const { error } = await resend.emails.send({
+    const { error } = await getResend().emails.send({
       from: `Cyberise RDP <${env.RESEND_SENDER_ADDRESS}>`,
       to: [options.to],
       subject: options.subject,

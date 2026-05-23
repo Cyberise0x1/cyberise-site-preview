@@ -1,10 +1,10 @@
 {
   "protocol_version": 2,
   "last_updated_by": "claude",
-  "last_updated_at": "2026-05-23T19:32:00Z",
+  "last_updated_at": "2026-05-23T20:21:06Z",
   "_protocol_note": "All three agents follow AGENT_PROTOCOL.md v2. This file is the shared live state — claims, logs, notes, conflicts. Protocol is symmetric — any agent can do any task; no role assignments.",
 
-  "sprint_goal": "Ship crypto payments end-to-end on crypto-payments branch; resolve CI before merge to main.",
+  "sprint_goal": "Lazy, scoped env validation — break the monolithic boot-time schema into per-feature scopes so missing integration secrets fail only their own routes.",
 
   "active_claims": {
     "replit":      { "since": "", "files": [], "task": "" },
@@ -51,6 +51,13 @@
     { "ts": "2026-05-15T00:00:00Z", "file": "artifacts/api-server/src/routes/admin.ts", "action": "edit", "summary": "Added GET /admin/agent-context endpoint" }
   ],
   "claude_log": [
+    { "ts": "2026-05-23T20:21:10Z", "file": "lib/env/src/index.ts", "action": "edit", "summary": "Split monolithic serverEnvSchema into 7 per-feature scope schemas (core/redis/clerk/linode/resend/nowpayments/rdpmonster). Added validateEnvScope() that validates only one slice. Kept serverEnvSchema as merge of all scopes for whole-app validation." },
+    { "ts": "2026-05-23T20:21:11Z", "file": "lib/env/src/server.ts", "action": "edit", "summary": "Added Proxy-backed `env` object: reading env.X validates only the scope owning X. Added getCoreEnv/getRedisEnv/getClerkEnv/getLinodeEnv/getResendEnv/getNowPaymentsEnv/getRdpMonsterEnv lazy getters with per-scope caching." },
+    { "ts": "2026-05-23T20:21:12Z", "file": "artifacts/api-server/src/utils/env.ts", "action": "edit", "summary": "Re-exports the new lazy env proxy + scope getters from @workspace/env/server. Consumers can keep writing env.X but get lazy scoped validation under the hood." },
+    { "ts": "2026-05-23T20:21:13Z", "file": "artifacts/api-server/src/utils/encryption.ts", "action": "edit", "summary": "Read env.ENCRYPTION_SECRET inside encrypt/decrypt functions instead of capturing at module-load. Validation only fires when crypto routes are actually exercised." },
+    { "ts": "2026-05-23T20:21:14Z", "file": "artifacts/api-server/src/services/email.ts", "action": "edit", "summary": "Lazy Resend client via getResend() — created on first use, cached. Missing RESEND_API_KEY no longer crashes the app on import." },
+    { "ts": "2026-05-23T20:21:15Z", "file": "artifacts/api-server/src/services/linode.ts", "action": "edit", "summary": "Linode API base + auth header now read via getApiBase()/getAuthHeader() inside linodeFetch. No longer captured at module-load." },
+    { "ts": "2026-05-23T20:21:16Z", "file": "artifacts/api-server/src/services/nowpayments.ts", "action": "edit", "summary": "NowPayments API base now read via getApiBase() inside request(). No longer captured at module-load." },
     { "ts": "2026-05-23T19:31:55Z", "file": ".github/workflows/ci.yml", "action": "edit", "summary": "Properly fixed Secret Scan name: job_id stays `Secret-Scan` (identifier-safe), added `name: Secret Scan` for the display/required-check name. Previous attempt (caeae52) used 'Secret Scan' as job_id which is invalid YAML for GitHub Actions — entire workflow failed to parse and no jobs ran." },
     { "ts": "2026-05-23T19:29:25Z", "file": ".github/workflows/ci.yml", "action": "edit", "summary": "Renamed Secret-Scan job to 'Secret Scan' (with space, quoted) — matches branch-protection's required_status_checks context name. PR was stuck on mergeable_state=blocked because GitHub treated 'Secret Scan' as missing." },
     { "ts": "2026-05-23T19:23:25Z", "file": "AGENT_PROTOCOL.md", "action": "edit", "summary": "Ran prettier --write — added blank lines between ### headings and content. Cosmetic only, no semantic changes. Fixes Lint job that was failing on this file." },
@@ -66,6 +73,7 @@
   "notes": [
     "Three-agent setup — Replit Agent, CommandCode, Claude. Any agent can do any task; no role assignments. Protocol details live in AGENT_PROTOCOL.md (v2), not here.",
     "PNPM VERSION: pinned via package.json's \"packageManager\": \"pnpm@10.26.1\" field. CI's pnpm/action-setup@v4 reads this automatically — DO NOT add `with: version: X` back to action-setup blocks, that re-introduces version drift. Bump packageManager when upgrading pnpm.",
+    "ENV VALIDATION (lazy/scoped): Env vars in lib/env are split into 7 per-feature scopes (core/redis/clerk/linode/resend/nowpayments/rdpmonster). Read env.X INSIDE functions, not at module top-level. Module-load `const KEY = env.X` defeats the laziness and pulls validation back to import time — which is the bug this design fixes. See lib/env/src/server.ts comments.",
     "Cyberise is an RDP marketplace — users buy RDP/VPS servers provisioned on Linode (Basic) or rdp.monster (Pro)",
     "Tier system: Basic = Linode-backed, Pro = rdp.monster-backed. NEVER show provider names to buyers.",
     "Frontend: Vite + React (artifacts/cyberise/), API: Express 5 (artifacts/api-server/)",

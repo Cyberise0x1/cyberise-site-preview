@@ -2,8 +2,8 @@ import { env } from "../utils/env";
 import { logger } from "../lib/logger";
 import { getBreaker } from "../utils/circuitBreaker";
 
-const LINODE_API_BASE = env.LINODE_API_URL;
-const AUTH_HEADER = `Bearer ${env.LINODE_API_TOKEN}`;
+const getApiBase = () => env.LINODE_API_URL;
+const getAuthHeader = () => `Bearer ${env.LINODE_API_TOKEN}`;
 
 interface LinodePlan {
   id: string;
@@ -66,7 +66,7 @@ async function linodeFetch<T>(
   endpoint: string,
   options: RequestInit = {},
 ): Promise<T> {
-  const url = `${LINODE_API_BASE}${endpoint}`;
+  const url = `${getApiBase()}${endpoint}`;
 
   return linodeBreaker.call(async () => {
     const controller = new AbortController();
@@ -76,7 +76,7 @@ async function linodeFetch<T>(
       const response = await fetch(url, {
         ...options,
         headers: {
-          Authorization: AUTH_HEADER,
+          Authorization: getAuthHeader(),
           "Content-Type": "application/json",
           ...options.headers,
         },
