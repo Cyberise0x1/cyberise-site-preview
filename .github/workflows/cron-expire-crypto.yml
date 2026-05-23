@@ -4,10 +4,13 @@ on:
   schedule:
     - cron: "*/30 * * * *"
 
+permissions: {}
+
 jobs:
   expire:
     name: Expire stale crypto payments
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - run: |
           curl -f -X POST \
