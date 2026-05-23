@@ -1,7 +1,7 @@
 {
   "protocol_version": 2,
   "last_updated_by": "claude",
-  "last_updated_at": "2026-05-23T19:08:52Z",
+  "last_updated_at": "2026-05-23T19:23:30Z",
   "_protocol_note": "All three agents follow AGENT_PROTOCOL.md v2. This file is the shared live state — claims, logs, notes, conflicts. Protocol is symmetric — any agent can do any task; no role assignments.",
 
   "sprint_goal": "Ship crypto payments end-to-end on crypto-payments branch; resolve CI before merge to main.",
@@ -51,6 +51,8 @@
     { "ts": "2026-05-15T00:00:00Z", "file": "artifacts/api-server/src/routes/admin.ts", "action": "edit", "summary": "Added GET /admin/agent-context endpoint" }
   ],
   "claude_log": [
+    { "ts": "2026-05-23T19:23:25Z", "file": "AGENT_PROTOCOL.md", "action": "edit", "summary": "Ran prettier --write — added blank lines between ### headings and content. Cosmetic only, no semantic changes. Fixes Lint job that was failing on this file." },
+    { "ts": "2026-05-23T19:23:26Z", "file": "scripts/src/check-agent-context.ts", "action": "edit", "summary": "Ran prettier --write — wrapped long lines (type def, function args, error messages). Cosmetic only, no semantic changes. Fixes Lint job that was failing on this file." },
     { "ts": "2026-05-23T19:08:50Z", "file": "package.json", "action": "edit", "summary": "Added \"packageManager\": \"pnpm@10.26.1\" field — single source of truth for pnpm version across Replit dev, local dev, and CI" },
     { "ts": "2026-05-23T19:08:51Z", "file": ".github/workflows/ci.yml", "action": "edit", "summary": "Removed `with: version: 9` from all 3 pnpm/action-setup blocks (TypeCheck/Lint/Build) — action now reads pnpm version from packageManager field. Fixes ERR_PNPM_LOCKFILE_CONFIG_MISMATCH caused by pnpm 9 (CI) vs pnpm 10 (Replit) override-handling drift." },
     { "ts": "2026-05-23T18:55:30Z", "file": "(branch)", "action": "rewrite", "summary": "Clean-rebuilt crypto-payments: reset to origin/main, cherry-picked b76c4fc/60a746c/f48aa62 as 18d8a08/197daad/0ce6897. Tree hash identical to original f48aa62. Force-pushed with --force-with-lease. PR diff went from 187 files/+12.8k to 8 files/+324. Fixes mergeable_state=dirty that was silently blocking GitHub Actions dispatch. Backup branch backup/crypto-payments-pre-rebuild kept locally." },

@@ -25,14 +25,18 @@ Shared state lives in `.agent_context.json` at the project root. That file is th
 ## Protocol — applies identically to all three agents
 
 ### Step 1 — OBSERVE
+
 Before touching any file in a fresh session (or if you have reason to suspect another agent has run since you last checked):
+
 1. Read `.agent_context.json` fully.
 2. Check `active_claims` for **all** agents. Do not touch any file currently claimed by another agent.
 3. Read the other two agents' logs for recent activity on files you plan to edit.
 4. Read `notes[]` for project conventions and warnings.
 
 ### Step 2 — CLAIM
+
 Before editing any file, set your entry in `active_claims`:
+
 ```json
 "<your_name>": {
   "since": "<ISO HH:MM:SS UTC>",
@@ -40,11 +44,13 @@ Before editing any file, set your entry in `active_claims`:
   "task": "what you are doing"
 }
 ```
+
 - Get the timestamp with `date -u +"%Y-%m-%dT%H:%M:%SZ"`.
 - Re-read `.agent_context.json` immediately before writing your claim to narrow the race window (claims are advisory, not locked — see "Race condition" below).
 - If a file you need is already claimed by another agent, log a conflict (Step 6) and skip that file.
 
 ### Step 3 — EXECUTE
+
 - No secrets in code. No plain-text credentials. All secrets live in Replit Secrets (env vars).
 - Prefer Prisma migrations over `db push`.
 - Never run destructive DB commands (drop, truncate, force resets) without explicit human approval.
@@ -52,7 +58,9 @@ Before editing any file, set your entry in `active_claims`:
 - Honor any conventions and warnings in `notes[]`.
 
 ### Step 4 — LOG
+
 After each file edit, append to `<your_name>_log`:
+
 ```json
 {
   "ts": "<ISO HH:MM:SS UTC>",
@@ -61,16 +69,21 @@ After each file edit, append to `<your_name>_log`:
   "summary": "what changed and why — one line, enough for another agent to understand"
 }
 ```
+
 Cap each log at **50 entries**. Drop the oldest if exceeded.
 
 ### Step 5 — RELEASE
+
 When your task is fully complete:
+
 - Set your `active_claims["<your_name>"]` back to `{ "since": "", "files": [], "task": "" }`.
 - Update `notes[]` if you introduced a new convention or discovered a warning other agents should know.
 - Update `last_updated_by` and `last_updated_at` (real `HH:MM:SS` UTC).
 
 ### Step 6 — CONFLICTS
+
 If two agents need the same file and neither can yield, append to `conflicts[]`:
+
 ```json
 {
   "ts": "<ISO HH:MM:SS UTC>",
@@ -80,6 +93,7 @@ If two agents need the same file and neither can yield, append to `conflicts[]`:
   "status": "pending_human_review"
 }
 ```
+
 Both agents skip the file once a conflict is logged. A human resolves.
 
 ---
@@ -121,9 +135,9 @@ If — and only if — the file does not exist, create it with this shape. **Nev
   "_protocol_note": "All three agents follow AGENT_PROTOCOL.md v2. This file is the shared live state — claims, logs, notes, conflicts.",
   "sprint_goal": "",
   "active_claims": {
-    "replit":      { "since": "", "files": [], "task": "" },
+    "replit": { "since": "", "files": [], "task": "" },
     "commandcode": { "since": "", "files": [], "task": "" },
-    "claude":      { "since": "", "files": [], "task": "" }
+    "claude": { "since": "", "files": [], "task": "" }
   },
   "replit_log": [],
   "commandcode_log": [],

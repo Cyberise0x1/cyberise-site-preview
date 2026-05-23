@@ -1,7 +1,12 @@
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
-type LogEntry = { ts?: string; file?: string; action?: string; summary?: string };
+type LogEntry = {
+  ts?: string;
+  file?: string;
+  action?: string;
+  summary?: string;
+};
 type AgentContext = {
   last_updated_at?: string;
   commandcode_log?: LogEntry[];
@@ -17,10 +22,15 @@ function findWorkspaceRoot(start: string): string {
     if (parent === dir) break;
     dir = parent;
   }
-  throw new Error(`Could not find workspace root (pnpm-workspace.yaml) above ${start}`);
+  throw new Error(
+    `Could not find workspace root (pnpm-workspace.yaml) above ${start}`,
+  );
 }
 
-const CONTEXT_PATH = resolve(findWorkspaceRoot(process.cwd()), ".agent_context.json");
+const CONTEXT_PATH = resolve(
+  findWorkspaceRoot(process.cwd()),
+  ".agent_context.json",
+);
 
 // Entries on or after this date must use real HH:MM:SS timestamps.
 // Older entries are grandfathered (legacy batched logs).
@@ -48,7 +58,9 @@ function checkLog(name: string, entries: LogEntry[] | undefined): string[] {
       continue;
     }
     if (!ISO_RE.test(entry.ts)) {
-      errors.push(`${name}[${i}]: 'ts' (${entry.ts}) is not ISO-8601 UTC (YYYY-MM-DDTHH:MM:SSZ)`);
+      errors.push(
+        `${name}[${i}]: 'ts' (${entry.ts}) is not ISO-8601 UTC (YYYY-MM-DDTHH:MM:SSZ)`,
+      );
       continue;
     }
 
@@ -91,7 +103,9 @@ function main(): void {
 
   if (ctx.last_updated_at) {
     if (!ISO_RE.test(ctx.last_updated_at)) {
-      errors.push(`last_updated_at (${ctx.last_updated_at}) is not ISO-8601 UTC`);
+      errors.push(
+        `last_updated_at (${ctx.last_updated_at}) is not ISO-8601 UTC`,
+      );
     } else if (
       ctx.last_updated_at.slice(0, 10) >= POLICY_START &&
       isMidnight(ctx.last_updated_at)
