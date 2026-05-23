@@ -2,14 +2,12 @@ import CryptoJS from "crypto-js";
 import crypto from "node:crypto";
 import { env } from "./env";
 
-const SECRET_KEY = env.ENCRYPTION_SECRET;
-
 export function encrypt(text: string): string {
-  return CryptoJS.AES.encrypt(text, SECRET_KEY).toString();
+  return CryptoJS.AES.encrypt(text, env.ENCRYPTION_SECRET).toString();
 }
 
 export function decrypt(encryptedText: string): string {
-  const bytes = CryptoJS.AES.decrypt(encryptedText, SECRET_KEY);
+  const bytes = CryptoJS.AES.decrypt(encryptedText, env.ENCRYPTION_SECRET);
   return bytes.toString(CryptoJS.enc.Utf8);
 }
 

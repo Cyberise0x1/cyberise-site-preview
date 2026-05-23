@@ -3,7 +3,7 @@ import { env } from "../utils/env";
 import { getCache, setCache } from "./redis";
 import { logger } from "../lib/logger";
 
-const API_BASE = env.NOWPAYMENTS_API_URL.replace(/\/$/, "");
+const getApiBase = () => env.NOWPAYMENTS_API_URL.replace(/\/$/, "");
 const CACHE_KEY_CURRENCIES = "nowpayments:currencies";
 const CACHE_TTL = 600;
 
@@ -88,7 +88,7 @@ class NowPaymentsError extends Error {
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const url = `${API_BASE}${path}`;
+  const url = `${getApiBase()}${path}`;
   const headers: Record<string, string> = {
     "x-api-key": env.NOWPAYMENTS_API_KEY,
     "Content-Type": "application/json",
