@@ -11,7 +11,8 @@ export default function Footer({ onOpenLegal }: FooterProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr] gap-[40px] lg:gap-[60px] max-w-[1400px] mx-auto mb-[60px]">
         <div>
           <a
-            href="#"
+            href="/"
+            aria-label="Cyberise Technology — home"
             className="font-orbitron text-[1.8rem] font-extrabold tracking-[2px] text-gradient-1 no-underline inline-block mb-[20px]"
           >
             CYBERISE{" "}
@@ -34,26 +35,32 @@ export default function Footer({ onOpenLegal }: FooterProps) {
               aria-label="Follow Cyberise on X"
               className="w-[45px] h-[45px] rounded-[12px] bg-[rgba(0,240,255,0.05)] border border-[rgba(0,240,255,0.1)] flex items-center justify-center text-[#a0a0b8] transition-all hover:bg-[rgba(0,240,255,0.15)] hover:border-[#00f0ff] hover:text-[#00f0ff] hover:-translate-y-[3px]"
             >
-              <Twitter className="w-5 h-5" />
+              <Twitter className="w-5 h-5" aria-hidden="true" />
             </a>
-            <a
-              href="#"
+            <button
+              type="button"
+              aria-label="LinkedIn — coming soon"
+              title="Coming soon"
               className="w-[45px] h-[45px] rounded-[12px] bg-[rgba(0,240,255,0.05)] border border-[rgba(0,240,255,0.1)] flex items-center justify-center text-[#a0a0b8] transition-all hover:bg-[rgba(0,240,255,0.15)] hover:border-[#00f0ff] hover:text-[#00f0ff] hover:-translate-y-[3px]"
             >
-              <Linkedin className="w-5 h-5" />
-            </a>
-            <a
-              href="#"
+              <Linkedin className="w-5 h-5" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              aria-label="GitHub — coming soon"
+              title="Coming soon"
               className="w-[45px] h-[45px] rounded-[12px] bg-[rgba(0,240,255,0.05)] border border-[rgba(0,240,255,0.1)] flex items-center justify-center text-[#a0a0b8] transition-all hover:bg-[rgba(0,240,255,0.15)] hover:border-[#00f0ff] hover:text-[#00f0ff] hover:-translate-y-[3px]"
             >
-              <Github className="w-5 h-5" />
-            </a>
-            <a
-              href="#"
+              <Github className="w-5 h-5" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              aria-label="Discord — coming soon"
+              title="Coming soon"
               className="w-[45px] h-[45px] rounded-[12px] bg-[rgba(0,240,255,0.05)] border border-[rgba(0,240,255,0.1)] flex items-center justify-center text-[#a0a0b8] transition-all hover:bg-[rgba(0,240,255,0.15)] hover:border-[#00f0ff] hover:text-[#00f0ff] hover:-translate-y-[3px]"
             >
-              <MessageSquare className="w-5 h-5" />
-            </a>
+              <MessageSquare className="w-5 h-5" aria-hidden="true" />
+            </button>
           </div>
         </div>
 
