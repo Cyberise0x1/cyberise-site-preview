@@ -1,4 +1,5 @@
-import { Twitter, Linkedin, Github, MessageSquare } from "lucide-react";
+import { MessageSquare } from "lucide-react";
+import { FaXTwitter, FaLinkedin, FaGithub } from "react-icons/fa6";
 import type { LegalTab } from "./LegalModal";
 
 interface FooterProps {
@@ -35,7 +36,7 @@ export default function Footer({ onOpenLegal }: FooterProps) {
               aria-label="Follow Cyberise on X"
               className="w-[45px] h-[45px] rounded-[12px] bg-[rgba(0,240,255,0.05)] border border-[rgba(0,240,255,0.1)] flex items-center justify-center text-[#a0a0b8] transition-all hover:bg-[rgba(0,240,255,0.15)] hover:border-[#00f0ff] hover:text-[#00f0ff] hover:-translate-y-[3px]"
             >
-              <Twitter className="w-5 h-5" aria-hidden="true" />
+              <FaXTwitter className="w-5 h-5" aria-hidden="true" />
             </a>
             <button
               type="button"
@@ -43,7 +44,7 @@ export default function Footer({ onOpenLegal }: FooterProps) {
               title="Coming soon"
               className="w-[45px] h-[45px] rounded-[12px] bg-[rgba(0,240,255,0.05)] border border-[rgba(0,240,255,0.1)] flex items-center justify-center text-[#a0a0b8] transition-all hover:bg-[rgba(0,240,255,0.15)] hover:border-[#00f0ff] hover:text-[#00f0ff] hover:-translate-y-[3px]"
             >
-              <Linkedin className="w-5 h-5" aria-hidden="true" />
+              <FaLinkedin className="w-5 h-5" aria-hidden="true" />
             </button>
             <button
               type="button"
@@ -51,7 +52,7 @@ export default function Footer({ onOpenLegal }: FooterProps) {
               title="Coming soon"
               className="w-[45px] h-[45px] rounded-[12px] bg-[rgba(0,240,255,0.05)] border border-[rgba(0,240,255,0.1)] flex items-center justify-center text-[#a0a0b8] transition-all hover:bg-[rgba(0,240,255,0.15)] hover:border-[#00f0ff] hover:text-[#00f0ff] hover:-translate-y-[3px]"
             >
-              <Github className="w-5 h-5" aria-hidden="true" />
+              <FaGithub className="w-5 h-5" aria-hidden="true" />
             </button>
             <button
               type="button"
