@@ -1,7 +1,7 @@
 {
   "protocol_version": 2,
   "last_updated_by": "claude",
-  "last_updated_at": "2026-05-24T10:38:31Z",
+  "last_updated_at": "2026-05-24T12:16:30Z",
   "_protocol_note": "All three agents follow AGENT_PROTOCOL.md v2. This file is the shared live state — claims, logs, notes, conflicts. Protocol is symmetric — any agent can do any task; no role assignments.",
 
   "sprint_goal": "Lazy, scoped env validation — break the monolithic boot-time schema into per-feature scopes so missing integration secrets fail only their own routes.",
@@ -51,6 +51,7 @@
     { "ts": "2026-05-15T00:00:00Z", "file": "artifacts/api-server/src/routes/admin.ts", "action": "edit", "summary": "Added GET /admin/agent-context endpoint" }
   ],
   "claude_log": [
+    { "ts": "2026-05-24T12:16:30Z", "file": ".github/dependabot.yml", "action": "create", "summary": "Initial Dependabot config — npm ecosystem at / (covers entire pnpm workspace via pnpm-lock.yaml), github-actions at /. Weekly schedule Monday 08:00 UTC. Groups minor+patch into one PR per dependency-type; majors stay individual. Documents pnpm catalog: limitation (Dependabot ignores catalog refs — bump pnpm-workspace.yaml manually) and minimumReleaseAge interaction (CI may fail until 24h elapses; self-resolves on rebase)." },
     { "ts": "2026-05-24T10:38:31Z", "file": ".vercel/project.json", "action": "delete", "summary": "git rm --cached only — file stays on disk locally. .vercel/ was already in .gitignore (line 54) but project.json was tracked from before the ignore rule was added, so every `vercel link` invocation showed it as modified. Untracking restores the intended local-only behavior for Vercel link metadata." },
     { "ts": "2026-05-24T10:03:48Z", "file": ".agent_context.json", "action": "edit", "summary": "Merge resolution: a11y-landing-fixes branch into main brought conflicting claude_log entries (3 a11y from 22:02:10/11/12 vs api/package.json from 22:32:20). Union-resolved by preserving all 4 entries in chronological order. Bumped last_updated_at to merge-resolution time." },
     { "ts": "2026-05-23T22:32:20Z", "file": "api/package.json", "action": "create", "summary": "Added scoped {\"type\":\"module\"} so api/index.js stays ESM on Vercel. Root package.json has no type field — Vercel was treating api/index.js as CJS and auto-transpiling its `import app from \"dist/app.mjs\"` into require(), which failed at runtime with ERR_REQUIRE_ESM since app.mjs is ESM. Every /api/* request returned 500 FUNCTION_INVOCATION_FAILED. Scoped package.json fixes it without affecting other .js files in the monorepo." },
