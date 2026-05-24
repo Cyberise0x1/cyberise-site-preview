@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@clerk/clerk-sdk-node": "^5.1.6",
-    "@prisma/client": "^6.6.0",
+    "@prisma/client": "^7.8.0",
     "@upstash/redis": "^1.34.0",
     "@workspace/db": "workspace:*",
     "@workspace/env": "workspace:*",
