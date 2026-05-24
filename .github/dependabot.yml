@@ -1,0 +1,73 @@
+version: 2
+
+# Dependabot config for the Cyberise monorepo.
+#
+# Scope:
+#   - npm (pnpm-lock.yaml): one root entry covers the whole workspace.
+#     Dependabot has had native pnpm-lock.yaml support since 2024; it walks
+#     every package.json under pnpm-workspace.yaml's `packages:` globs.
+#   - github-actions: the workflow files in .github/workflows/.
+#
+# Known limitations:
+#   - pnpm `catalog:` protocol — Dependabot does NOT understand
+#     pnpm-workspace.yaml's `catalog:` block. Dependencies declared as
+#     "<pkg>": "catalog:" in workspace package.json files are invisible
+#     to Dependabot and must be bumped manually in pnpm-workspace.yaml.
+#   - `minimumReleaseAge: 1440` in pnpm-workspace.yaml — pnpm refuses to
+#     install any npm package version younger than 24h (supply-chain
+#     defense). Dependabot can still open a PR before that window elapses;
+#     CI will fail until Dependabot rebases or the version ages in. This is
+#     expected, not a bug.
+#
+# Conventions:
+#   - Weekly cadence (Monday 08:00 UTC) to keep merge cost low.
+#   - Minor + patch are grouped into one PR per dependency-type; major
+#     bumps stay individual so each can be reviewed for breaking changes.
+#   - Branch protection requires all 5 CI checks to pass (TypeCheck, Lint,
+#     Build, Test, Secret Scan) before any PR — Dependabot's included.
+
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+      include: "scope"
+    labels:
+      - "dependencies"
+    groups:
+      production-minor-patch:
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
+      development-minor-patch:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "ci"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
