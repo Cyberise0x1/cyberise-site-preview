@@ -158,3 +158,21 @@ overrides:
   # drizzle-kit uses esbuild internally on an older version that's vulnerable, this overrides it
   "@esbuild-kit/esm-loader": "npm:tsx@^4.21.0"
   esbuild: "0.27.3"
+
+  # Security overrides — force vulnerable transitive deps to patched versions.
+  # Source: Dependabot alerts on cyberise-site-preview as of 2026-05-24.
+  # These are transitive (pulled by other packages), so Dependabot can't
+  # bump them via package.json edits — overrides are the canonical fix.
+  js-cookie: "^3.0.7"
+  fast-uri: "^3.1.2"
+  lodash: "^4.18.1"
+  qs: "^6.15.2"
+  postcss: "^8.5.10"
+  yaml: "^2.8.3"
+  # picomatch advisory hits both the v2.x and v4.x release lines.
+  "picomatch@<2.3.2": "^2.3.2"
+  "picomatch@>=4.0.0 <4.0.4": "^4.0.4"
+  # brace-expansion advisory targets v2.x only — v1.x and v3+ are unaffected.
+  "brace-expansion@>=2.0.0 <2.0.3": "^2.0.3"
+  # path-to-regexp advisory targets v8.x only — Express's older v0.x and v6.x are unaffected.
+  "path-to-regexp@>=8.0.0 <8.4.0": "^8.4.0"
