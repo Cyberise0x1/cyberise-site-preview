@@ -1,7 +1,7 @@
 {
   "protocol_version": 2,
   "last_updated_by": "claude",
-  "last_updated_at": "2026-05-24T12:16:30Z",
+  "last_updated_at": "2026-05-24T12:46:06Z",
   "_protocol_note": "All three agents follow AGENT_PROTOCOL.md v2. This file is the shared live state — claims, logs, notes, conflicts. Protocol is symmetric — any agent can do any task; no role assignments.",
 
   "sprint_goal": "Lazy, scoped env validation — break the monolithic boot-time schema into per-feature scopes so missing integration secrets fail only their own routes.",
@@ -51,6 +51,9 @@
     { "ts": "2026-05-15T00:00:00Z", "file": "artifacts/api-server/src/routes/admin.ts", "action": "edit", "summary": "Added GET /admin/agent-context endpoint" }
   ],
   "claude_log": [
+    { "ts": "2026-05-24T12:46:00Z", "file": "pnpm-workspace.yaml", "action": "edit", "summary": "Added 10 pnpm.overrides entries to force vulnerable transitives to patched versions — js-cookie ^3.0.7, fast-uri ^3.1.2, lodash ^4.18.1, qs ^6.15.2, postcss ^8.5.10, yaml ^2.8.3, plus range-scoped picomatch (<2.3.2 → ^2.3.2, 4.0.0-<4.0.4 → ^4.0.4), brace-expansion (>=2.0.0 <2.0.3 → ^2.0.3), path-to-regexp (>=8.0.0 <8.4.0 → ^8.4.0). Dependabot filed only weekly/major-bump PRs (#17-#26), zero security advisories — these alerts are transitive and pnpm overrides are the only fix." },
+    { "ts": "2026-05-24T12:46:01Z", "file": "artifacts/cyberise/package.json", "action": "edit", "summary": "Bumped @clerk/clerk-react ^5.25.6 → ^5.61.6 (direct dep, only one of the 10 vulnerable packages declared directly). Clerk authorization bypass advisory fix range 5.9.0–5.61.5 → 5.61.6. pnpm resolves to 5.61.7." },
+    { "ts": "2026-05-24T12:46:02Z", "file": "pnpm-lock.yaml", "action": "edit", "summary": "Regenerated via `pnpm install`. All 10 vulnerable packages now resolve to patched: @clerk/clerk-react@5.61.7, brace-expansion@2.1.0, fast-uri@3.1.2, js-cookie@3.0.7, lodash@4.18.1, path-to-regexp@8.4.2, picomatch@2.3.2 & 4.0.4, postcss@8.5.15, qs@6.15.2, yaml@2.9.0. Typecheck + build pass with BASE_PATH=/. Clerk 5.61.7 emits a react peer-dep warning (wants ~19.1.4/~19.2.3/~19.3.0; have 19.1.0) — non-blocking under autoInstallPeers:false but worth a separate react bump." },
     { "ts": "2026-05-24T12:16:30Z", "file": ".github/dependabot.yml", "action": "create", "summary": "Initial Dependabot config — npm ecosystem at / (covers entire pnpm workspace via pnpm-lock.yaml), github-actions at /. Weekly schedule Monday 08:00 UTC. Groups minor+patch into one PR per dependency-type; majors stay individual. Documents pnpm catalog: limitation (Dependabot ignores catalog refs — bump pnpm-workspace.yaml manually) and minimumReleaseAge interaction (CI may fail until 24h elapses; self-resolves on rebase)." },
     { "ts": "2026-05-24T10:38:31Z", "file": ".vercel/project.json", "action": "delete", "summary": "git rm --cached only — file stays on disk locally. .vercel/ was already in .gitignore (line 54) but project.json was tracked from before the ignore rule was added, so every `vercel link` invocation showed it as modified. Untracking restores the intended local-only behavior for Vercel link metadata." },
     { "ts": "2026-05-24T10:03:48Z", "file": ".agent_context.json", "action": "edit", "summary": "Merge resolution: a11y-landing-fixes branch into main brought conflicting claude_log entries (3 a11y from 22:02:10/11/12 vs api/package.json from 22:32:20). Union-resolved by preserving all 4 entries in chronological order. Bumped last_updated_at to merge-resolution time." },
