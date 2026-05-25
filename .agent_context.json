@@ -1,7 +1,7 @@
 {
   "protocol_version": 2,
   "last_updated_by": "claude",
-  "last_updated_at": "2026-05-24T13:18:29Z",
+  "last_updated_at": "2026-05-25T18:39:00Z",
   "_protocol_note": "All three agents follow AGENT_PROTOCOL.md v2. This file is the shared live state — claims, logs, notes, conflicts. Protocol is symmetric — any agent can do any task; no role assignments.",
 
   "sprint_goal": "",
@@ -51,6 +51,11 @@
     { "ts": "2026-05-15T00:00:00Z", "file": "artifacts/api-server/src/routes/admin.ts", "action": "edit", "summary": "Added GET /admin/agent-context endpoint" }
   ],
   "claude_log": [
+    { "ts": "2026-05-25T18:38:55Z", "file": "pnpm-workspace.yaml", "action": "edit", "summary": "Catalog round 2: vite ^7.3.2 → ^8.0.14 (#35), @vitejs/plugin-react ^5.0.4 → ^6.0.2 (#33, requires vite 8 — paired), @tanstack/react-query ^5.90.21 → ^5.100.14 (#30 production-minor-patch group, minor only). Other catalog entries unchanged." },
+    { "ts": "2026-05-25T18:38:56Z", "file": "package.json", "action": "edit", "summary": "Root devDeps: typescript ~5.9.2 → ~6.0.3 (#31). pnpm resolves 6.0.3. typecheck passes across all 4 workspaces — no new TS6 strictness errors triggered in this codebase." },
+    { "ts": "2026-05-25T18:38:57Z", "file": "artifacts/cyberise/package.json", "action": "edit", "summary": "@hookform/resolvers ^3.10.0 → ^5.4.0 (#38, devDeps). v4 was the breaking version (zod resolver API); v5 is minor since v4. Form pages compile clean." },
+    { "ts": "2026-05-25T18:38:58Z", "file": "artifacts/mockup-sandbox/package.json", "action": "edit", "summary": "@hookform/resolvers ^3.10.0 → ^5.4.0 (#38, same bump as cyberise; both consume the dep)." },
+    { "ts": "2026-05-25T18:38:59Z", "file": "pnpm-lock.yaml", "action": "edit", "summary": "Regenerated via pnpm install (pnpm 10.26.1). +29 -57 packages — vite 8 brought new transitives (esbuild peer now hoisted), plugin-react 6 dropped lightningcss peer, react-query minor. BASE_PATH=/ build passes: cyberise (vite 8.0.14, 2372 modules, 892ms), mockup-sandbox (17 modules, 434ms), api-server (esbuild 279ms). Prisma client regen needed locally (postinstall ignored under pnpm 10) — handled separately, no schema change." },
     { "ts": "2026-05-24T12:46:00Z", "file": "pnpm-workspace.yaml", "action": "edit", "summary": "Added 10 pnpm.overrides entries to force vulnerable transitives to patched versions — js-cookie ^3.0.7, fast-uri ^3.1.2, lodash ^4.18.1, qs ^6.15.2, postcss ^8.5.10, yaml ^2.8.3, plus range-scoped picomatch (<2.3.2 → ^2.3.2, 4.0.0-<4.0.4 → ^4.0.4), brace-expansion (>=2.0.0 <2.0.3 → ^2.0.3), path-to-regexp (>=8.0.0 <8.4.0 → ^8.4.0). Dependabot filed only weekly/major-bump PRs (#17-#26), zero security advisories — these alerts are transitive and pnpm overrides are the only fix." },
     { "ts": "2026-05-24T12:46:01Z", "file": "artifacts/cyberise/package.json", "action": "edit", "summary": "Bumped @clerk/clerk-react ^5.25.6 → ^5.61.6 (direct dep, only one of the 10 vulnerable packages declared directly). Clerk authorization bypass advisory fix range 5.9.0–5.61.5 → 5.61.6. pnpm resolves to 5.61.7." },
     { "ts": "2026-05-24T12:46:02Z", "file": "pnpm-lock.yaml", "action": "edit", "summary": "Regenerated via `pnpm install`. All 10 vulnerable packages now resolve to patched: @clerk/clerk-react@5.61.7, brace-expansion@2.1.0, fast-uri@3.1.2, js-cookie@3.0.7, lodash@4.18.1, path-to-regexp@8.4.2, picomatch@2.3.2 & 4.0.4, postcss@8.5.15, qs@6.15.2, yaml@2.9.0. Typecheck + build pass with BASE_PATH=/. Clerk 5.61.7 emits a react peer-dep warning (wants ~19.1.4/~19.2.3/~19.3.0; have 19.1.0) — non-blocking under autoInstallPeers:false but worth a separate react bump." },
