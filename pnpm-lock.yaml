@@ -168,8 +168,8 @@ importers:
         specifier: ^3.8.3
         version: 3.8.3
       typescript:
-        specifier: ~5.9.2
-        version: 5.9.3
+        specifier: ~6.0.3
+        version: 6.0.3
 
   artifacts/api-server:
     dependencies:
@@ -178,7 +178,7 @@ importers:
         version: 5.1.6(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(svix@1.94.0)
       '@prisma/client':
         specifier: ^6.6.0
-        version: 6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3)
+        version: 6.19.3(prisma@6.19.3(typescript@6.0.3))(typescript@6.0.3)
       '@upstash/redis':
         specifier: ^1.34.0
         version: 1.38.0
@@ -645,7 +645,7 @@ importers:
     devDependencies:
       orval:
         specifier: ^8.12.3
-        version: 8.12.3(prettier@3.8.3)(typescript@5.9.3)
+        version: 8.12.3(prettier@3.8.3)(typescript@6.0.3)
 
   lib/api-zod:
     dependencies:
@@ -657,14 +657,14 @@ importers:
     dependencies:
       '@prisma/client':
         specifier: ^6.6.0
-        version: 6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3)
+        version: 6.19.3(prisma@6.19.3(typescript@6.0.3))(typescript@6.0.3)
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
         version: 25.9.1
       prisma:
         specifier: ^6.6.0
-        version: 6.19.3(typescript@5.9.3)
+        version: 6.19.3(typescript@6.0.3)
       tsx:
         specifier: 'catalog:'
         version: 4.22.3
@@ -3203,8 +3203,8 @@ packages:
     peerDependencies:
       typescript: 5.0.x || 5.1.x || 5.2.x || 5.3.x || 5.4.x || 5.5.x || 5.6.x || 5.7.x || 5.8.x || 5.9.x || 6.0.x
 
-  typescript@5.9.3:
-    resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
+  typescript@6.0.3:
+    resolution: {integrity: sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw==}
     engines: {node: '>=14.17'}
     hasBin: true
 
@@ -3609,23 +3609,23 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.20.1
 
-  '@orval/angular@8.12.3(typescript@5.9.3)':
+  '@orval/angular@8.12.3(typescript@6.0.3)':
     dependencies:
-      '@orval/core': 8.12.3(typescript@5.9.3)
+      '@orval/core': 8.12.3(typescript@6.0.3)
     transitivePeerDependencies:
       - '@faker-js/faker'
       - supports-color
       - typescript
 
-  '@orval/axios@8.12.3(typescript@5.9.3)':
+  '@orval/axios@8.12.3(typescript@6.0.3)':
     dependencies:
-      '@orval/core': 8.12.3(typescript@5.9.3)
+      '@orval/core': 8.12.3(typescript@6.0.3)
     transitivePeerDependencies:
       - '@faker-js/faker'
       - supports-color
       - typescript
 
-  '@orval/core@8.12.3(typescript@5.9.3)':
+  '@orval/core@8.12.3(typescript@6.0.3)':
     dependencies:
       '@scalar/openapi-types': 0.8.0
       acorn: 8.16.0
@@ -3637,24 +3637,24 @@ snapshots:
       jiti: 2.7.0
       remeda: 2.34.1
       tinyglobby: 0.2.16
-      typedoc: 0.28.19(typescript@5.9.3)
+      typedoc: 0.28.19(typescript@6.0.3)
     transitivePeerDependencies:
       - supports-color
       - typescript
 
-  '@orval/fetch@8.12.3(typescript@5.9.3)':
+  '@orval/fetch@8.12.3(typescript@6.0.3)':
     dependencies:
-      '@orval/core': 8.12.3(typescript@5.9.3)
+      '@orval/core': 8.12.3(typescript@6.0.3)
       '@scalar/openapi-types': 0.8.0
     transitivePeerDependencies:
       - '@faker-js/faker'
       - supports-color
       - typescript
 
-  '@orval/hono@8.12.3(typescript@5.9.3)':
+  '@orval/hono@8.12.3(typescript@6.0.3)':
     dependencies:
-      '@orval/core': 8.12.3(typescript@5.9.3)
-      '@orval/zod': 8.12.3(typescript@5.9.3)
+      '@orval/core': 8.12.3(typescript@6.0.3)
+      '@orval/zod': 8.12.3(typescript@6.0.3)
       fs-extra: 11.3.5
       remeda: 2.34.1
     transitivePeerDependencies:
@@ -3662,56 +3662,56 @@ snapshots:
       - supports-color
       - typescript
 
-  '@orval/mcp@8.12.3(typescript@5.9.3)':
+  '@orval/mcp@8.12.3(typescript@6.0.3)':
     dependencies:
-      '@orval/core': 8.12.3(typescript@5.9.3)
-      '@orval/fetch': 8.12.3(typescript@5.9.3)
-      '@orval/zod': 8.12.3(typescript@5.9.3)
+      '@orval/core': 8.12.3(typescript@6.0.3)
+      '@orval/fetch': 8.12.3(typescript@6.0.3)
+      '@orval/zod': 8.12.3(typescript@6.0.3)
     transitivePeerDependencies:
       - '@faker-js/faker'
       - supports-color
       - typescript
 
-  '@orval/mock@8.12.3(typescript@5.9.3)':
+  '@orval/mock@8.12.3(typescript@6.0.3)':
     dependencies:
-      '@orval/core': 8.12.3(typescript@5.9.3)
+      '@orval/core': 8.12.3(typescript@6.0.3)
       remeda: 2.34.1
     transitivePeerDependencies:
       - '@faker-js/faker'
       - supports-color
       - typescript
 
-  '@orval/query@8.12.3(typescript@5.9.3)':
+  '@orval/query@8.12.3(typescript@6.0.3)':
     dependencies:
-      '@orval/core': 8.12.3(typescript@5.9.3)
-      '@orval/fetch': 8.12.3(typescript@5.9.3)
+      '@orval/core': 8.12.3(typescript@6.0.3)
+      '@orval/fetch': 8.12.3(typescript@6.0.3)
       remeda: 2.34.1
     transitivePeerDependencies:
       - '@faker-js/faker'
       - supports-color
       - typescript
 
-  '@orval/solid-start@8.12.3(typescript@5.9.3)':
+  '@orval/solid-start@8.12.3(typescript@6.0.3)':
     dependencies:
-      '@orval/core': 8.12.3(typescript@5.9.3)
+      '@orval/core': 8.12.3(typescript@6.0.3)
       '@scalar/openapi-types': 0.8.0
     transitivePeerDependencies:
       - '@faker-js/faker'
       - supports-color
       - typescript
 
-  '@orval/swr@8.12.3(typescript@5.9.3)':
+  '@orval/swr@8.12.3(typescript@6.0.3)':
     dependencies:
-      '@orval/core': 8.12.3(typescript@5.9.3)
-      '@orval/fetch': 8.12.3(typescript@5.9.3)
+      '@orval/core': 8.12.3(typescript@6.0.3)
+      '@orval/fetch': 8.12.3(typescript@6.0.3)
     transitivePeerDependencies:
       - '@faker-js/faker'
       - supports-color
       - typescript
 
-  '@orval/zod@8.12.3(typescript@5.9.3)':
+  '@orval/zod@8.12.3(typescript@6.0.3)':
     dependencies:
-      '@orval/core': 8.12.3(typescript@5.9.3)
+      '@orval/core': 8.12.3(typescript@6.0.3)
       remeda: 2.34.1
     transitivePeerDependencies:
       - '@faker-js/faker'
@@ -3720,10 +3720,10 @@ snapshots:
 
   '@pinojs/redact@0.4.0': {}
 
-  '@prisma/client@6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3)':
+  '@prisma/client@6.19.3(prisma@6.19.3(typescript@6.0.3))(typescript@6.0.3)':
     optionalDependencies:
-      prisma: 6.19.3(typescript@5.9.3)
-      typescript: 5.9.3
+      prisma: 6.19.3(typescript@6.0.3)
+      typescript: 6.0.3
 
   '@prisma/config@6.19.3':
     dependencies:
@@ -5464,20 +5464,20 @@ snapshots:
     dependencies:
       wrappy: 1.0.2
 
-  orval@8.12.3(prettier@3.8.3)(typescript@5.9.3):
+  orval@8.12.3(prettier@3.8.3)(typescript@6.0.3):
     dependencies:
       '@commander-js/extra-typings': 14.0.0(commander@14.0.3)
-      '@orval/angular': 8.12.3(typescript@5.9.3)
-      '@orval/axios': 8.12.3(typescript@5.9.3)
-      '@orval/core': 8.12.3(typescript@5.9.3)
-      '@orval/fetch': 8.12.3(typescript@5.9.3)
-      '@orval/hono': 8.12.3(typescript@5.9.3)
-      '@orval/mcp': 8.12.3(typescript@5.9.3)
-      '@orval/mock': 8.12.3(typescript@5.9.3)
-      '@orval/query': 8.12.3(typescript@5.9.3)
-      '@orval/solid-start': 8.12.3(typescript@5.9.3)
-      '@orval/swr': 8.12.3(typescript@5.9.3)
-      '@orval/zod': 8.12.3(typescript@5.9.3)
+      '@orval/angular': 8.12.3(typescript@6.0.3)
+      '@orval/axios': 8.12.3(typescript@6.0.3)
+      '@orval/core': 8.12.3(typescript@6.0.3)
+      '@orval/fetch': 8.12.3(typescript@6.0.3)
+      '@orval/hono': 8.12.3(typescript@6.0.3)
+      '@orval/mcp': 8.12.3(typescript@6.0.3)
+      '@orval/mock': 8.12.3(typescript@6.0.3)
+      '@orval/query': 8.12.3(typescript@6.0.3)
+      '@orval/solid-start': 8.12.3(typescript@6.0.3)
+      '@orval/swr': 8.12.3(typescript@6.0.3)
+      '@orval/zod': 8.12.3(typescript@6.0.3)
       '@scalar/json-magic': 0.12.14
       '@scalar/openapi-parser': 0.25.12
       '@scalar/openapi-types': 0.8.0
@@ -5492,9 +5492,9 @@ snapshots:
       js-yaml: 4.1.1
       remeda: 2.34.1
       string-argv: 0.3.2
-      typedoc: 0.28.19(typescript@5.9.3)
-      typedoc-plugin-coverage: 4.0.3(typedoc@0.28.19(typescript@5.9.3))
-      typedoc-plugin-markdown: 4.11.0(typedoc@0.28.19(typescript@5.9.3))
+      typedoc: 0.28.19(typescript@6.0.3)
+      typedoc-plugin-coverage: 4.0.3(typedoc@0.28.19(typescript@6.0.3))
+      typedoc-plugin-markdown: 4.11.0(typedoc@0.28.19(typescript@6.0.3))
     optionalDependencies:
       prettier: 3.8.3
     transitivePeerDependencies:
@@ -5602,12 +5602,12 @@ snapshots:
     dependencies:
       parse-ms: 4.0.0
 
-  prisma@6.19.3(typescript@5.9.3):
+  prisma@6.19.3(typescript@6.0.3):
     dependencies:
       '@prisma/config': 6.19.3
       '@prisma/engines': 6.19.3
     optionalDependencies:
-      typescript: 5.9.3
+      typescript: 6.0.3
     transitivePeerDependencies:
       - magicast
 
@@ -5990,24 +5990,24 @@ snapshots:
       media-typer: 1.1.0
       mime-types: 3.0.2
 
-  typedoc-plugin-coverage@4.0.3(typedoc@0.28.19(typescript@5.9.3)):
+  typedoc-plugin-coverage@4.0.3(typedoc@0.28.19(typescript@6.0.3)):
     dependencies:
-      typedoc: 0.28.19(typescript@5.9.3)
+      typedoc: 0.28.19(typescript@6.0.3)
 
-  typedoc-plugin-markdown@4.11.0(typedoc@0.28.19(typescript@5.9.3)):
+  typedoc-plugin-markdown@4.11.0(typedoc@0.28.19(typescript@6.0.3)):
     dependencies:
-      typedoc: 0.28.19(typescript@5.9.3)
+      typedoc: 0.28.19(typescript@6.0.3)
 
-  typedoc@0.28.19(typescript@5.9.3):
+  typedoc@0.28.19(typescript@6.0.3):
     dependencies:
       '@gerrit0/mini-shiki': 3.23.0
       lunr: 2.3.9
       markdown-it: 14.1.1
       minimatch: 10.2.5
-      typescript: 5.9.3
+      typescript: 6.0.3
       yaml: 2.9.0
 
-  typescript@5.9.3: {}
+  typescript@6.0.3: {}
 
   uc.micro@2.1.0: {}
 
