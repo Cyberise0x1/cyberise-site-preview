@@ -19,7 +19,7 @@ import type { AuthRequest } from "../middleware/auth";
 
 const router: IRouter = Router();
 
-router.use(requireAuth, attachUser, requireAdmin);
+router.use("/admin", requireAuth, attachUser, requireAdmin);
 
 router.get("/admin/users", async (req: AuthRequest, res) => {
   try {
