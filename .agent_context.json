@@ -1,7 +1,7 @@
 {
   "protocol_version": 2,
   "last_updated_by": "claude",
-  "last_updated_at": "2026-05-26T21:28:39Z",
+  "last_updated_at": "2026-05-26T21:55:21Z",
   "_protocol_note": "All three agents follow AGENT_PROTOCOL.md v2. This file is the shared live state — claims, logs, notes, conflicts. Protocol is symmetric — any agent can do any task; no role assignments.",
 
   "sprint_goal": "",
@@ -9,7 +9,7 @@
   "active_claims": {
     "replit":      { "since": "", "files": [], "task": "" },
     "commandcode": { "since": "", "files": [], "task": "" },
-    "claude":      { "since": "", "files": [], "task": "" }
+    "claude":      { "since": "2026-05-26T21:55:21Z", "files": ["artifacts/api-server/src/middleware/auth.ts", ".agent_context.json"], "task": "Follow-up to admin-middleware fix: wrap ClerkExpressRequireAuth so unauthenticated requests return JSON 401 via sendUnauthorized() instead of falling through to Express's default 500 HTML page. Branch fix/clerk-auth-json-401, PR pending." }
   },
 
   "commandcode_log": [
@@ -51,7 +51,8 @@
     { "ts": "2026-05-15T00:00:00Z", "file": "artifacts/api-server/src/routes/admin.ts", "action": "edit", "summary": "Added GET /admin/agent-context endpoint" }
   ],
   "claude_log": [
-    { "ts": "2026-05-26T21:28:39Z", "file": "artifacts/api-server/src/routes/admin.ts", "action": "edit", "summary": "Scoped admin auth middleware to /admin prefix: `router.use(requireAuth, attachUser, requireAdmin)` → `router.use(\"/admin\", requireAuth, attachUser, requireAdmin)`. Root cause: adminRouter is mounted without a prefix in routes/index.ts (`router.use(adminRouter)`), so a path-less router.use() inside admin.ts fired for EVERY request flowing through (incl. cron + webhook, mounted after admin). requireAuth then 401'd cron/webhook before they could reach their own handlers. Cron uses bearer token; webhook uses HMAC — neither carries a Clerk JWT. Fixed in one line — all routes in admin.ts already use /admin/* paths so no route renames needed. Typecheck clean across 4 workspaces." },
+    { "ts": "2026-05-26T21:55:21Z", "file": "artifacts/api-server/src/middleware/auth.ts", "action": "edit", "summary": "Wrapped ClerkExpressRequireAuth so unauthenticated requests return JSON 401 (`{success:false,error:'Unauthorized'}`) instead of falling through to Express's default 500 HTML page. Previous code passed `onError: () => logger.warn(...)` but that callback only does side effects — Clerk SDK still calls `next(new Error('Unauthenticated'))` on unauth state (verified in @clerk/clerk-sdk-node@5.1.6 dist/index.mjs), and with no Express error handler downstream, the default 500 HTML page was sent. New shape: `requireAuth(req,res,next)` invokes the underlying clerk middleware with a custom next callback that catches the err and routes through sendUnauthorized(). Discovered during prod verification of PR #41 (cron + webhook fix): admin endpoints still returned 500 HTML — that's the same Clerk-crash signature that had been bleeding onto cron/webhook before that fix." },
+    { "ts": "2026-05-26T21:28:39Z", "file": "artifacts/api-server/src/routes/admin.ts", "action": "edit", "summary": "Scoped admin auth middleware to /admin prefix: `router.use(requireAuth, attachUser, requireAdmin)` → `router.use(\"/admin\", requireAuth, attachUser, requireAdmin)`. Root cause: adminRouter is mounted without a prefix in routes/index.ts (`router.use(adminRouter)`), so a path-less router.use() inside admin.ts fired for EVERY request flowing through (incl. cron + webhook, mounted after admin). requireAuth then 401'd cron/webhook before they could reach their own handlers. Cron uses bearer token; webhook uses HMAC — neither carries a Clerk JWT. Fixed in one line — all routes in admin.ts already use /admin/* paths so no route renames needed. Typecheck clean across 4 workspaces. Merged as a540227 in PR #41." },
     { "ts": "2026-05-25T18:38:55Z", "file": "pnpm-workspace.yaml", "action": "edit", "summary": "Catalog round 2: vite ^7.3.2 → ^8.0.14 (#35), @vitejs/plugin-react ^5.0.4 → ^6.0.2 (#33, requires vite 8 — paired), @tanstack/react-query ^5.90.21 → ^5.100.14 (#30 production-minor-patch group, minor only). Other catalog entries unchanged." },
     { "ts": "2026-05-25T18:38:56Z", "file": "package.json", "action": "edit", "summary": "Root devDeps: typescript ~5.9.2 → ~6.0.3 (#31). pnpm resolves 6.0.3. typecheck passes across all 4 workspaces — no new TS6 strictness errors triggered in this codebase." },
     { "ts": "2026-05-25T18:38:57Z", "file": "artifacts/cyberise/package.json", "action": "edit", "summary": "@hookform/resolvers ^3.10.0 → ^5.4.0 (#38, devDeps). v4 was the breaking version (zod resolver API); v5 is minor since v4. Form pages compile clean." },
