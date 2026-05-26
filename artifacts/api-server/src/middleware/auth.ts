@@ -18,11 +18,25 @@ export interface AuthRequest extends Request {
   };
 }
 
-export const requireAuth = ClerkExpressRequireAuth({
-  onError: () => {
-    logger.warn("Authentication failed");
-  },
-});
+const clerkRequireAuth = ClerkExpressRequireAuth();
+
+export function requireAuth(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
+  clerkRequireAuth(req, res, (err?: unknown) => {
+    if (err) {
+      logger.warn(
+        { err: err instanceof Error ? err.message : String(err) },
+        "Authentication failed",
+      );
+      sendUnauthorized(res);
+      return;
+    }
+    next();
+  });
+}
 
 export async function attachUser(
   req: AuthRequest,
