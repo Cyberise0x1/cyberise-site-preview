@@ -21,8 +21,9 @@ version: 2
 #
 # Conventions:
 #   - Weekly cadence (Monday 08:00 UTC) to keep merge cost low.
-#   - Minor + patch are grouped into one PR per dependency-type; major
-#     bumps stay individual so each can be reviewed for breaking changes.
+#   - Minor + patch are grouped per dependency-type; majors stay individual
+#     EXCEPT for grouped families (prisma, clerk, radix-ui, vite) where
+#     splitting related packages across PRs breaks the build.
 #   - Branch protection requires all 5 CI checks to pass (TypeCheck, Lint,
 #     Build, Test, Secret Scan) before any PR — Dependabot's included.
 
@@ -42,6 +43,40 @@ updates:
     labels:
       - "dependencies"
     groups:
+      # Family groups — packages that MUST bump together to build.
+      # These take precedence over the minor/patch groups below and
+      # include major bumps (splitting them caused the 2026-05-24
+      # preview-build error cluster on prisma 7.x).
+      prisma:
+        patterns:
+          - "prisma"
+          - "@prisma/*"
+        update-types:
+          - "major"
+          - "minor"
+          - "patch"
+      clerk:
+        patterns:
+          - "@clerk/*"
+        update-types:
+          - "major"
+          - "minor"
+          - "patch"
+      radix-ui:
+        patterns:
+          - "@radix-ui/*"
+        update-types:
+          - "major"
+          - "minor"
+          - "patch"
+      vite:
+        patterns:
+          - "vite"
+          - "@vitejs/*"
+        update-types:
+          - "major"
+          - "minor"
+          - "patch"
       production-minor-patch:
         dependency-type: "production"
         update-types:
