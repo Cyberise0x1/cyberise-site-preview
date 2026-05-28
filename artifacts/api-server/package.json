@@ -25,7 +25,7 @@
     "http-proxy-middleware": "^4.0.0",
     "pino": "^9",
     "pino-http": "^10",
-    "resend": "^6.12.2",
+    "resend": "^6.12.4",
     "svix": "^1.94.0",
     "zod": "catalog:"
   },
