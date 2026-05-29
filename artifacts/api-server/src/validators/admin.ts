@@ -5,7 +5,7 @@ export const banUserSchema = z.object({
   reason: z.string().optional(),
 });
 
-export const updateSettingsSchema = z.record(z.unknown());
+export const updateSettingsSchema = z.record(z.string(), z.unknown());
 
 export const updateOrderSchema = z.object({
   status: z.enum(["PENDING", "ACTIVE", "TERMINATED", "FAILED"]).optional(),
