@@ -1,19 +1,20 @@
-name: Expire Crypto Payments
+name: Expire RDP Instances
 
 on:
   schedule:
-    - cron: "*/30 * * * *"
+    # Hourly at :17 — terminates expired ACTIVE orders and sends 3-day renewal reminders
+    - cron: "17 * * * *"
   workflow_dispatch:
 
 permissions: {}
 
 jobs:
   expire:
-    name: Expire stale crypto payments
+    name: Expire stale RDP instances
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - run: |
           curl -f -X POST \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            https://cyberise.org/api/cron/expire-crypto-payments
+            https://cyberise.org/api/cron/expire-instances

@@ -41,6 +41,11 @@ testem.log
 .DS_Store
 Thumbs.db
 
+# Environment files (never commit secrets — .env.example is the only tracked exception)
+.env
+.env.*
+!.env.example
+
 .cursor/rules/nx-rules.mdc
 .github/instructions/nx.instructions.md
 
