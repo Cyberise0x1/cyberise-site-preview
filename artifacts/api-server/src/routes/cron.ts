@@ -5,13 +5,39 @@ import { deleteInstance } from "../services/linode";
 import { sendEmail, generateRenewalReminderEmail } from "../services/email";
 import { sendSuccess, sendError } from "../utils/responses";
 import { logger } from "../lib/logger";
+import { timingSafeEqual } from "node:crypto";
 
 const router: IRouter = Router();
 
+/**
+ * Authorizes a cron request. Fails CLOSED: if CRON_SECRET is unset or empty,
+ * every request is rejected (an empty secret must never authorize the
+ * instance-terminating cron endpoints). Uses a constant-time comparison.
+ */
+export function isAuthorizedCron(req: {
+  headers: { authorization?: string };
+}): boolean {
+  const secret = process.env.CRON_SECRET;
+  if (!secret) {
+    logger.error(
+      "CRON_SECRET is not set — rejecting cron request (fail closed)",
+    );
+    return false;
+  }
+
+  const authHeader = req.headers.authorization;
+  if (typeof authHeader !== "string") return false;
+
+  const provided = Buffer.from(authHeader);
+  const expected = Buffer.from(`Bearer ${secret}`);
+  // timingSafeEqual throws on length mismatch, so guard first.
+  if (provided.length !== expected.length) return false;
+  return timingSafeEqual(provided, expected);
+}
+
 router.post("/cron/expire-instances", async (req, res) => {
   try {
-    const authHeader = req.headers.authorization;
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    if (!isAuthorizedCron(req)) {
       sendError(res, "Unauthorized", 401);
       return;
     }
@@ -131,8 +157,7 @@ router.post("/cron/expire-instances", async (req, res) => {
 
 router.post("/cron/expire-crypto-payments", async (req, res) => {
   try {
-    const authHeader = req.headers.authorization;
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    if (!isAuthorizedCron(req)) {
       sendError(res, "Unauthorized", 401);
       return;
     }

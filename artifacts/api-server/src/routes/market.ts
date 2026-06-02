@@ -17,6 +17,7 @@ import { sendEmail, generateRDPCredentialsEmail } from "../services/email";
 import { encrypt } from "../utils/encryption";
 import {
   provisionInstance,
+  calculatePrice,
   type ProvisionResult,
 } from "../services/provisioning";
 import {
@@ -179,6 +180,33 @@ router.post(
 
       const markupPercent = (settingsMap.markup_percentage as number) ?? 20;
 
+      let totalAmount: number;
+      let expiresAt: Date;
+      try {
+        ({ totalAmount, expiresAt } = await calculatePrice({
+          plan,
+          tier,
+          durationDays,
+          markupPercent,
+        }));
+      } catch (err: unknown) {
+        const e = err as Error & { statusCode?: number };
+        logger.error({ err }, "Price calculation failed");
+        sendError(
+          res,
+          e.message || "Failed to calculate price",
+          e.statusCode || 400,
+        );
+        return;
+      }
+
+      // Check balance BEFORE provisioning so an underfunded user can never
+      // trigger creation of a billable instance.
+      if (req.user!.balance < totalAmount) {
+        sendError(res, "Insufficient balance", 400);
+        return;
+      }
+
       let orderResult: ProvisionResult;
       try {
         orderResult = await provisionInstance({
@@ -200,13 +228,6 @@ router.post(
         );
         return;
       }
-
-      if (req.user!.balance < orderResult.totalAmount) {
-        sendError(res, "Insufficient balance", 400);
-        return;
-      }
-
-      const { totalAmount, expiresAt } = orderResult;
 
       let order;
       try {
@@ -327,7 +348,7 @@ router.get("/market/crypto/currencies", async (_req, res) => {
   }
 });
 
-router.post("/market/crypto/estimate", async (req, res) => {
+router.post("/market/crypto/estimate", marketRateLimit, async (req, res) => {
   try {
     const parsed = estimateSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -336,7 +357,17 @@ router.post("/market/crypto/estimate", async (req, res) => {
     }
 
     const { amount, currencyFrom, currencyTo } = parsed.data;
+
+    // Short cache to avoid proxying every keystroke to NowPayments.
+    const cacheKey = `nowpayments:estimate:${currencyFrom}:${currencyTo}:${amount}`;
+    const cached = await getCache<object>(cacheKey);
+    if (cached) {
+      sendSuccess(res, cached);
+      return;
+    }
+
     const estimate = await getEstimate(amount, currencyFrom, currencyTo);
+    await setCache(cacheKey, estimate, 30);
     sendSuccess(res, estimate);
   } catch (error) {
     logger.error({ error }, "Failed to estimate crypto price");
@@ -384,17 +415,16 @@ router.post(
 
       const markupPercent = (settingsMap.markup_percentage as number) ?? 20;
 
-      let orderResult: ProvisionResult;
+      // Price only — the server is provisioned by the NowPayments webhook once
+      // payment is confirmed. Never create an instance before payment.
+      let totalAmount: number;
       try {
-        orderResult = await provisionInstance({
+        ({ totalAmount } = await calculatePrice({
           plan,
-          region,
-          image: image ?? "unknown",
           tier,
-          userId,
           durationDays,
           markupPercent,
-        });
+        }));
       } catch (err: unknown) {
         const e = err as Error & { statusCode?: number };
         logger.error({ err }, "Price calculation failed for crypto order");
@@ -405,8 +435,6 @@ router.post(
         );
         return;
       }
-
-      const { totalAmount } = orderResult;
 
       const nowpaymentsResult = await createPayment({
         price_amount: totalAmount,
