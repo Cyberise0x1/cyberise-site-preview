@@ -6,7 +6,10 @@ vi.mock("../services/email", () => ({
   sendEmail: vi.fn(),
   generateRenewalReminderEmail: vi.fn(),
 }));
-vi.mock("../utils/responses", () => ({ sendSuccess: vi.fn(), sendError: vi.fn() }));
+vi.mock("../utils/responses", () => ({
+  sendSuccess: vi.fn(),
+  sendError: vi.fn(),
+}));
 vi.mock("../lib/logger", () => ({
   logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
