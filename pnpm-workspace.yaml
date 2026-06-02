@@ -61,7 +61,7 @@ catalog:
   react-dom: 19.2.6
   tailwind-merge: ^3.6.0
   tailwindcss: ^4.3.0
-  tsx: ^4.22.3
+  tsx: ^4.22.4
   vite: ^8.0.14
   wouter: ^3.10.0
   zod: ^4.4.3
