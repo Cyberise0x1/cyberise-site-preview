@@ -149,20 +149,48 @@ export async function getPaymentStatus(
   return request<NowPaymentsPaymentStatus>(`/v1/payment/${paymentId}`);
 }
 
+/**
+ * Recursively sorts object keys alphabetically. NowPayments signs the IPN
+ * payload after `ksort`-ing it, so we must reproduce the same key order before
+ * hashing — the raw request body is NOT key-sorted and would never match.
+ */
+function sortObjectKeys(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(sortObjectKeys);
+  }
+  if (value && typeof value === "object") {
+    const obj = value as Record<string, unknown>;
+    return Object.keys(obj)
+      .sort()
+      .reduce<Record<string, unknown>>((acc, key) => {
+        acc[key] = sortObjectKeys(obj[key]);
+        return acc;
+      }, {});
+  }
+  return value;
+}
+
 export function verifyIpnSignature(
   rawBody: string,
   signatureHeader: string,
 ): boolean {
-  if (!signatureHeader) return false;
+  if (!signatureHeader || !rawBody) return false;
 
   try {
+    // NowPayments computes HMAC-SHA512 over the key-sorted JSON, not the raw
+    // body. Parse, sort, re-stringify, then hash.
+    const parsed = JSON.parse(rawBody) as unknown;
+    const sortedPayload = JSON.stringify(sortObjectKeys(parsed));
+
     const hmac = crypto.createHmac("sha512", env.NOWPAYMENTS_IPN_SECRET);
-    hmac.update(rawBody);
+    hmac.update(sortedPayload);
     const computed = hmac.digest("hex");
-    return crypto.timingSafeEqual(
-      Buffer.from(computed),
-      Buffer.from(signatureHeader),
-    );
+
+    const expected = Buffer.from(computed);
+    const provided = Buffer.from(signatureHeader);
+    // timingSafeEqual throws on length mismatch, so guard first.
+    if (expected.length !== provided.length) return false;
+    return crypto.timingSafeEqual(expected, provided);
   } catch (err) {
     logger.error({ err }, "NowPayments IPN signature verification failed");
     return false;

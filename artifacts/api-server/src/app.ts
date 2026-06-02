@@ -5,6 +5,18 @@ import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
 
+// Webhook signature verification (Clerk/svix, NowPayments) must run against the
+// exact raw request bytes, but the global JSON parser consumes the stream. We
+// stash the raw buffer for webhook paths via express.json's `verify` hook.
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace Express {
+    interface Request {
+      rawBody?: Buffer;
+    }
+  }
+}
+
 const app: Express = express();
 
 app.set("trust proxy", true);
@@ -58,7 +70,18 @@ app.use(
   }),
 );
 
-app.use(express.json({ limit: "10mb" }));
+app.use(
+  express.json({
+    limit: "10mb",
+    verify: (req, _res, buf) => {
+      // Only webhook routes need the raw bytes; avoid retaining buffers
+      // elsewhere.
+      if (req.url?.includes("/webhooks/")) {
+        (req as express.Request).rawBody = buf;
+      }
+    },
+  }),
+);
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 app.use("/api", router);
