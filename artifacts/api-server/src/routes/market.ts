@@ -348,7 +348,7 @@ router.get("/market/crypto/currencies", async (_req, res) => {
   }
 });
 
-router.post("/market/crypto/estimate", async (req, res) => {
+router.post("/market/crypto/estimate", marketRateLimit, async (req, res) => {
   try {
     const parsed = estimateSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -357,7 +357,17 @@ router.post("/market/crypto/estimate", async (req, res) => {
     }
 
     const { amount, currencyFrom, currencyTo } = parsed.data;
+
+    // Short cache to avoid proxying every keystroke to NowPayments.
+    const cacheKey = `nowpayments:estimate:${currencyFrom}:${currencyTo}:${amount}`;
+    const cached = await getCache<object>(cacheKey);
+    if (cached) {
+      sendSuccess(res, cached);
+      return;
+    }
+
     const estimate = await getEstimate(amount, currencyFrom, currencyTo);
+    await setCache(cacheKey, estimate, 30);
     sendSuccess(res, estimate);
   } catch (error) {
     logger.error({ error }, "Failed to estimate crypto price");
