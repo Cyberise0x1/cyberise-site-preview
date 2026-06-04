@@ -106,7 +106,9 @@ export async function syncUserFromClerk(
  * a user we never mirrored is an idempotent no-op (count 0) rather than a P2025
  * throw — which would surface as a 500 and make Clerk retry the event forever.
  */
-export async function softDeleteUser(data: WebhookEvent["data"]): Promise<void> {
+export async function softDeleteUser(
+  data: WebhookEvent["data"],
+): Promise<void> {
   const { count } = await prisma.user.updateMany({
     where: { id: data.id },
     data: { banned: true },
