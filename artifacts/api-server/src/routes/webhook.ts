@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { Webhook } from "svix";
-import { prisma, OrderStatus } from "@workspace/db";
+import { prisma, OrderStatus, UserRole } from "@workspace/db";
 import { sendSuccess, sendError } from "../utils/responses";
 import { env } from "../utils/env";
 import { logger } from "../lib/logger";
@@ -15,10 +15,108 @@ interface WebhookEvent {
   type: string;
   data: {
     id: string;
-    email_addresses?: Array<{ email_address: string }>;
+    email_addresses?: Array<{ id?: string; email_address: string }>;
     primary_email_address_id?: string;
+    public_metadata?: { role?: unknown } & Record<string, unknown>;
     [key: string]: unknown;
   };
+}
+
+/**
+ * Strict mirror: Clerk is the single source of truth for role. Anything that
+ * isn't exactly "ADMIN" in public_metadata resolves to USER, so clearing the
+ * flag in Clerk demotes the user on the next sync.
+ */
+export function resolveRole(publicMetadata: unknown): UserRole {
+  const role = (publicMetadata as { role?: unknown } | null | undefined)?.role;
+  return role === "ADMIN" ? UserRole.ADMIN : UserRole.USER;
+}
+
+/**
+ * Prefer the primary email address, falling back to the first one present.
+ * Clerk's `primary_email_address_id` is the email object's `id` (e.g. "idn_…"),
+ * not the email string, so match on `e.id`.
+ */
+export function extractPrimaryEmail(
+  data: WebhookEvent["data"],
+): string | undefined {
+  const primaryEmailId = data.primary_email_address_id;
+  const addresses = data.email_addresses ?? [];
+  return (
+    addresses.find((e) => e.id === primaryEmailId)?.email_address ??
+    addresses[0]?.email_address
+  );
+}
+
+/**
+ * Mirror a Clerk user (id, email, role) into the database. Creates the row if
+ * it doesn't exist yet, updates role/email otherwise, and writes an audit log
+ * whenever the role actually changes. Used for both user.created and
+ * user.updated so Clerk metadata stays authoritative.
+ */
+export async function syncUserFromClerk(
+  data: WebhookEvent["data"],
+): Promise<void> {
+  const email = extractPrimaryEmail(data);
+  const role = resolveRole(data.public_metadata);
+  const existing = await prisma.user.findUnique({ where: { id: data.id } });
+
+  if (existing) {
+    await prisma.user.update({
+      where: { id: data.id },
+      data: { role, ...(email ? { email } : {}) },
+    });
+    if (existing.role !== role) {
+      await prisma.auditLog.create({
+        data: {
+          actorId: data.id,
+          action: "USER_ROLE_SYNCED",
+          entity: "User",
+          entityId: data.id,
+          metadata: { from: existing.role, to: role, source: "clerk_webhook" },
+        },
+      });
+    }
+    return;
+  }
+
+  if (!email) {
+    logger.warn({ userId: data.id }, "No email for user; cannot create DB row");
+    return;
+  }
+
+  await prisma.user.create({
+    data: { id: data.id, email, role, balance: 0, banned: false },
+  });
+  if (role !== UserRole.USER) {
+    await prisma.auditLog.create({
+      data: {
+        actorId: data.id,
+        action: "USER_ROLE_SYNCED",
+        entity: "User",
+        entityId: data.id,
+        metadata: { from: UserRole.USER, to: role, source: "clerk_webhook" },
+      },
+    });
+  }
+}
+
+/**
+ * Soft-delete a user by setting `banned`. Uses updateMany so a delete event for
+ * a user we never mirrored is an idempotent no-op (count 0) rather than a P2025
+ * throw — which would surface as a 500 and make Clerk retry the event forever.
+ */
+export async function softDeleteUser(data: WebhookEvent["data"]): Promise<void> {
+  const { count } = await prisma.user.updateMany({
+    where: { id: data.id },
+    data: { banned: true },
+  });
+
+  if (count === 0) {
+    logger.warn({ userId: data.id }, "User.deleted for unknown user");
+  } else {
+    logger.info({ userId: data.id }, "User soft-deleted");
+  }
 }
 
 router.post("/webhooks/clerk", async (req, res) => {
@@ -48,58 +146,19 @@ router.post("/webhooks/clerk", async (req, res) => {
 
     switch (type) {
       case "user.created": {
-        const primaryEmailId = data.primary_email_address_id;
-        const email = data.email_addresses?.find(
-          (e) =>
-            e.email_address === primaryEmailId ||
-            data.email_addresses?.[0]?.email_address,
-        )?.email_address;
-
-        if (!email) {
-          logger.warn({ userId: data.id }, "No email found for user");
-          break;
-        }
-
-        await prisma.user.upsert({
-          where: { id: data.id },
-          update: { email },
-          create: {
-            id: data.id,
-            email,
-            role: "USER",
-            balance: 0,
-            banned: false,
-          },
-        });
-
-        logger.info({ userId: data.id, email }, "User created");
+        await syncUserFromClerk(data);
+        logger.info({ userId: data.id }, "User created");
         break;
       }
 
       case "user.updated": {
-        const primaryEmailId = data.primary_email_address_id;
-        const email = data.email_addresses?.find(
-          (e) => e.email_address === primaryEmailId,
-        )?.email_address;
-
-        if (email) {
-          await prisma.user.update({
-            where: { id: data.id },
-            data: { email },
-          });
-        }
-
+        await syncUserFromClerk(data);
         logger.info({ userId: data.id }, "User updated");
         break;
       }
 
       case "user.deleted": {
-        await prisma.user.update({
-          where: { id: data.id },
-          data: { banned: true },
-        });
-
-        logger.info({ userId: data.id }, "User soft-deleted");
+        await softDeleteUser(data);
         break;
       }
 
