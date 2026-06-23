@@ -509,36 +509,133 @@ export default function Market() {
               </Tabs>
             </motion.div>
 
-            {filteredPlans.length === 0 ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="rounded-xl border border-[rgba(123,47,247,0.2)] bg-[rgba(123,47,247,0.05)] p-8 text-center"
-              >
-                <Star className="w-10 h-10 text-[#a855f7] mx-auto mb-3 opacity-50" />
-                <p className="text-white font-semibold mb-1">
-                  Pro Plans Coming Soon
-                </p>
-                <p className="text-[#a0a0b8] text-sm">
-                  High-performance Pro servers are being added. Check back soon.
-                </p>
-              </motion.div>
-            ) : (
-              <motion.div
-                variants={staggerContainer}
-                initial="initial"
-                animate="animate"
-                className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3"
-              >
-                {filteredPlans.map((plan) => (
-                  <motion.div key={plan.id} variants={staggerItem}>
-                    <PlanCard
-                      plan={plan}
-                      selected={selectedPlan === plan.id}
-                      onSelect={() => handlePlanSelect(plan.id)}
-                    />
+            {/* Side-by-side: Linode Plans + Windows Coming Soon */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Linode Plans */}
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-8 h-8 rounded-lg bg-[rgba(0,240,255,0.08)] flex items-center justify-center">
+                    <Server className="w-4 h-4 text-[#00f0ff]" />
+                  </div>
+                  <div>
+                    <h3 className="text-white font-semibold font-rajdhani">
+                      Linode Servers
+                    </h3>
+                    <p className="text-[#a0a0b8] text-xs">
+                      High-performance Linux servers
+                    </p>
+                  </div>
+                </div>
+
+                {filteredPlans.filter((p) => p.tier === "basic").length ===
+                0 ? (
+                  <div className="rounded-xl border border-[#ffffff0a] bg-[#0d0d14] p-6 text-center">
+                    <p className="text-[#a0a0b8] text-sm">
+                      No Linode plans available
+                    </p>
+                  </div>
+                ) : (
+                  <motion.div
+                    variants={staggerContainer}
+                    initial="initial"
+                    animate="animate"
+                    className="grid grid-cols-1 sm:grid-cols-2 gap-3"
+                  >
+                    {filteredPlans
+                      .filter((p) => p.tier === "basic")
+                      .map((plan) => (
+                        <motion.div key={plan.id} variants={staggerItem}>
+                          <PlanCard
+                            plan={plan}
+                            selected={selectedPlan === plan.id}
+                            onSelect={() => handlePlanSelect(plan.id)}
+                          />
+                        </motion.div>
+                      ))}
                   </motion.div>
-                ))}
+                )}
+              </div>
+
+              {/* Windows Coming Soon */}
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-8 h-8 rounded-lg bg-[rgba(123,47,247,0.08)] flex items-center justify-center">
+                    <svg
+                      className="w-4 h-4 text-[#a855f7]"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-white font-semibold font-rajdhani">
+                      Windows Servers
+                    </h3>
+                    <p className="text-[#a0a0b8] text-xs">
+                      High-performance Windows RDP servers
+                    </p>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border-2 border-dashed border-[#ffffff1a] bg-[#0d0d14] p-8 text-center min-h-[300px] flex flex-col items-center justify-center">
+                  <div className="w-16 h-16 rounded-2xl bg-[rgba(123,47,247,0.08)] border border-[rgba(123,47,247,0.2)] flex items-center justify-center mx-auto mb-4">
+                    <span className="text-3xl">🚧</span>
+                  </div>
+                  <h4 className="text-white font-semibold font-rajdhani mb-2">
+                    Coming Soon
+                  </h4>
+                  <p className="text-[#a0a0b8] text-sm max-w-xs">
+                    High-performance Windows RDP servers are being added to our
+                    platform. Check back soon for instant deployment.
+                  </p>
+                  <div className="mt-4 flex items-center gap-2 text-xs text-[#666]">
+                    <Clock className="w-3 h-3" />
+                    <span>Expected Q3 2026</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Pro Plans Section */}
+            {filteredPlans.filter((p) => p.tier === "pro").length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-8 h-8 rounded-lg bg-[rgba(123,47,247,0.08)] flex items-center justify-center">
+                    <Zap className="w-4 h-4 text-[#a855f7]" />
+                  </div>
+                  <div>
+                    <h3 className="text-white font-semibold font-rajdhani">
+                      Pro Servers
+                    </h3>
+                    <p className="text-[#a0a0b8] text-xs">
+                      Premium performance servers
+                    </p>
+                  </div>
+                </div>
+
+                <motion.div
+                  variants={staggerContainer}
+                  initial="initial"
+                  animate="animate"
+                  className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3"
+                >
+                  {filteredPlans
+                    .filter((p) => p.tier === "pro")
+                    .map((plan) => (
+                      <motion.div key={plan.id} variants={staggerItem}>
+                        <PlanCard
+                          plan={plan}
+                          selected={selectedPlan === plan.id}
+                          onSelect={() => handlePlanSelect(plan.id)}
+                        />
+                      </motion.div>
+                    ))}
+                </motion.div>
               </motion.div>
             )}
 

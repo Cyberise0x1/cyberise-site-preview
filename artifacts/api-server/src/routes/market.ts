@@ -3,6 +3,7 @@ import { OrderStatus } from "@workspace/db";
 import { prisma } from "@workspace/db";
 import {
   getPlans,
+  getSharedCPUPlans,
   getRegions,
   getWindowsImages,
   deleteInstance,
@@ -131,6 +132,8 @@ router.get("/market/plans", marketRateLimit, async (_req, res) => {
       plans: [...basicPlansWithPricing, ...proPlansWithPricing],
       regions: [...filteredBasicRegions, ...proRegionsTagged],
       images,
+      windowsComingSoon: true,
+      windowsMessage: "Windows servers coming soon to Linode",
     };
 
     await setCache("market:data", data, 300);
