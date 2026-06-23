@@ -109,6 +109,16 @@ export async function getPlans(): Promise<LinodePlan[]> {
   );
 }
 
+export async function getSharedCPUPlans(): Promise<LinodePlan[]> {
+  const plans = await getPlans();
+  return plans.filter(
+    (plan) =>
+      (plan.class === "nanode" || plan.class === "standard") &&
+      plan.ram >= 1024 &&
+      plan.ram <= 32768,
+  );
+}
+
 export async function getRegions(): Promise<LinodeRegion[]> {
   const response = await linodeFetch<{ data: LinodeRegion[] }>("/regions");
   return response.data.filter(
