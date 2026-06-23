@@ -527,7 +527,8 @@ export default function Market() {
                   </div>
                 </div>
 
-                {filteredPlans.filter((p) => p.tier === "basic").length === 0 ? (
+                {filteredPlans.filter((p) => p.tier === "basic").length ===
+                0 ? (
                   <div className="rounded-xl border border-[#ffffff0a] bg-[#0d0d14] p-6 text-center">
                     <p className="text-[#a0a0b8] text-sm">
                       No Linode plans available
