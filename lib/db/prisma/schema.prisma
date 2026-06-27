@@ -27,9 +27,10 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  orders    Order[]
-  emailLogs EmailLog[]
-  auditLogs AuditLog[] @relation("ActorAuditLogs")
+  orders          Order[]
+  emailLogs       EmailLog[]
+  auditLogs       AuditLog[]       @relation("ActorAuditLogs")
+  promoCodeUsages PromoCodeUsage[]
 
   @@index([email])
   @@index([role])
@@ -131,6 +132,40 @@ model AuditLog {
   @@index([entity])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+model PromoCode {
+  id              String    @id @default(cuid())
+  code            String    @unique
+  discountPercent Decimal   @db.Decimal(5, 2)   // e.g., 10.00 = 10% off
+  maxUses         Int?                            // null = unlimited
+  usedCount       Int       @default(0)
+  validFrom       DateTime  @default(now())
+  validUntil      DateTime?
+  active          Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  usages PromoCodeUsage[]
+
+  @@index([code])
+  @@map("promo_codes")
+}
+
+model PromoCodeUsage {
+  id          String   @id @default(cuid())
+  promoCodeId String
+  userId      String
+  orderId     String?
+  usedAt      DateTime @default(now())
+
+  promoCode PromoCode @relation(fields: [promoCodeId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@unique([promoCodeId, userId])  // One use per user per code
+  @@index([promoCodeId])
+  @@index([userId])
+  @@map("promo_code_usages")
 }
 
 

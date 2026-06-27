@@ -64,3 +64,5 @@ attached_assets/screenshots/
 
 # Local-only utility scripts (contain pattern refs, run locally before pushing)
 scripts/clean-git-history.sh
+# Added by code-review-graph
+.code-review-graph/
