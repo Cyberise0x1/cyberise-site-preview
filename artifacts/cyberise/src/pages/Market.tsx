@@ -36,7 +36,10 @@ import {
   AlertTriangle,
   Wallet,
   Clock,
+  Tag,
+  X,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import AppShell from "@/components/AppShell";
 
@@ -232,6 +235,13 @@ export default function Market() {
     useState<CryptoPaymentStatusResponse | null>(null);
   const [paymentPolling, setPaymentPolling] = useState(false);
 
+  // Promo code state
+  const [promoCode, setPromoCode] = useState("");
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [promoDiscount, setPromoDiscount] = useState<number | null>(null);
+  const [promoApplied, setPromoApplied] = useState(false);
+  const [promoError, setPromoError] = useState<string | null>(null);
+
   useEffect(() => {
     loadMarketData();
   }, []);
@@ -287,9 +297,51 @@ export default function Market() {
 
   const availableRegions =
     marketData?.regions.filter((r) => r.tier === selectedTier) ?? [];
-  const totalPrice = selectedPlanData
+  const basePrice = selectedPlanData
     ? selectedPlanData.price.monthly * (duration / 30)
     : 0;
+  const discountAmount = promoApplied && promoDiscount ? basePrice * (promoDiscount / 100) : 0;
+  const totalPrice = basePrice - discountAmount;
+
+  async function handleValidatePromo() {
+    if (!promoCode.trim()) {
+      setPromoError("Please enter a promo code");
+      return;
+    }
+
+    setPromoLoading(true);
+    setPromoError(null);
+
+    try {
+      const response = await api<{
+        success: boolean;
+        data: { valid: boolean; discountPercent: number };
+      }>("/market/promo/validate", {
+        method: "POST",
+        body: JSON.stringify({ code: promoCode }),
+      });
+
+      if (response.data.valid) {
+        setPromoDiscount(response.data.discountPercent);
+        setPromoApplied(true);
+        setPromoError(null);
+        toast.success(`Promo code applied! ${response.data.discountPercent}% off`);
+      }
+    } catch (error) {
+      setPromoError(error instanceof Error ? error.message : "Invalid promo code");
+      setPromoApplied(false);
+      setPromoDiscount(null);
+    } finally {
+      setPromoLoading(false);
+    }
+  }
+
+  function handleRemovePromo() {
+    setPromoCode("");
+    setPromoApplied(false);
+    setPromoDiscount(null);
+    setPromoError(null);
+  }
 
   function handlePlanSelect(planId: string) {
     setSelectedPlan(planId);
@@ -325,6 +377,7 @@ export default function Market() {
                 : "windows",
             durationDays: duration,
             tier: selectedTier,
+            ...(promoApplied && promoCode ? { promoCode } : {}),
           }),
         },
       );
@@ -385,6 +438,7 @@ export default function Market() {
           durationDays: duration,
           tier: selectedTier,
           payCurrency,
+          ...(promoApplied && promoCode ? { promoCode } : {}),
         }),
       });
       setCryptoPayment(response.data);
@@ -788,18 +842,101 @@ export default function Market() {
                   </div>
                 </div>
 
+                {/* Promo Code Section */}
                 <div className="border-t border-[rgba(255,255,255,0.06)] pt-4">
-                  <div className="flex items-end justify-between mb-4">
-                    <span className="text-[#a0a0b8] text-sm">Total</span>
-                    <div className="text-right">
-                      <span
-                        className={`text-2xl font-bold font-orbitron ${selectedTier === "pro" ? "text-[#a855f7]" : "text-[#00f0ff]"}`}
+                  <div className="flex items-center gap-2 mb-3">
+                    <Tag className="w-4 h-4 text-[#00f0ff]" />
+                    <span className="text-[#a0a0b8] text-xs font-rajdhani uppercase tracking-[1px]">
+                      Promo Code
+                    </span>
+                  </div>
+
+                  {promoApplied ? (
+                    <div className="flex items-center justify-between bg-[rgba(0,240,255,0.06)] rounded-lg px-3 py-2 border border-[rgba(0,240,255,0.2)]">
+                      <div className="flex items-center gap-2">
+                        <Check className="w-4 h-4 text-[#00f0ff]" />
+                        <span className="text-white text-sm font-mono">
+                          {promoCode.toUpperCase()}
+                        </span>
+                        <span className="text-[#00f0ff] text-xs font-rajdhani">
+                          {promoDiscount}% OFF
+                        </span>
+                      </div>
+                      <button
+                        onClick={handleRemovePromo}
+                        className="text-[#a0a0b8] hover:text-white transition-colors"
                       >
-                        ${totalPrice.toFixed(2)}
-                      </span>
-                      <p className="text-[#555] text-[10px]">
-                        for {duration} days
-                      </p>
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Input
+                        value={promoCode}
+                        onChange={(e) => {
+                          setPromoCode(e.target.value);
+                          setPromoError(null);
+                        }}
+                        placeholder="Enter code"
+                        className="flex-1 bg-[#0a0a0f] border-[rgba(255,255,255,0.07)] text-white text-sm font-mono placeholder:text-[#555]"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            handleValidatePromo();
+                          }
+                        }}
+                      />
+                      <Button
+                        onClick={handleValidatePromo}
+                        disabled={promoLoading || !promoCode.trim()}
+                        variant="outline"
+                        className="border-[rgba(0,240,255,0.3)] text-[#00f0ff] hover:bg-[rgba(0,240,255,0.08)] hover:text-[#00f0ff] font-rajdhani text-xs uppercase tracking-[1px]"
+                      >
+                        {promoLoading ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          "Apply"
+                        )}
+                      </Button>
+                    </div>
+                  )}
+
+                  {promoError && (
+                    <p className="text-[#ff4444] text-xs mt-2 font-rajdhani">
+                      {promoError}
+                    </p>
+                  )}
+                </div>
+
+                <div className="border-t border-[rgba(255,255,255,0.06)] pt-4">
+                  <div className="space-y-2 mb-4">
+                    {promoApplied && promoDiscount && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-[#a0a0b8]">Subtotal</span>
+                        <span className="text-[#666] line-through">
+                          ${basePrice.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                    {promoApplied && promoDiscount && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-[#00f0ff]">Discount ({promoDiscount}%)</span>
+                        <span className="text-[#00f0ff]">
+                          -${discountAmount.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex items-end justify-between">
+                      <span className="text-[#a0a0b8] text-sm">Total</span>
+                      <div className="text-right">
+                        <span
+                          className={`text-2xl font-bold font-orbitron ${selectedTier === "pro" ? "text-[#a855f7]" : "text-[#00f0ff]"}`}
+                        >
+                          ${totalPrice.toFixed(2)}
+                        </span>
+                        <p className="text-[#555] text-[10px]">
+                          for {duration} days
+                        </p>
+                      </div>
                     </div>
                   </div>
 

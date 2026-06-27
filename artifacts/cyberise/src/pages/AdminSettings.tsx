@@ -7,8 +7,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Save } from "lucide-react";
+import {
+  Loader2,
+  Save,
+  Plus,
+  Trash2,
+  Tag,
+  Calendar,
+  Users,
+} from "lucide-react";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 interface Settings {
   markup_percentage: number;
@@ -21,14 +36,46 @@ interface Settings {
   max_active_orders?: number;
 }
 
+interface PromoCode {
+  id: string;
+  code: string;
+  discountPercent: number;
+  maxUses: number | null;
+  usedCount: number;
+  validFrom: string;
+  validUntil: string | null;
+  active: boolean;
+  createdAt: string;
+}
+
+interface NewPromoCode {
+  code: string;
+  discountPercent: number;
+  maxUses: number | null;
+  validUntil: string | null;
+}
+
 export default function AdminSettings() {
   const { api } = useApi();
   const [settings, setSettings] = useState<Settings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  // Promo code state
+  const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [newPromo, setNewPromo] = useState<NewPromoCode>({
+    code: "",
+    discountPercent: 10,
+    maxUses: null,
+    validUntil: null,
+  });
+  const [creatingPromo, setCreatingPromo] = useState(false);
+
   useEffect(() => {
     loadSettings();
+    loadPromoCodes();
   }, []);
 
   async function loadSettings() {
@@ -57,6 +104,66 @@ export default function AdminSettings() {
       toast.error("Failed to save settings");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function loadPromoCodes() {
+    try {
+      setPromoLoading(true);
+      const response = await api<{ success: boolean; data: PromoCode[] }>(
+        "/admin/promo-codes",
+      );
+      setPromoCodes(response.data);
+    } catch {
+      // silent fail - promo codes section will show empty
+    } finally {
+      setPromoLoading(false);
+    }
+  }
+
+  async function createPromoCode() {
+    if (!newPromo.code.trim()) {
+      toast.error("Promo code is required");
+      return;
+    }
+
+    try {
+      setCreatingPromo(true);
+      await api("/admin/promo-codes", {
+        method: "POST",
+        body: JSON.stringify(newPromo),
+      });
+      toast.success("Promo code created");
+      setShowCreateDialog(false);
+      setNewPromo({ code: "", discountPercent: 10, maxUses: null, validUntil: null });
+      loadPromoCodes();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to create promo code");
+    } finally {
+      setCreatingPromo(false);
+    }
+  }
+
+  async function togglePromoCode(id: string, active: boolean) {
+    try {
+      await api(`/admin/promo-codes/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ active }),
+      });
+      toast.success(active ? "Promo code activated" : "Promo code deactivated");
+      loadPromoCodes();
+    } catch {
+      toast.error("Failed to update promo code");
+    }
+  }
+
+  async function deletePromoCode(id: string) {
+    try {
+      await api(`/admin/promo-codes/${id}`, { method: "DELETE" });
+      toast.success("Promo code deleted");
+      loadPromoCodes();
+    } catch {
+      toast.error("Failed to delete promo code");
     }
   }
 
@@ -238,7 +345,231 @@ export default function AdminSettings() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Promo Codes Section */}
+        <div className="mt-8">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-1">
+                Promo Codes
+              </h2>
+              <p className="text-[#a0a0b8]">
+                Manage discount codes for marketplace purchases
+              </p>
+            </div>
+            <Button
+              onClick={() => setShowCreateDialog(true)}
+              className="bg-gradient-to-r from-[#00f0ff] to-[#7b2ff7] hover:opacity-90 text-white"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Promo Code
+            </Button>
+          </div>
+
+          <Card className="bg-[#12121a]/80 border-[#00f0ff]/20 backdrop-blur-sm">
+            <CardContent className="p-0">
+              {promoLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-6 h-6 animate-spin text-[#00f0ff]" />
+                </div>
+              ) : promoCodes.length === 0 ? (
+                <div className="text-center py-12">
+                  <Tag className="w-12 h-12 text-[#333] mx-auto mb-3" />
+                  <p className="text-[#666]">No promo codes yet</p>
+                  <p className="text-[#555] text-sm mt-1">
+                    Create your first promo code to offer discounts
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-[#ffffff0a]">
+                        <th className="text-left text-[#666] text-xs font-rajdhani uppercase tracking-[1px] px-4 py-3">
+                          Code
+                        </th>
+                        <th className="text-left text-[#666] text-xs font-rajdhani uppercase tracking-[1px] px-4 py-3">
+                          Discount
+                        </th>
+                        <th className="text-left text-[#666] text-xs font-rajdhani uppercase tracking-[1px] px-4 py-3">
+                          Usage
+                        </th>
+                        <th className="text-left text-[#666] text-xs font-rajdhani uppercase tracking-[1px] px-4 py-3">
+                          Valid Until
+                        </th>
+                        <th className="text-left text-[#666] text-xs font-rajdhani uppercase tracking-[1px] px-4 py-3">
+                          Status
+                        </th>
+                        <th className="text-right text-[#666] text-xs font-rajdhani uppercase tracking-[1px] px-4 py-3">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {promoCodes.map((promo) => (
+                        <tr
+                          key={promo.id}
+                          className="border-b border-[#ffffff06] hover:bg-[#ffffff03]"
+                        >
+                          <td className="px-4 py-3">
+                            <span className="text-white font-mono text-sm">
+                              {promo.code}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="text-[#00f0ff] font-semibold">
+                              {promo.discountPercent}%
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-1">
+                              <Users className="w-3.5 h-3.5 text-[#666]" />
+                              <span className="text-white text-sm">
+                                {promo.usedCount}
+                                {promo.maxUses !== null && ` / ${promo.maxUses}`}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-1">
+                              <Calendar className="w-3.5 h-3.5 text-[#666]" />
+                              <span className="text-[#a0a0b8] text-sm">
+                                {promo.validUntil
+                                  ? new Date(promo.validUntil).toLocaleDateString()
+                                  : "Never"}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <Switch
+                              checked={promo.active}
+                              onCheckedChange={(v) =>
+                                togglePromoCode(promo.id, v)
+                              }
+                            />
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => deletePromoCode(promo.id)}
+                              className="text-[#666] hover:text-[#ff4444] hover:bg-[#ff444410]"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </motion.div>
+
+      {/* Create Promo Code Dialog */}
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent className="bg-[#0d0d14] border border-[rgba(0,240,255,0.2)] max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white font-orbitron flex items-center gap-2">
+              <Tag className="w-5 h-5 text-[#00f0ff]" />
+              Create Promo Code
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div>
+              <Label className="text-[#a0a0b8] text-sm">Code</Label>
+              <Input
+                value={newPromo.code}
+                onChange={(e) =>
+                  setNewPromo({ ...newPromo, code: e.target.value.toUpperCase() })
+                }
+                placeholder="SUMMER2026"
+                className="bg-[#0a0a0f] border-[#ffffff1a] text-white font-mono mt-1"
+              />
+            </div>
+            <div>
+              <Label className="text-[#a0a0b8] text-sm">Discount Percentage</Label>
+              <Input
+                type="number"
+                min={1}
+                max={100}
+                value={newPromo.discountPercent}
+                onChange={(e) =>
+                  setNewPromo({
+                    ...newPromo,
+                    discountPercent: Number(e.target.value),
+                  })
+                }
+                className="bg-[#0a0a0f] border-[#ffffff1a] text-white mt-1"
+              />
+            </div>
+            <div>
+              <Label className="text-[#a0a0b8] text-sm">
+                Max Uses{" "}
+                <span className="text-[#555]">(leave empty for unlimited)</span>
+              </Label>
+              <Input
+                type="number"
+                min={1}
+                value={newPromo.maxUses ?? ""}
+                onChange={(e) =>
+                  setNewPromo({
+                    ...newPromo,
+                    maxUses: e.target.value ? Number(e.target.value) : null,
+                  })
+                }
+                placeholder="Unlimited"
+                className="bg-[#0a0a0f] border-[#ffffff1a] text-white mt-1"
+              />
+            </div>
+            <div>
+              <Label className="text-[#a0a0b8] text-sm">
+                Valid Until{" "}
+                <span className="text-[#555]">(leave empty for no expiry)</span>
+              </Label>
+              <Input
+                type="date"
+                value={newPromo.validUntil?.split("T")[0] ?? ""}
+                onChange={(e) =>
+                  setNewPromo({
+                    ...newPromo,
+                    validUntil: e.target.value
+                      ? new Date(e.target.value).toISOString()
+                      : null,
+                  })
+                }
+                className="bg-[#0a0a0f] border-[#ffffff1a] text-white mt-1"
+              />
+            </div>
+          </div>
+          <DialogFooter className="mt-6">
+            <Button
+              variant="outline"
+              onClick={() => setShowCreateDialog(false)}
+              className="border-[#ffffff1a] text-[#a0a0b8] hover:text-white"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={createPromoCode}
+              disabled={creatingPromo || !newPromo.code.trim()}
+              className="bg-gradient-to-r from-[#00f0ff] to-[#7b2ff7] hover:opacity-90 text-white"
+            >
+              {creatingPromo ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                "Create Code"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 }

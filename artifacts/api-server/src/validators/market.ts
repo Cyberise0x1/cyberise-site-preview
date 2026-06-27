@@ -6,11 +6,17 @@ export const createOrderSchema = z.object({
   image: z.string().optional(),
   durationDays: z.number().int().min(7).max(365).default(30),
   tier: z.enum(["basic", "pro"]).default("basic"),
+  promoCode: z.string().optional(),
 });
 
 export const orderIdSchema = z.object({
   id: z.string().uuid(),
 });
 
+export const validatePromoSchema = z.object({
+  code: z.string().min(1, "Promo code is required"),
+});
+
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 export type OrderIdInput = z.infer<typeof orderIdSchema>;
+export type ValidatePromoInput = z.infer<typeof validatePromoSchema>;
