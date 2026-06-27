@@ -22,13 +22,18 @@ import {
   type ProvisionResult,
 } from "../services/provisioning";
 import {
+  validatePromoCode,
+  applyPromoCode,
+  applyDiscount,
+} from "../services/promoCode";
+import {
   sendSuccess,
   sendError,
   sendValidationError,
 } from "../utils/responses";
 import { requireAuth, attachUser, requireActiveUser } from "../middleware/auth";
 import { marketRateLimit, orderRateLimit } from "../middleware/rateLimit";
-import { createOrderSchema } from "../validators/market";
+import { createOrderSchema, validatePromoSchema } from "../validators/market";
 import { cryptoOrderSchema, estimateSchema } from "../validators/crypto";
 import {
   getCurrencies,
@@ -145,6 +150,40 @@ router.get("/market/plans", marketRateLimit, async (_req, res) => {
 });
 
 router.post(
+  "/market/promo/validate",
+  requireAuth,
+  attachUser,
+  marketRateLimit,
+  async (req: AuthRequest, res) => {
+    try {
+      const parsed = validatePromoSchema.safeParse(req.body);
+      if (!parsed.success) {
+        sendValidationError(res, parsed.error.flatten().fieldErrors);
+        return;
+      }
+
+      const { code } = parsed.data;
+      const userId = req.user!.id;
+
+      const validation = await validatePromoCode(code, userId);
+
+      if (!validation.valid) {
+        sendError(res, validation.error || "Invalid promo code", 400);
+        return;
+      }
+
+      sendSuccess(res, {
+        valid: true,
+        discountPercent: validation.discountPercent,
+      });
+    } catch (error) {
+      logger.error({ error }, "Failed to validate promo code");
+      sendError(res, "Failed to validate promo code");
+    }
+  },
+);
+
+router.post(
   "/market/order",
   requireAuth,
   attachUser,
@@ -158,7 +197,8 @@ router.post(
         return;
       }
 
-      const { plan, region, image, durationDays, tier } = parsed.data;
+      const { plan, region, image, durationDays, tier, promoCode } =
+        parsed.data;
       const userId = req.user!.id;
 
       const [settings, existingActive] = await Promise.all([
@@ -183,6 +223,18 @@ router.post(
 
       const markupPercent = (settingsMap.markup_percentage as number) ?? 20;
 
+      // Validate promo code if provided
+      let promoValidation: Awaited<
+        ReturnType<typeof validatePromoCode>
+      > | null = null;
+      if (promoCode) {
+        promoValidation = await validatePromoCode(promoCode, userId);
+        if (!promoValidation.valid) {
+          sendError(res, promoValidation.error || "Invalid promo code", 400);
+          return;
+        }
+      }
+
       let totalAmount: number;
       let expiresAt: Date;
       try {
@@ -201,6 +253,15 @@ router.post(
           e.statusCode || 400,
         );
         return;
+      }
+
+      // Apply promo discount
+      const originalAmount = totalAmount;
+      if (promoValidation?.valid && promoValidation.discountPercent) {
+        totalAmount = applyDiscount(
+          totalAmount,
+          promoValidation.discountPercent,
+        );
       }
 
       // Check balance BEFORE provisioning so an underfunded user can never
@@ -240,7 +301,7 @@ router.post(
             data: { balance: { decrement: totalAmount } },
           });
 
-          return tx.order.create({
+          const createdOrder = await tx.order.create({
             data: {
               userId,
               plan,
@@ -262,9 +323,29 @@ router.post(
                 ...(tier === "pro"
                   ? { proInstanceId: String(orderResult.instanceId) }
                   : {}),
+                ...(promoValidation?.valid && promoValidation.promoCodeId
+                  ? {
+                      promoCodeId: promoValidation.promoCodeId,
+                      promoCode: promoCode?.toUpperCase(),
+                      originalAmount,
+                      discountPercent: promoValidation.discountPercent,
+                    }
+                  : {}),
               },
             },
           });
+
+          // Record promo code usage if applicable
+          if (promoValidation?.valid && promoValidation.promoCodeId) {
+            await applyPromoCode(
+              promoValidation.promoCodeId,
+              userId,
+              createdOrder.id,
+              tx,
+            );
+          }
+
+          return createdOrder;
         });
       } catch (err) {
         logger.error(
@@ -392,8 +473,15 @@ router.post(
         return;
       }
 
-      const { plan, region, image, durationDays, tier, payCurrency } =
-        parsed.data;
+      const {
+        plan,
+        region,
+        image,
+        durationDays,
+        tier,
+        payCurrency,
+        promoCode,
+      } = parsed.data;
       const userId = req.user!.id;
 
       const [settings, existingActive] = await Promise.all([
@@ -414,6 +502,18 @@ router.post(
       if (existingActive >= maxActiveOrders) {
         sendError(res, "Maximum active orders reached", 400);
         return;
+      }
+
+      // Validate promo code if provided
+      let promoValidation: Awaited<
+        ReturnType<typeof validatePromoCode>
+      > | null = null;
+      if (promoCode) {
+        promoValidation = await validatePromoCode(promoCode, userId);
+        if (!promoValidation.valid) {
+          sendError(res, promoValidation.error || "Invalid promo code", 400);
+          return;
+        }
       }
 
       const markupPercent = (settingsMap.markup_percentage as number) ?? 20;
@@ -439,6 +539,15 @@ router.post(
         return;
       }
 
+      // Apply promo discount
+      const originalAmount = totalAmount;
+      if (promoValidation?.valid && promoValidation.discountPercent) {
+        totalAmount = applyDiscount(
+          totalAmount,
+          promoValidation.discountPercent,
+        );
+      }
+
       const nowpaymentsResult = await createPayment({
         price_amount: totalAmount,
         price_currency: "usd",
@@ -458,7 +567,18 @@ router.post(
             status: OrderStatus.PENDING,
             amount: totalAmount,
             durationDays,
-            metadata: { tier, paymentMethod: "crypto" },
+            metadata: {
+              tier,
+              paymentMethod: "crypto",
+              ...(promoValidation?.valid && promoValidation.promoCodeId
+                ? {
+                    promoCodeId: promoValidation.promoCodeId,
+                    promoCode: promoCode?.toUpperCase(),
+                    originalAmount,
+                    discountPercent: promoValidation.discountPercent,
+                  }
+                : {}),
+            },
           },
         });
 
@@ -474,6 +594,16 @@ router.post(
             paymentStatus: nowpaymentsResult.payment_status,
           },
         });
+
+        // Record promo code usage if applicable
+        if (promoValidation?.valid && promoValidation.promoCodeId) {
+          await applyPromoCode(
+            promoValidation.promoCodeId,
+            userId,
+            created.id,
+            tx,
+          );
+        }
 
         return created;
       });
