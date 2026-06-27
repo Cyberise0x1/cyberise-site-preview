@@ -393,7 +393,9 @@ router.patch(
   strictRateLimit,
   async (req: AuthRequest, res) => {
     try {
-      const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+      const id = Array.isArray(req.params.id)
+        ? req.params.id[0]
+        : req.params.id;
       const { active } = req.body;
 
       const promoCode = await prisma.promoCode.findUnique({ where: { id } });
@@ -431,7 +433,9 @@ router.delete(
   strictRateLimit,
   async (req: AuthRequest, res) => {
     try {
-      const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+      const id = Array.isArray(req.params.id)
+        ? req.params.id[0]
+        : req.params.id;
 
       const promoCode = await prisma.promoCode.findUnique({ where: { id } });
 

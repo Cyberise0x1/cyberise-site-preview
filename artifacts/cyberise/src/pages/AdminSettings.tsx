@@ -135,10 +135,17 @@ export default function AdminSettings() {
       });
       toast.success("Promo code created");
       setShowCreateDialog(false);
-      setNewPromo({ code: "", discountPercent: 10, maxUses: null, validUntil: null });
+      setNewPromo({
+        code: "",
+        discountPercent: 10,
+        maxUses: null,
+        validUntil: null,
+      });
       loadPromoCodes();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to create promo code");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to create promo code",
+      );
     } finally {
       setCreatingPromo(false);
     }
@@ -426,7 +433,8 @@ export default function AdminSettings() {
                               <Users className="w-3.5 h-3.5 text-[#666]" />
                               <span className="text-white text-sm">
                                 {promo.usedCount}
-                                {promo.maxUses !== null && ` / ${promo.maxUses}`}
+                                {promo.maxUses !== null &&
+                                  ` / ${promo.maxUses}`}
                               </span>
                             </div>
                           </td>
@@ -435,7 +443,9 @@ export default function AdminSettings() {
                               <Calendar className="w-3.5 h-3.5 text-[#666]" />
                               <span className="text-[#a0a0b8] text-sm">
                                 {promo.validUntil
-                                  ? new Date(promo.validUntil).toLocaleDateString()
+                                  ? new Date(
+                                      promo.validUntil,
+                                    ).toLocaleDateString()
                                   : "Never"}
                               </span>
                             </div>
@@ -484,14 +494,19 @@ export default function AdminSettings() {
               <Input
                 value={newPromo.code}
                 onChange={(e) =>
-                  setNewPromo({ ...newPromo, code: e.target.value.toUpperCase() })
+                  setNewPromo({
+                    ...newPromo,
+                    code: e.target.value.toUpperCase(),
+                  })
                 }
                 placeholder="SUMMER2026"
                 className="bg-[#0a0a0f] border-[#ffffff1a] text-white font-mono mt-1"
               />
             </div>
             <div>
-              <Label className="text-[#a0a0b8] text-sm">Discount Percentage</Label>
+              <Label className="text-[#a0a0b8] text-sm">
+                Discount Percentage
+              </Label>
               <Input
                 type="number"
                 min={1}

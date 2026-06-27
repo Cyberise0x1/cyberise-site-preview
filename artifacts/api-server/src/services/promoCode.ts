@@ -39,8 +39,14 @@ export async function validatePromoCode(
     }
 
     // Check global usage limit
-    if (promoCode.maxUses !== null && promoCode.usedCount >= promoCode.maxUses) {
-      return { valid: false, error: "This promo code has reached its usage limit" };
+    if (
+      promoCode.maxUses !== null &&
+      promoCode.usedCount >= promoCode.maxUses
+    ) {
+      return {
+        valid: false,
+        error: "This promo code has reached its usage limit",
+      };
     }
 
     // Check per-user usage
@@ -75,7 +81,9 @@ export async function applyPromoCode(
   promoCodeId: string,
   userId: string,
   orderId: string,
-  tx?: Parameters<typeof prisma.$transaction>[0] extends (arg: infer T) => any ? T : never,
+  tx?: Parameters<typeof prisma.$transaction>[0] extends (arg: infer T) => any
+    ? T
+    : never,
 ): Promise<void> {
   const client = tx ?? prisma;
 

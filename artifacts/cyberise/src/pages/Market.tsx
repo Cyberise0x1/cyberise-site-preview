@@ -300,7 +300,8 @@ export default function Market() {
   const basePrice = selectedPlanData
     ? selectedPlanData.price.monthly * (duration / 30)
     : 0;
-  const discountAmount = promoApplied && promoDiscount ? basePrice * (promoDiscount / 100) : 0;
+  const discountAmount =
+    promoApplied && promoDiscount ? basePrice * (promoDiscount / 100) : 0;
   const totalPrice = basePrice - discountAmount;
 
   async function handleValidatePromo() {
@@ -325,10 +326,14 @@ export default function Market() {
         setPromoDiscount(response.data.discountPercent);
         setPromoApplied(true);
         setPromoError(null);
-        toast.success(`Promo code applied! ${response.data.discountPercent}% off`);
+        toast.success(
+          `Promo code applied! ${response.data.discountPercent}% off`,
+        );
       }
     } catch (error) {
-      setPromoError(error instanceof Error ? error.message : "Invalid promo code");
+      setPromoError(
+        error instanceof Error ? error.message : "Invalid promo code",
+      );
       setPromoApplied(false);
       setPromoDiscount(null);
     } finally {
@@ -919,7 +924,9 @@ export default function Market() {
                     )}
                     {promoApplied && promoDiscount && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-[#00f0ff]">Discount ({promoDiscount}%)</span>
+                        <span className="text-[#00f0ff]">
+                          Discount ({promoDiscount}%)
+                        </span>
                         <span className="text-[#00f0ff]">
                           -${discountAmount.toFixed(2)}
                         </span>

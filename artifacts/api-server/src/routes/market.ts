@@ -197,7 +197,8 @@ router.post(
         return;
       }
 
-      const { plan, region, image, durationDays, tier, promoCode } = parsed.data;
+      const { plan, region, image, durationDays, tier, promoCode } =
+        parsed.data;
       const userId = req.user!.id;
 
       const [settings, existingActive] = await Promise.all([
@@ -223,7 +224,9 @@ router.post(
       const markupPercent = (settingsMap.markup_percentage as number) ?? 20;
 
       // Validate promo code if provided
-      let promoValidation: Awaited<ReturnType<typeof validatePromoCode>> | null = null;
+      let promoValidation: Awaited<
+        ReturnType<typeof validatePromoCode>
+      > | null = null;
       if (promoCode) {
         promoValidation = await validatePromoCode(promoCode, userId);
         if (!promoValidation.valid) {
@@ -255,7 +258,10 @@ router.post(
       // Apply promo discount
       const originalAmount = totalAmount;
       if (promoValidation?.valid && promoValidation.discountPercent) {
-        totalAmount = applyDiscount(totalAmount, promoValidation.discountPercent);
+        totalAmount = applyDiscount(
+          totalAmount,
+          promoValidation.discountPercent,
+        );
       }
 
       // Check balance BEFORE provisioning so an underfunded user can never
@@ -331,7 +337,12 @@ router.post(
 
           // Record promo code usage if applicable
           if (promoValidation?.valid && promoValidation.promoCodeId) {
-            await applyPromoCode(promoValidation.promoCodeId, userId, createdOrder.id, tx);
+            await applyPromoCode(
+              promoValidation.promoCodeId,
+              userId,
+              createdOrder.id,
+              tx,
+            );
           }
 
           return createdOrder;
@@ -462,8 +473,15 @@ router.post(
         return;
       }
 
-      const { plan, region, image, durationDays, tier, payCurrency, promoCode } =
-        parsed.data;
+      const {
+        plan,
+        region,
+        image,
+        durationDays,
+        tier,
+        payCurrency,
+        promoCode,
+      } = parsed.data;
       const userId = req.user!.id;
 
       const [settings, existingActive] = await Promise.all([
@@ -487,7 +505,9 @@ router.post(
       }
 
       // Validate promo code if provided
-      let promoValidation: Awaited<ReturnType<typeof validatePromoCode>> | null = null;
+      let promoValidation: Awaited<
+        ReturnType<typeof validatePromoCode>
+      > | null = null;
       if (promoCode) {
         promoValidation = await validatePromoCode(promoCode, userId);
         if (!promoValidation.valid) {
@@ -522,7 +542,10 @@ router.post(
       // Apply promo discount
       const originalAmount = totalAmount;
       if (promoValidation?.valid && promoValidation.discountPercent) {
-        totalAmount = applyDiscount(totalAmount, promoValidation.discountPercent);
+        totalAmount = applyDiscount(
+          totalAmount,
+          promoValidation.discountPercent,
+        );
       }
 
       const nowpaymentsResult = await createPayment({
@@ -574,7 +597,12 @@ router.post(
 
         // Record promo code usage if applicable
         if (promoValidation?.valid && promoValidation.promoCodeId) {
-          await applyPromoCode(promoValidation.promoCodeId, userId, created.id, tx);
+          await applyPromoCode(
+            promoValidation.promoCodeId,
+            userId,
+            created.id,
+            tx,
+          );
         }
 
         return created;
