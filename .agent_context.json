@@ -1,7 +1,7 @@
 {
   "protocol_version": 2,
-  "last_updated_by": "claude",
-  "last_updated_at": "2026-06-28T00:07:00Z",
+  "last_updated_by": "replit",
+  "last_updated_at": "2026-06-28T10:39:39Z",
   "_protocol_note": "All three agents follow AGENT_PROTOCOL.md v2. This file is the shared live state — claims, logs, notes, conflicts. Protocol is symmetric — any agent can do any task; no role assignments.",
 
   "sprint_goal": "Security-audit remediation — NEARLY COMPLETE (verified against code 2026-06-27 by claude). DONE & VERIFIED IN CODE: (1) pricing split from provisioning — calculatePrice() is pure, provisionInstance() only runs after balance debit / crypto webhook confirm (services/provisioning.ts, routes/market.ts); (2) CRON_SECRET fail-closed via isAuthorizedCron() + timingSafeEqual (routes/cron.ts); (3) NOWPayments IPN verify hashes ksort-ed payload HMAC-SHA512 (services/nowpayments.ts sortObjectKeys); (4) vercel.json has SPA catch-all rewrite + security headers (note: CSP is Content-Security-Policy-Report-Only, not yet enforcing); (5a) /market/crypto/estimate rate-limited (marketRateLimit); (5b) encryption is AES-256-GCM with gcm: prefix + legacy CBC read-fallback (utils/encryption.ts); plus Clerk webhook raw-body HMAC (PR #57). ONLY REMAINING: (5c) /admin/agent-context debug endpoint still live (routes/admin.ts:295) — it is admin-gated (requireAuth+attachUser+requireAdmin) and powers the AdminDev.tsx live feed, so removal is a product decision (would also delete that feed). OPTIONAL HARDENING: promote vercel.json CSP from Report-Only to enforcing. All deps up to date — PRs #58/#60/#61 merged 2026-06-08; dependabot #70/#71 merged 2026-06-28.",
@@ -28,6 +28,7 @@
     { "ts": "2026-05-20T00:00:00Z", "file": "lib/env/src/index.ts", "action": "edit", "summary": "Added RDP_MONSTER_EMAIL env var, changed RDP_MONSTER_API_URL default to https://manager.rdp.monster/api.php" }
   ],
   "replit_log": [
+    { "ts": "2026-06-28T10:39:39Z", "file": "artifacts/cyberise/src/pages/Market.tsx", "action": "edit", "summary": "Fix Basic order image fallback: 'windows10' → 'linode/debian12'. Linode account has no custom Windows images so selectedImage was always empty; invalid fallback caused Linode API to reject all Basic orders with 'Failed to provision instance'. Confirmed linode/debian12 available on account via API." },
     { "ts": "2026-06-27T08:45:00Z", "file": "lib/db/prisma/schema.prisma", "action": "edit", "summary": "Added PromoCode model (code, discountPercent, maxUses, usedCount, validFrom/validUntil, active) and PromoCodeUsage model (promoCodeId, userId, orderId) with unique constraint for per-user limits" },
     { "ts": "2026-06-27T08:46:00Z", "file": "artifacts/api-server/src/services/promoCode.ts", "action": "create", "summary": "New promo code service — validatePromoCode() checks validity/usage/limits, applyPromoCode() records usage in transaction, applyDiscount() calculates discounted price" },
     { "ts": "2026-06-27T08:47:00Z", "file": "artifacts/api-server/src/validators/market.ts", "action": "edit", "summary": "Added optional promoCode field to createOrderSchema, added validatePromoSchema" },
