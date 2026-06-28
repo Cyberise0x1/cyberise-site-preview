@@ -100,4 +100,66 @@ describe("provisionInstance", () => {
     expect(result.instanceId).toBe(123);
     expect(result.totalAmount).toBe(12);
   });
+
+  it("forwards the selected image ID verbatim to createInstance", async () => {
+    createInstance.mockResolvedValue({ id: 456, ipv4: ["5.6.7.8"] });
+    await provisionInstance({
+      plan: "g6-standard-1",
+      region: "us-east",
+      image: "linode/debian12",
+      tier: "basic",
+      userId: "user_abcdefgh",
+      durationDays: 30,
+      markupPercent: 0,
+    });
+    expect(createInstance).toHaveBeenCalledWith(
+      expect.objectContaining({ image: "linode/debian12" }),
+    );
+  });
+
+  it("forwards each supported distro image ID without mutation", async () => {
+    const imageIds = [
+      "linode/debian12",
+      "linode/debian11",
+      "linode/ubuntu24.04",
+      "linode/ubuntu22.04",
+      "linode/almalinux9",
+      "linode/rocky9",
+    ];
+
+    for (const imageId of imageIds) {
+      vi.clearAllMocks();
+      getPlans.mockResolvedValue([basicPlan]);
+      createInstance.mockResolvedValue({ id: 1, ipv4: ["1.1.1.1"] });
+
+      await provisionInstance({
+        plan: "g6-standard-1",
+        region: "us-east",
+        image: imageId,
+        tier: "basic",
+        userId: "user_abcdefgh",
+        durationDays: 7,
+        markupPercent: 0,
+      });
+
+      expect(createInstance).toHaveBeenCalledWith(
+        expect.objectContaining({ image: imageId }),
+      );
+    }
+  });
+
+  it("surfaces a 503 when createInstance rejects and does not swallow the error", async () => {
+    createInstance.mockRejectedValue(new Error("Linode API error: 422 - bad image"));
+    await expect(
+      provisionInstance({
+        plan: "g6-standard-1",
+        region: "us-east",
+        image: "linode/nonexistent",
+        tier: "basic",
+        userId: "user_abcdefgh",
+        durationDays: 30,
+        markupPercent: 0,
+      }),
+    ).rejects.toMatchObject({ statusCode: 503 });
+  });
 });
