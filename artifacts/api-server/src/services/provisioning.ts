@@ -125,7 +125,7 @@ export async function provisionInstance(
 
   return {
     ip: linodeInstance.ipv4[0],
-    username: "Administrator",
+    username: "root",
     password: rdpPassword,
     instanceId: linodeInstance.id,
     totalAmount,
