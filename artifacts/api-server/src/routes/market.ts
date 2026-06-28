@@ -283,8 +283,25 @@ router.post(
           markupPercent,
         });
       } catch (err: unknown) {
-        const e = err as Error & { statusCode?: number };
-        logger.error({ err }, "Provisioning failed");
+        const e = err as Error & { statusCode?: number; linodeError?: string };
+        logger.error(
+          { err, linodeError: e.linodeError, plan, region },
+          "Provisioning failed",
+        );
+        await prisma.auditLog.create({
+          data: {
+            actorId: userId,
+            action: "PROVISION_FAILED",
+            entity: "User",
+            entityId: userId,
+            metadata: {
+              plan,
+              region,
+              image: image ?? "unknown",
+              linodeError: e.linodeError ?? null,
+            },
+          },
+        });
         sendError(
           res,
           e.message || "Failed to provision instance",

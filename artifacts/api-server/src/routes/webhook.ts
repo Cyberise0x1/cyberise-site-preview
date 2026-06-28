@@ -315,8 +315,14 @@ router.post("/webhooks/nowpayments", async (req, res) => {
           "Crypto payment confirmed, server provisioned",
         );
       } catch (err) {
+        const e = err as Error & { linodeError?: string };
         logger.error(
-          { err, orderId: order.id, paymentId: payment_id },
+          {
+            err,
+            orderId: order.id,
+            paymentId: payment_id,
+            linodeError: e.linodeError,
+          },
           "Provisioning failed after crypto payment confirmation",
         );
 
@@ -333,6 +339,7 @@ router.post("/webhooks/nowpayments", async (req, res) => {
             metadata: {
               paymentId: payment_id,
               error: String(err),
+              linodeError: e.linodeError ?? null,
             },
           },
         });
