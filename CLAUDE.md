@@ -37,3 +37,20 @@ Fall back to Grep/Glob/Read **only** when the graph doesn't cover what you need.
 2. Use `detect_changes` for code review.
 3. Use `get_affected_flows` to understand impact.
 4. Use `query_graph` pattern="tests_for" to check coverage.
+
+## Intent Layer
+
+**Before modifying code in a subdirectory, read its AGENTS.md first** to understand local patterns and invariants.
+
+- **[API Server]**: `artifacts/api-server/AGENTS.md` - Express backend, routes, services, provisioning
+- **[Frontend]**: `artifacts/cyberise/AGENTS.md` - React SPA, pages, components, market checkout
+- **[Shared Libraries]**: `lib/AGENTS.md` - DB, API types, shared schemas
+
+### Global Invariants
+
+- All DB access through `@workspace/db` (Prisma) — never raw SQL
+- Auth: Clerk for frontend, JWT middleware for backend
+- Promo codes: validate → apply discount → check balance → provision (in order)
+- Price calculation always server-side — frontend display only
+- Never expose provider branding (Linode/RDP Monster) to users
+- Crypto orders: provision only after payment confirmed (except 100% off)

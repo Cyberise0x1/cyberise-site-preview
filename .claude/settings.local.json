@@ -48,11 +48,20 @@
       "Bash(git merge *)",
       "Bash(python3 -)",
       "Bash(npx prettier *)",
-      "Bash(python3 -c \"import json;json.load\\(open\\('.agent_context.json'\\)\\);print\\('OK'\\)\")"
+      "Bash(python3 -c \"import json;json.load\\(open\\('.agent_context.json'\\)\\);print\\('OK'\\)\")",
+      "Bash(chmod +x /home/runner/workspace/.claude/skills/intent-layer/scripts/detect_state.sh)",
+      "Bash(chmod +x /home/runner/workspace/.claude/skills/intent-layer/scripts/analyze_structure.sh)",
+      "Bash(/home/runner/workspace/.claude/skills/intent-layer/scripts/detect_state.sh *)",
+      "Bash(/home/runner/workspace/.claude/skills/intent-layer/scripts/analyze_structure.sh *)",
+      "Bash(/home/runner/workspace/.claude/skills/intent-layer/scripts/estimate_tokens.sh *)",
+      "Bash(pip show *)",
+      "Bash(code-review-graph detect-changes *)"
     ]
   },
   "enabledMcpjsonServers": [
     "code-review-graph"
   ],
-  "skillOverrides": {}
+  "skillOverrides": {
+    "caveman": "user-invocable-only"
+  }
 }
