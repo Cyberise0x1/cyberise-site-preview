@@ -7,6 +7,7 @@ export const cryptoOrderSchema = z.object({
   durationDays: z.number().int().min(7).max(365).default(30),
   tier: z.enum(["basic", "pro"]).default("basic"),
   payCurrency: z.string().min(1),
+  promoCode: z.string().optional(),
 });
 
 export const estimateSchema = z.object({

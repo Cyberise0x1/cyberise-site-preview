@@ -69,6 +69,8 @@ export type MarketData = {
     id: string;
     label: string;
   }>;
+  windowsComingSoon?: boolean;
+  windowsMessage?: string;
 };
 
 export type Order = {
