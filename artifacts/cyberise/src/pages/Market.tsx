@@ -67,9 +67,26 @@ type CryptoPaymentData = {
 function CopyButton({ value, label }: { value: string; label: string }) {
   const [copied, setCopied] = useState(false);
   const copy = () => {
-    navigator.clipboard.writeText(value);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(value).catch(() => fallbackCopy(value));
+    } else {
+      fallbackCopy(value);
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+  const fallbackCopy = (text: string) => {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.setAttribute("readonly", "");
+    textarea.style.cssText = "position:fixed;top:-9999px;left:-9999px;opacity:0";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    try {
+      document.execCommand("copy");
+    } catch (_) {}
+    document.body.removeChild(textarea);
   };
   return (
     <div className="flex items-center gap-2 bg-[#0a0a0f] rounded-lg px-3 py-2.5 border border-[rgba(255,255,255,0.06)]">
