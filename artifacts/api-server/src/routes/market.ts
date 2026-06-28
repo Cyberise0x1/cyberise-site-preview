@@ -14,7 +14,11 @@ import {
   deleteProInstance,
 } from "../services/rdpmonster";
 import { getCache, setCache } from "../services/redis";
-import { sendEmail, generateRDPCredentialsEmail } from "../services/email";
+import {
+  sendEmail,
+  generateRDPCredentialsEmail,
+  generateSSHCredentialsEmail,
+} from "../services/email";
 import { encrypt } from "../utils/encryption";
 import {
   provisionInstance,
@@ -395,16 +399,29 @@ router.post(
         return;
       }
 
-      const emailContent = generateRDPCredentialsEmail({
-        ip: orderResult.ip,
-        username: orderResult.username,
-        password: orderResult.password,
-        expiresAt,
-      });
+      const emailContent =
+        tier === "basic"
+          ? generateSSHCredentialsEmail({
+              ip: orderResult.ip,
+              username: orderResult.username,
+              password: orderResult.password,
+              expiresAt,
+            })
+          : generateRDPCredentialsEmail({
+              ip: orderResult.ip,
+              username: orderResult.username,
+              password: orderResult.password,
+              expiresAt,
+            });
+
+      const emailSubject =
+        tier === "basic"
+          ? "Your Linux Server Credentials — Cyberise"
+          : "Your RDP Server Credentials — Cyberise";
 
       await sendEmail({
         to: req.user!.email,
-        subject: "Your Server Credentials — Cyberise",
+        subject: emailSubject,
         html: emailContent.html,
         text: emailContent.text,
         userId,

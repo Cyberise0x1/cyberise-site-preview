@@ -1100,6 +1100,12 @@ export default function Market() {
               <p className="text-[#a0a0b8] text-sm">
                 Your credentials have also been sent to your email.
               </p>
+              {credentials.tier === "basic" && (
+                <CopyButton
+                  value={`ssh ${credentials.username}@${credentials.ip}`}
+                  label="SSH Command"
+                />
+              )}
               <CopyButton value={credentials.ip} label="IP Address" />
               <CopyButton value={credentials.username} label="Username" />
               <CopyButton value={credentials.password} label="Password" />
