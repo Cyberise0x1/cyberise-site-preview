@@ -22,6 +22,7 @@ import Orders from "./pages/Orders";
 import AdminUsers from "./pages/AdminUsers";
 import AdminOrders from "./pages/AdminOrders";
 import AdminSettings from "./pages/AdminSettings";
+import AdminAuditLogs from "./pages/AdminAuditLogs";
 import AdminDev from "./pages/AdminDev";
 import { Toaster } from "@/components/ui/toaster";
 
@@ -155,6 +156,7 @@ function AppRoutes() {
           <Route path="/admin/users" component={AdminUsers} />
           <Route path="/admin/orders" component={AdminOrders} />
           <Route path="/admin/settings" component={AdminSettings} />
+          <Route path="/admin/audit-logs" component={AdminAuditLogs} />
           <Route path="/admin/dev" component={AdminDev} />
         </Switch>
       </motion.div>

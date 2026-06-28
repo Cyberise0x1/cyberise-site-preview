@@ -8,6 +8,7 @@ import {
   Shield,
   ArrowLeft,
   Code2,
+  ClipboardList,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -15,6 +16,7 @@ const navItems = [
   { href: "/admin/users", icon: Users, label: "Users" },
   { href: "/admin/orders", icon: Server, label: "Orders" },
   { href: "/admin/settings", icon: Settings, label: "Settings" },
+  { href: "/admin/audit-logs", icon: ClipboardList, label: "Audit Logs" },
   { href: "/admin/dev", icon: Code2, label: "Dev" },
 ];
 
@@ -22,6 +24,7 @@ function AdminLayoutInner({ children }: { children: ReactNode }) {
   const [isUsers] = useRoute("/admin/users");
   const [isOrders] = useRoute("/admin/orders");
   const [isSettings] = useRoute("/admin/settings");
+  const [isAuditLogs] = useRoute("/admin/audit-logs");
   const [isDev] = useRoute("/admin/dev");
 
   const active = isUsers
@@ -30,9 +33,11 @@ function AdminLayoutInner({ children }: { children: ReactNode }) {
       ? "/admin/orders"
       : isSettings
         ? "/admin/settings"
-        : isDev
-          ? "/admin/dev"
-          : "/admin/users";
+        : isAuditLogs
+          ? "/admin/audit-logs"
+          : isDev
+            ? "/admin/dev"
+            : "/admin/users";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#12121a] to-[#1a1a2e]">

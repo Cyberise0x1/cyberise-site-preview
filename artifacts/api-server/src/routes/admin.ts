@@ -292,6 +292,57 @@ router.patch(
   },
 );
 
+router.get("/admin/audit-logs", async (req: AuthRequest, res) => {
+  try {
+    const parsed = paginationSchema.safeParse(req.query);
+    if (!parsed.success) {
+      sendValidationError(res, parsed.error.flatten().fieldErrors);
+      return;
+    }
+
+    const { page, limit, search } = parsed.data;
+    const skip = (page - 1) * limit;
+    const action = req.query.action ? String(req.query.action) : undefined;
+
+    const where: Record<string, unknown> = {};
+    if (action) {
+      where.action = action;
+    } else if (search) {
+      where.OR = [
+        { action: { contains: search, mode: "insensitive" } },
+        { entity: { contains: search, mode: "insensitive" } },
+        { entityId: { contains: search, mode: "insensitive" } },
+      ];
+    }
+
+    const [logs, total] = await Promise.all([
+      prisma.auditLog.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: "desc" },
+        include: {
+          actor: { select: { email: true } },
+        },
+      }),
+      prisma.auditLog.count({ where }),
+    ]);
+
+    sendSuccess(res, {
+      logs,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    logger.error({ error }, "Failed to fetch audit logs");
+    sendError(res, "Failed to fetch audit logs");
+  }
+});
+
 router.get("/admin/agent-context", async (_req: AuthRequest, res) => {
   try {
     const candidates = [
