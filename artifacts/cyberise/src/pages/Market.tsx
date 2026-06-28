@@ -745,8 +745,8 @@ export default function Market() {
                 >
                   <AlertTriangle className="w-4 h-4 text-[#ff8800] flex-shrink-0" />
                   <p className="text-[#ff8800] text-xs font-rajdhani">
-                    No Windows images are configured on this account. Contact
-                    support to enable Basic tier deployments.
+                    No Linux images are available. Contact support to enable
+                    Basic tier deployments.
                   </p>
                 </motion.div>
               )}
@@ -759,9 +759,12 @@ export default function Market() {
                   transition={{ delay: 0.3 }}
                   className="bg-[#0d0d14] rounded-xl border border-[rgba(255,255,255,0.07)] p-4"
                 >
-                  <h3 className="text-white text-sm font-semibold font-rajdhani tracking-wide mb-3">
-                    Windows Image
-                  </h3>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Server className="w-4 h-4 text-[#00f0ff]" />
+                    <h3 className="text-white text-sm font-semibold font-rajdhani tracking-wide">
+                      Linux Distribution
+                    </h3>
+                  </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {marketData.images.map((img) => (
                       <button
@@ -845,6 +848,16 @@ export default function Market() {
                         : "—"}
                     </span>
                   </div>
+                  {selectedTier === "basic" && (
+                    <div className="flex justify-between">
+                      <span className="text-[#a0a0b8]">OS</span>
+                      <span className="text-white text-right">
+                        {marketData?.images.find(
+                          (img) => img.id === selectedImage,
+                        )?.label ?? "Debian 12"}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Promo Code Section */}

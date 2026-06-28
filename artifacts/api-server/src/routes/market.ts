@@ -5,7 +5,7 @@ import {
   getPlans,
   getSharedCPUPlans,
   getRegions,
-  getWindowsImages,
+  getLinuxImages,
   deleteInstance,
 } from "../services/linode";
 import {
@@ -72,14 +72,14 @@ router.get("/market/plans", marketRateLimit, async (_req, res) => {
       settings.map((s) => [s.key, s.value]),
     );
 
-    const [basicPlans, basicRegions, images, proPlans, proRegions] =
+    const [basicPlans, basicRegions, proPlans, proRegions] =
       await Promise.all([
         getPlans(),
         getRegions(),
-        getWindowsImages(),
         getProPlans(),
         getProRegions(),
       ]);
+    const images = getLinuxImages();
 
     const enabledRegions =
       (settingsMap.enabled_regions as string[]) ??

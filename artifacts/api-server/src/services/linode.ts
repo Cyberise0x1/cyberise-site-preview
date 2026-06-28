@@ -139,6 +139,71 @@ export async function getWindowsImages(): Promise<LinodeImage[]> {
   );
 }
 
+export function getLinuxImages(): LinodeImage[] {
+  return [
+    {
+      id: "linode/debian12",
+      label: "Debian 12",
+      description: "Debian 12 (Bookworm)",
+      size: 1536,
+      status: "available",
+      type: "manual",
+      vendor: "Debian",
+      deprecated: false,
+    },
+    {
+      id: "linode/debian11",
+      label: "Debian 11",
+      description: "Debian 11 (Bullseye)",
+      size: 1536,
+      status: "available",
+      type: "manual",
+      vendor: "Debian",
+      deprecated: false,
+    },
+    {
+      id: "linode/ubuntu24.04",
+      label: "Ubuntu 24.04 LTS",
+      description: "Ubuntu 24.04 LTS (Noble Numbat)",
+      size: 1536,
+      status: "available",
+      type: "manual",
+      vendor: "Ubuntu",
+      deprecated: false,
+    },
+    {
+      id: "linode/ubuntu22.04",
+      label: "Ubuntu 22.04 LTS",
+      description: "Ubuntu 22.04 LTS (Jammy Jellyfish)",
+      size: 1536,
+      status: "available",
+      type: "manual",
+      vendor: "Ubuntu",
+      deprecated: false,
+    },
+    {
+      id: "linode/almalinux9",
+      label: "AlmaLinux 9",
+      description: "AlmaLinux 9",
+      size: 1536,
+      status: "available",
+      type: "manual",
+      vendor: "AlmaLinux",
+      deprecated: false,
+    },
+    {
+      id: "linode/rocky9",
+      label: "Rocky Linux 9",
+      description: "Rocky Linux 9",
+      size: 1536,
+      status: "available",
+      type: "manual",
+      vendor: "Rocky Linux",
+      deprecated: false,
+    },
+  ];
+}
+
 export async function createInstance(params: {
   region: string;
   type: string;
