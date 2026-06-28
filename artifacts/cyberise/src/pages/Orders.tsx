@@ -29,6 +29,8 @@ import {
   ChevronUp,
   Search,
   Plus,
+  Terminal,
+  Monitor,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -226,15 +228,32 @@ function OrderCard({
               <div className="px-4 py-4 space-y-4">
                 {hasCredentials ? (
                   <div className="space-y-2">
-                    <p className="text-[#a0a0b8] text-xs font-rajdhani uppercase tracking-[1px] mb-2">
-                      RDP Credentials
-                    </p>
+                    <div className="flex items-center gap-2 mb-2">
+                      {isPro ? (
+                        <Monitor className="w-3.5 h-3.5 text-[#a855f7]" />
+                      ) : (
+                        <Terminal className="w-3.5 h-3.5 text-[#00f0ff]" />
+                      )}
+                      <p
+                        className={`text-xs font-rajdhani uppercase tracking-[1px] ${
+                          isPro ? "text-[#a855f7]" : "text-[#00f0ff]"
+                        }`}
+                      >
+                        {isPro ? "RDP Credentials" : "SSH Credentials"}
+                      </p>
+                    </div>
                     <CopyField value={order.ip!} label="IP Address" />
                     <CopyField value={order.rdpUsername!} label="Username" />
                     <CopyField
                       value={order.rdpPassword || ""}
                       label="Password"
                     />
+                    {!isPro && (
+                      <CopyField
+                        value={`ssh ${order.rdpUsername}@${order.ip}`}
+                        label="SSH Command"
+                      />
+                    )}
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 text-[#666] text-sm py-2">

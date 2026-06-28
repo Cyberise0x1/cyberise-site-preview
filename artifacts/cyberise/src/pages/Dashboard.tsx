@@ -17,6 +17,8 @@ import {
   AlertTriangle,
   Activity,
   ChevronRight,
+  Terminal,
+  Monitor,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -96,7 +98,7 @@ function InstanceRow({ order }: { order: Order }) {
             {isPro ? "⚡ Pro" : "Basic"}
           </span>
         </div>
-        <div className="flex items-center gap-2 text-[#666] text-xs">
+        <div className="flex items-center gap-2 text-[#666] text-xs flex-wrap">
           <span>
             {getRegionFlag(order.region.split("-")[0])} {order.region}
           </span>
@@ -106,6 +108,20 @@ function InstanceRow({ order }: { order: Order }) {
               <span className="font-mono">{order.ip}</span>
             </>
           )}
+          <span
+            className={`inline-flex items-center gap-1 text-[9px] font-bold tracking-[1px] uppercase px-1.5 py-0.5 rounded border font-rajdhani ${
+              isPro
+                ? "bg-[rgba(123,47,247,0.08)] text-[#a855f7] border-[rgba(123,47,247,0.18)]"
+                : "bg-[rgba(0,240,255,0.06)] text-[#00f0ff] border-[rgba(0,240,255,0.15)]"
+            }`}
+          >
+            {isPro ? (
+              <Monitor className="w-2.5 h-2.5" />
+            ) : (
+              <Terminal className="w-2.5 h-2.5" />
+            )}
+            {isPro ? "RDP" : "SSH"}
+          </span>
         </div>
       </div>
 
