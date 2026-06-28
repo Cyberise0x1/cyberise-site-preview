@@ -7,7 +7,11 @@ import { logger } from "../lib/logger";
 import { verifyIpnSignature } from "../services/nowpayments";
 import { provisionInstance } from "../services/provisioning";
 import { encrypt } from "../utils/encryption";
-import { sendEmail, generateRDPCredentialsEmail } from "../services/email";
+import {
+  sendEmail,
+  generateRDPCredentialsEmail,
+  generateSSHCredentialsEmail,
+} from "../services/email";
 
 const router: IRouter = Router();
 
@@ -280,16 +284,29 @@ router.post("/webhooks/nowpayments", async (req, res) => {
         });
 
         if (user?.email) {
-          const emailContent = generateRDPCredentialsEmail({
-            ip: provisionResult.ip,
-            username: provisionResult.username,
-            password: provisionResult.password,
-            expiresAt: provisionResult.expiresAt,
-          });
+          const emailContent =
+            tier === "basic"
+              ? generateSSHCredentialsEmail({
+                  ip: provisionResult.ip,
+                  username: provisionResult.username,
+                  password: provisionResult.password,
+                  expiresAt: provisionResult.expiresAt,
+                })
+              : generateRDPCredentialsEmail({
+                  ip: provisionResult.ip,
+                  username: provisionResult.username,
+                  password: provisionResult.password,
+                  expiresAt: provisionResult.expiresAt,
+                });
+
+          const emailSubject =
+            tier === "basic"
+              ? "Your Linux Server Credentials — Cyberise"
+              : "Your RDP Server Credentials — Cyberise";
 
           await sendEmail({
             to: user.email,
-            subject: "Your Server Credentials — Cyberise",
+            subject: emailSubject,
             html: emailContent.html,
             text: emailContent.text,
             userId: order.userId,

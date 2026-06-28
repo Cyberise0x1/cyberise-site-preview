@@ -29,6 +29,7 @@ vi.mock("../utils/encryption", () => ({ encrypt: vi.fn() }));
 vi.mock("../services/email", () => ({
   sendEmail: vi.fn(),
   generateRDPCredentialsEmail: vi.fn(),
+  generateSSHCredentialsEmail: vi.fn(),
 }));
 
 import { prisma, UserRole } from "@workspace/db";
