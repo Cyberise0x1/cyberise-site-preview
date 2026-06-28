@@ -316,4 +316,152 @@ router.get("/admin/agent-context", async (_req: AuthRequest, res) => {
   }
 });
 
+// Promo Code Management
+
+router.get("/admin/promo-codes", async (_req: AuthRequest, res) => {
+  try {
+    const promoCodes = await prisma.promoCode.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+    sendSuccess(res, promoCodes);
+  } catch (error) {
+    logger.error({ error }, "Failed to fetch promo codes");
+    sendError(res, "Failed to fetch promo codes");
+  }
+});
+
+router.post(
+  "/admin/promo-codes",
+  strictRateLimit,
+  async (req: AuthRequest, res) => {
+    try {
+      const { code, discountPercent, maxUses, validUntil } = req.body;
+
+      if (!code || typeof code !== "string") {
+        sendError(res, "Promo code is required", 400);
+        return;
+      }
+
+      if (
+        !discountPercent ||
+        typeof discountPercent !== "number" ||
+        discountPercent < 1 ||
+        discountPercent > 100
+      ) {
+        sendError(res, "Discount percent must be between 1 and 100", 400);
+        return;
+      }
+
+      const existing = await prisma.promoCode.findUnique({
+        where: { code: code.toUpperCase() },
+      });
+
+      if (existing) {
+        sendError(res, "A promo code with this name already exists", 409);
+        return;
+      }
+
+      const promoCode = await prisma.promoCode.create({
+        data: {
+          code: code.toUpperCase(),
+          discountPercent,
+          maxUses: maxUses ?? null,
+          validUntil: validUntil ? new Date(validUntil) : null,
+        },
+      });
+
+      await prisma.auditLog.create({
+        data: {
+          actorId: req.user!.id,
+          action: "PROMO_CODE_CREATED",
+          entity: "PromoCode",
+          entityId: promoCode.id,
+          metadata: { code: promoCode.code, discountPercent },
+        },
+      });
+
+      sendSuccess(res, promoCode, 201);
+    } catch (error) {
+      logger.error({ error }, "Failed to create promo code");
+      sendError(res, "Failed to create promo code");
+    }
+  },
+);
+
+router.patch(
+  "/admin/promo-codes/:id",
+  strictRateLimit,
+  async (req: AuthRequest, res) => {
+    try {
+      const id = Array.isArray(req.params.id)
+        ? req.params.id[0]
+        : req.params.id;
+      const { active } = req.body;
+
+      const promoCode = await prisma.promoCode.findUnique({ where: { id } });
+
+      if (!promoCode) {
+        sendNotFound(res, "Promo code");
+        return;
+      }
+
+      const updated = await prisma.promoCode.update({
+        where: { id },
+        data: { active: active ?? promoCode.active },
+      });
+
+      await prisma.auditLog.create({
+        data: {
+          actorId: req.user!.id,
+          action: "PROMO_CODE_UPDATED",
+          entity: "PromoCode",
+          entityId: id,
+          metadata: { active: updated.active },
+        },
+      });
+
+      sendSuccess(res, updated);
+    } catch (error) {
+      logger.error({ error }, "Failed to update promo code");
+      sendError(res, "Failed to update promo code");
+    }
+  },
+);
+
+router.delete(
+  "/admin/promo-codes/:id",
+  strictRateLimit,
+  async (req: AuthRequest, res) => {
+    try {
+      const id = Array.isArray(req.params.id)
+        ? req.params.id[0]
+        : req.params.id;
+
+      const promoCode = await prisma.promoCode.findUnique({ where: { id } });
+
+      if (!promoCode) {
+        sendNotFound(res, "Promo code");
+        return;
+      }
+
+      await prisma.promoCode.delete({ where: { id } });
+
+      await prisma.auditLog.create({
+        data: {
+          actorId: req.user!.id,
+          action: "PROMO_CODE_DELETED",
+          entity: "PromoCode",
+          entityId: id,
+          metadata: { code: promoCode.code },
+        },
+      });
+
+      sendSuccess(res, { deleted: true });
+    } catch (error) {
+      logger.error({ error }, "Failed to delete promo code");
+      sendError(res, "Failed to delete promo code");
+    }
+  },
+);
+
 export default router;
