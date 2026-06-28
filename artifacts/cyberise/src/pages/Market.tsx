@@ -378,7 +378,7 @@ export default function Market() {
             region: selectedRegion,
             image:
               selectedTier === "basic"
-                ? selectedImage || "windows10"
+                ? selectedImage || "linode/debian12"
                 : "windows",
             durationDays: duration,
             tier: selectedTier,
@@ -439,7 +439,7 @@ export default function Market() {
           plan: selectedPlan,
           region: selectedRegion,
           image:
-            selectedTier === "basic" ? selectedImage || "windows10" : "windows",
+            selectedTier === "basic" ? selectedImage || "linode/debian12" : "windows",
           durationDays: duration,
           tier: selectedTier,
           payCurrency,
