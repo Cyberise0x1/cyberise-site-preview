@@ -1,0 +1,74 @@
+{
+  "updates": [
+    {
+      "id": "promo-code-fix-2026-06-28",
+      "title": "Fix Promo Code Checkout for 100% Off",
+      "status": "planned",
+      "created": "2026-06-28",
+      "priority": "high",
+      "description": "Fix checkout flow when using 100% off promo codes, especially for crypto payments which currently fail when total is $0",
+      "issues": [
+        {
+          "id": 1,
+          "severity": "critical",
+          "title": "Crypto + 100% off fails",
+          "description": "NOWPayments API rejects $0 payment requests",
+          "location": "api-server/src/routes/market.ts:551"
+        },
+        {
+          "id": 2,
+          "severity": "medium",
+          "title": "Estimate validation rejects $0",
+          "description": "crypto estimate schema uses z.number().positive() which rejects zero",
+          "location": "api-server/src/validators/crypto.ts:13"
+        },
+        {
+          "id": 3,
+          "severity": "medium",
+          "title": "Frontend calls crypto estimate at $0",
+          "description": "Market page still tries to fetch crypto estimate when price is $0",
+          "location": "cyberise/src/pages/Market.tsx:399"
+        },
+        {
+          "id": 4,
+          "severity": "medium",
+          "title": "No 100% off shortcut",
+          "description": "System should skip payment gateway entirely for 100% off codes and provision directly",
+          "location": "api-server/src/routes/market.ts:462-646"
+        }
+      ],
+      "fixes": [
+        {
+          "id": 1,
+          "file": "api-server/src/routes/market.ts",
+          "change": "Add 100% off shortcut in crypto order endpoint - if totalAmount === 0 after discount, skip NOWPayments and provision directly (same as balance path)"
+        },
+        {
+          "id": 2,
+          "file": "api-server/src/validators/crypto.ts",
+          "change": "Change amount validation from z.number().positive() to z.number().nonnegative() to allow $0"
+        },
+        {
+          "id": 3,
+          "file": "cyberise/src/pages/Market.tsx",
+          "change": "Skip crypto estimate call when totalPrice === 0"
+        },
+        {
+          "id": 4,
+          "file": "cyberise/src/pages/Market.tsx",
+          "change": "Show 'FREE' label instead of $0.00 when total is $0"
+        },
+        {
+          "id": 5,
+          "file": "cyberise/src/pages/Market.tsx",
+          "change": "Update crypto button to show 'Deploy Now (Free)' when price is $0 instead of 'Pay with Crypto'"
+        }
+      ],
+      "workflow_summary": {
+        "balance_payment": "Works for 100% off - provisions directly, deducts $0",
+        "crypto_payment_broken": "NOWPayments rejects $0 payment creation",
+        "crypto_payment_fixed": "Skip NOWPayments, provision directly like balance path"
+      }
+    }
+  ]
+}
