@@ -148,6 +148,20 @@ describe("provisionInstance", () => {
     }
   });
 
+  it("returns 'root' as the username for a basic Linux instance", async () => {
+    createInstance.mockResolvedValue({ id: 789, ipv4: ["9.9.9.9"] });
+    const result = await provisionInstance({
+      plan: "g6-standard-1",
+      region: "us-east",
+      image: "linode/ubuntu22.04",
+      tier: "basic",
+      userId: "user_abcdefgh",
+      durationDays: 30,
+      markupPercent: 0,
+    });
+    expect(result.username).toBe("root");
+  });
+
   it("surfaces a 503 when createInstance rejects and does not swallow the error", async () => {
     createInstance.mockRejectedValue(new Error("Linode API error: 422 - bad image"));
     await expect(
