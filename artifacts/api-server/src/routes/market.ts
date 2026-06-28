@@ -292,20 +292,37 @@ router.post(
           { err, linodeError: e.linodeError, plan, region },
           "Provisioning failed",
         );
-        await prisma.auditLog.create({
-          data: {
-            actorId: userId,
-            action: "PROVISION_FAILED",
-            entity: "User",
-            entityId: userId,
-            metadata: {
+        await Promise.all([
+          prisma.auditLog.create({
+            data: {
+              actorId: userId,
+              action: "PROVISION_FAILED",
+              entity: "User",
+              entityId: userId,
+              metadata: {
+                plan,
+                region,
+                image: image ?? "unknown",
+                linodeError: e.linodeError ?? null,
+              },
+            },
+          }),
+          prisma.order.create({
+            data: {
+              userId,
               plan,
               region,
               image: image ?? "unknown",
-              linodeError: e.linodeError ?? null,
+              status: OrderStatus.FAILED,
+              amount: totalAmount,
+              durationDays,
+              metadata: {
+                tier,
+                linodeError: e.linodeError ?? null,
+              },
             },
-          },
-        });
+          }),
+        ]);
         sendError(
           res,
           e.message || "Failed to provision instance",
