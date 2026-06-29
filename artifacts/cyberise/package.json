@@ -10,9 +10,9 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@types/three": "^0.184.0",
+    "@types/three": "^0.185.0",
     "gsap": "^3.15.0",
-    "three": "^0.184.0"
+    "three": "^0.185.0"
   },
   "devDependencies": {
     "@clerk/clerk-react": "^5.61.8",
