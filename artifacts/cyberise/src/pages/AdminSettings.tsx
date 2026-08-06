@@ -15,6 +15,7 @@ import {
   Tag,
   Calendar,
   Users,
+  Palette,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -24,6 +25,12 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  THEME_PRESETS,
+  applyTheme,
+  type ThemePreset,
+  type ThemeConfig,
+} from "@/components/ThemeProvider";
 
 interface Settings {
   markup_percentage: number;
@@ -34,6 +41,7 @@ interface Settings {
   min_order_days: number;
   max_order_days: number;
   max_active_orders?: number;
+  theme?: ThemePreset;
 }
 
 interface PromoCode {
@@ -73,6 +81,10 @@ export default function AdminSettings() {
   });
   const [creatingPromo, setCreatingPromo] = useState(false);
 
+  // Theme state
+  const [currentTheme, setCurrentTheme] = useState<ThemePreset>("cyber");
+  const [themeSaving, setThemeSaving] = useState(false);
+
   useEffect(() => {
     loadSettings();
     loadPromoCodes();
@@ -80,10 +92,17 @@ export default function AdminSettings() {
 
   async function loadSettings() {
     try {
-      const response = await api<{ success: boolean; data: Settings }>(
+      const response = await api<{ success: boolean; data: Record<string, unknown> }>(
         "/admin/settings",
       );
-      setSettings(response.data);
+      setSettings(response.data as unknown as Settings);
+
+      // Load saved theme
+      const savedTheme = response.data?.theme as ThemePreset | undefined;
+      if (savedTheme && THEME_PRESETS[savedTheme]) {
+        setCurrentTheme(savedTheme);
+        applyTheme(THEME_PRESETS[savedTheme]);
+      }
     } catch {
       toast.error("Failed to load settings");
     } finally {
@@ -104,6 +123,24 @@ export default function AdminSettings() {
       toast.error("Failed to save settings");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function saveTheme(theme: ThemePreset) {
+    try {
+      setThemeSaving(true);
+      setCurrentTheme(theme);
+      applyTheme(THEME_PRESETS[theme]);
+
+      await api("/admin/settings", {
+        method: "PATCH",
+        body: JSON.stringify({ theme }),
+      });
+      toast.success(`Theme "${theme}" applied`);
+    } catch {
+      toast.error("Failed to apply theme");
+    } finally {
+      setThemeSaving(false);
     }
   }
 
@@ -182,7 +219,7 @@ export default function AdminSettings() {
     return (
       <AdminLayout>
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-8 h-8 animate-spin text-[#00f0ff]" />
+          <Loader2 className="w-8 h-8 animate-spin text-[var(--primary)]" />
         </div>
       </AdminLayout>
     );
@@ -200,14 +237,14 @@ export default function AdminSettings() {
             <h1 className="text-3xl font-bold text-white mb-1">
               Market Settings
             </h1>
-            <p className="text-[#a0a0b8]">
+            <p className="text-[var(--text-secondary)]">
               Configure pricing, regions, and platform behavior
             </p>
           </div>
           <Button
             onClick={saveSettings}
             disabled={saving}
-            className="bg-gradient-to-r from-[#00f0ff] to-[#7b2ff7] hover:opacity-90 text-white"
+            className="bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] hover:opacity-90 text-white"
           >
             <Save className="w-4 h-4 mr-2" />
             {saving ? "Saving..." : "Save Changes"}
@@ -215,13 +252,13 @@ export default function AdminSettings() {
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
-          <Card className="bg-[#12121a]/80 border-[#00f0ff]/20 backdrop-blur-sm">
+          <Card className="bg-[var(--dark-surface)]/80 border-[var(--primary)]/20 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="text-white text-lg">Pricing</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label className="text-[#a0a0b8] text-sm">
+                <Label className="text-[var(--text-secondary)] text-sm">
                   Markup Percentage (%)
                 </Label>
                 <Input
@@ -230,12 +267,12 @@ export default function AdminSettings() {
                   onChange={(e) =>
                     update("markup_percentage", Number(e.target.value))
                   }
-                  className="bg-[#0a0a0f] border-[#ffffff1a] text-white mt-1"
+                  className="bg-[var(--dark-bg)] border-[#ffffff1a] text-white mt-1"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-[#a0a0b8] text-sm">
+                  <Label className="text-[var(--text-secondary)] text-sm">
                     Min Order Days
                   </Label>
                   <Input
@@ -244,11 +281,11 @@ export default function AdminSettings() {
                     onChange={(e) =>
                       update("min_order_days", Number(e.target.value))
                     }
-                    className="bg-[#0a0a0f] border-[#ffffff1a] text-white mt-1"
+                    className="bg-[var(--dark-bg)] border-[#ffffff1a] text-white mt-1"
                   />
                 </div>
                 <div>
-                  <Label className="text-[#a0a0b8] text-sm">
+                  <Label className="text-[var(--text-secondary)] text-sm">
                     Max Order Days
                   </Label>
                   <Input
@@ -257,14 +294,14 @@ export default function AdminSettings() {
                     onChange={(e) =>
                       update("max_order_days", Number(e.target.value))
                     }
-                    className="bg-[#0a0a0f] border-[#ffffff1a] text-white mt-1"
+                    className="bg-[var(--dark-bg)] border-[#ffffff1a] text-white mt-1"
                   />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-[#12121a]/80 border-[#7b2ff7]/20 backdrop-blur-sm">
+          <Card className="bg-[var(--dark-surface)]/80 border-[var(--secondary)]/20 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="text-white text-lg">
                 Enabled Regions
@@ -283,7 +320,7 @@ export default function AdminSettings() {
                   )
                 }
                 placeholder="us-east, us-west, eu-west"
-                className="bg-[#0a0a0f] border-[#ffffff1a] text-white"
+                className="bg-[var(--dark-bg)] border-[#ffffff1a] text-white"
               />
               <p className="text-[#666] text-xs mt-2">
                 Comma-separated region IDs from Linode API
@@ -291,7 +328,7 @@ export default function AdminSettings() {
             </CardContent>
           </Card>
 
-          <Card className="bg-[#12121a]/80 border-[#7b2ff7]/20 backdrop-blur-sm">
+          <Card className="bg-[var(--dark-surface)]/80 border-[var(--secondary)]/20 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="text-white text-lg">
                 Enabled Plans
@@ -310,7 +347,7 @@ export default function AdminSettings() {
                   )
                 }
                 placeholder="g6-nanode-1, g6-standard-1"
-                className="bg-[#0a0a0f] border-[#ffffff1a] text-white"
+                className="bg-[var(--dark-bg)] border-[#ffffff1a] text-white"
               />
               <p className="text-[#666] text-xs mt-2">
                 Comma-separated plan IDs from Linode API
@@ -318,7 +355,7 @@ export default function AdminSettings() {
             </CardContent>
           </Card>
 
-          <Card className="bg-[#12121a]/80 border-[#ffffff1a] backdrop-blur-sm">
+          <Card className="bg-[var(--dark-surface)]/80 border-[#ffffff1a] backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="text-white text-lg">Behavior</CardTitle>
             </CardHeader>
@@ -353,6 +390,79 @@ export default function AdminSettings() {
           </Card>
         </div>
 
+        {/* Theme Section */}
+        <div className="mt-8">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-1">
+                Site Theme
+              </h2>
+              <p className="text-[var(--text-secondary)]">
+                Choose a visual theme preset for the entire marketplace
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            {(Object.entries(THEME_PRESETS) as [ThemePreset, ThemeConfig][]).map(
+              ([name, config]) => (
+                <button
+                  key={name}
+                  type="button"
+                  onClick={() => saveTheme(name)}
+                  disabled={themeSaving}
+                  className={`relative rounded-xl border-2 p-4 text-left transition-all duration-200 ${
+                    currentTheme === name
+                      ? "border-[var(--primary)] bg-[#00f0ff10] shadow-[0_0_20px_rgba(0,240,255,0.1)]"
+                      : "border-[#ffffff1a] bg-[var(--dark-surface)]/80 hover:border-[#ffffff33]"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="font-orbitron text-sm font-bold text-white capitalize">
+                      {name}
+                    </span>
+                    {currentTheme === name && (
+                      <span className="w-2 h-2 rounded-full bg-[var(--primary)] animate-pulse" />
+                    )}
+                  </div>
+
+                  {/* Mini color swatch */}
+                  <div className="flex gap-1.5 mb-3">
+                    {[config.primary, config.secondary, config.accent].map(
+                      (color, i) => (
+                        <div
+                          key={i}
+                          className="w-5 h-5 rounded-full border border-[#ffffff1a]"
+                          style={{ backgroundColor: color }}
+                        />
+                      ),
+                    )}
+                  </div>
+
+                  {/* Surface preview */}
+                  <div className="flex gap-1.5">
+                    <div
+                      className="w-full h-3 rounded-sm border border-[#ffffff1a]"
+                      style={{ backgroundColor: config.darkBg }}
+                    />
+                    <div
+                      className="w-full h-3 rounded-sm border border-[#ffffff1a]"
+                      style={{ backgroundColor: config.darkSurface }}
+                    />
+                  </div>
+
+                  {/* Active indicator */}
+                  {currentTheme === name && (
+                    <div className="mt-2 text-[10px] font-semibold text-[var(--primary)] uppercase tracking-[2px] text-center">
+                      Active
+                    </div>
+                  )}
+                </button>
+              ),
+            )}
+          </div>
+        </div>
+
         {/* Promo Codes Section */}
         <div className="mt-8">
           <div className="flex items-center justify-between mb-4">
@@ -360,24 +470,24 @@ export default function AdminSettings() {
               <h2 className="text-2xl font-bold text-white mb-1">
                 Promo Codes
               </h2>
-              <p className="text-[#a0a0b8]">
+              <p className="text-[var(--text-secondary)]">
                 Manage discount codes for marketplace purchases
               </p>
             </div>
             <Button
               onClick={() => setShowCreateDialog(true)}
-              className="bg-gradient-to-r from-[#00f0ff] to-[#7b2ff7] hover:opacity-90 text-white"
+              className="bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] hover:opacity-90 text-white"
             >
               <Plus className="w-4 h-4 mr-2" />
               Create Promo Code
             </Button>
           </div>
 
-          <Card className="bg-[#12121a]/80 border-[#00f0ff]/20 backdrop-blur-sm">
+          <Card className="bg-[var(--dark-surface)]/80 border-[var(--primary)]/20 backdrop-blur-sm">
             <CardContent className="p-0">
               {promoLoading ? (
                 <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-6 h-6 animate-spin text-[#00f0ff]" />
+                  <Loader2 className="w-6 h-6 animate-spin text-[var(--primary)]" />
                 </div>
               ) : promoCodes.length === 0 ? (
                 <div className="text-center py-12">
@@ -424,7 +534,7 @@ export default function AdminSettings() {
                             </span>
                           </td>
                           <td className="px-4 py-3">
-                            <span className="text-[#00f0ff] font-semibold">
+                            <span className="text-[var(--primary)] font-semibold">
                               {promo.discountPercent}%
                             </span>
                           </td>
@@ -441,7 +551,7 @@ export default function AdminSettings() {
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-1">
                               <Calendar className="w-3.5 h-3.5 text-[#666]" />
-                              <span className="text-[#a0a0b8] text-sm">
+                              <span className="text-[var(--text-secondary)] text-sm">
                                 {promo.validUntil
                                   ? new Date(
                                       promo.validUntil,
@@ -484,13 +594,13 @@ export default function AdminSettings() {
         <DialogContent className="bg-[#0d0d14] border border-[rgba(0,240,255,0.2)] max-w-md">
           <DialogHeader>
             <DialogTitle className="text-white font-orbitron flex items-center gap-2">
-              <Tag className="w-5 h-5 text-[#00f0ff]" />
+              <Tag className="w-5 h-5 text-[var(--primary)]" />
               Create Promo Code
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-4">
             <div>
-              <Label className="text-[#a0a0b8] text-sm">Code</Label>
+              <Label className="text-[var(--text-secondary)] text-sm">Code</Label>
               <Input
                 value={newPromo.code}
                 onChange={(e) =>
@@ -500,11 +610,11 @@ export default function AdminSettings() {
                   })
                 }
                 placeholder="SUMMER2026"
-                className="bg-[#0a0a0f] border-[#ffffff1a] text-white font-mono mt-1"
+                className="bg-[var(--dark-bg)] border-[#ffffff1a] text-white font-mono mt-1"
               />
             </div>
             <div>
-              <Label className="text-[#a0a0b8] text-sm">
+              <Label className="text-[var(--text-secondary)] text-sm">
                 Discount Percentage
               </Label>
               <Input
@@ -518,11 +628,11 @@ export default function AdminSettings() {
                     discountPercent: Number(e.target.value),
                   })
                 }
-                className="bg-[#0a0a0f] border-[#ffffff1a] text-white mt-1"
+                className="bg-[var(--dark-bg)] border-[#ffffff1a] text-white mt-1"
               />
             </div>
             <div>
-              <Label className="text-[#a0a0b8] text-sm">
+              <Label className="text-[var(--text-secondary)] text-sm">
                 Max Uses{" "}
                 <span className="text-[#555]">(leave empty for unlimited)</span>
               </Label>
@@ -537,11 +647,11 @@ export default function AdminSettings() {
                   })
                 }
                 placeholder="Unlimited"
-                className="bg-[#0a0a0f] border-[#ffffff1a] text-white mt-1"
+                className="bg-[var(--dark-bg)] border-[#ffffff1a] text-white mt-1"
               />
             </div>
             <div>
-              <Label className="text-[#a0a0b8] text-sm">
+              <Label className="text-[var(--text-secondary)] text-sm">
                 Valid Until{" "}
                 <span className="text-[#555]">(leave empty for no expiry)</span>
               </Label>
@@ -556,7 +666,7 @@ export default function AdminSettings() {
                       : null,
                   })
                 }
-                className="bg-[#0a0a0f] border-[#ffffff1a] text-white mt-1"
+                className="bg-[var(--dark-bg)] border-[#ffffff1a] text-white mt-1"
               />
             </div>
           </div>
@@ -564,14 +674,14 @@ export default function AdminSettings() {
             <Button
               variant="outline"
               onClick={() => setShowCreateDialog(false)}
-              className="border-[#ffffff1a] text-[#a0a0b8] hover:text-white"
+              className="border-[#ffffff1a] text-[var(--text-secondary)] hover:text-white"
             >
               Cancel
             </Button>
             <Button
               onClick={createPromoCode}
               disabled={creatingPromo || !newPromo.code.trim()}
-              className="bg-gradient-to-r from-[#00f0ff] to-[#7b2ff7] hover:opacity-90 text-white"
+              className="bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] hover:opacity-90 text-white"
             >
               {creatingPromo ? (
                 <>

@@ -43,7 +43,7 @@ export default function AppShell({ children }: AppShellProps) {
   }, [location]);
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] flex">
+    <div className="min-h-screen bg-[var(--dark-bg)] flex">
       <aside className="hidden lg:flex flex-col fixed left-0 top-0 h-full w-[240px] bg-[#0d0d14] border-r border-[rgba(0,240,255,0.08)] z-30">
         <SidebarContent
           location={location}
@@ -85,7 +85,7 @@ export default function AppShell({ children }: AppShellProps) {
         <header className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-[rgba(0,240,255,0.08)] bg-[#0d0d14] sticky top-0 z-20">
           <button
             onClick={() => setMobileOpen(true)}
-            className="text-[#a0a0b8] hover:text-white transition-colors p-1"
+            className="text-[var(--text-secondary)] hover:text-white transition-colors p-1"
           >
             <Menu className="w-5 h-5" />
           </button>
@@ -118,14 +118,14 @@ function SidebarContent({
     <>
       <div className="px-5 py-6 border-b border-[rgba(0,240,255,0.06)]">
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#00f0ff] to-[#7b2ff7] flex items-center justify-center flex-shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)] flex items-center justify-center flex-shrink-0">
             <Zap className="w-4 h-4 text-white" />
           </div>
           <div>
             <div className="font-orbitron text-[0.8rem] font-bold tracking-[2px] text-white uppercase leading-none">
               Cyberise
             </div>
-            <div className="text-[0.6rem] text-[#a0a0b8] tracking-[1.5px] uppercase mt-0.5">
+            <div className="text-[0.6rem] text-[var(--text-secondary)] tracking-[1.5px] uppercase mt-0.5">
               Technology
             </div>
           </div>
@@ -142,15 +142,15 @@ function SidebarContent({
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer group ${
                   active
                     ? "bg-[rgba(0,240,255,0.08)] text-white border border-[rgba(0,240,255,0.15)]"
-                    : "text-[#a0a0b8] hover:text-white hover:bg-[rgba(255,255,255,0.04)]"
+                    : "text-[var(--text-secondary)] hover:text-white hover:bg-[rgba(255,255,255,0.04)]"
                 }`}
               >
                 <Icon
-                  className={`w-4 h-4 flex-shrink-0 ${active ? "text-[#00f0ff]" : "text-[#666] group-hover:text-[#a0a0b8]"}`}
+                  className={`w-4 h-4 flex-shrink-0 ${active ? "text-[var(--primary)]" : "text-[#666] group-hover:text-[var(--text-secondary)]"}`}
                 />
                 <span className="font-rajdhani tracking-[0.5px]">{label}</span>
                 {label === "My Orders" && activeCount > 0 && (
-                  <span className="ml-auto bg-[#00f0ff]/15 text-[#00f0ff] text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-[#00f0ff]/25 leading-none">
+                  <span className="ml-auto bg-[var(--primary)]/15 text-[var(--primary)] text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-[var(--primary)]/25 leading-none">
                     {activeCount}
                   </span>
                 )}
@@ -162,8 +162,8 @@ function SidebarContent({
 
       <div className="px-4 py-4 border-t border-[rgba(0,240,255,0.06)] space-y-3">
         <div className="flex items-center gap-2 px-1">
-          <div className="w-1.5 h-1.5 rounded-full bg-[#00f0ff] animate-pulse" />
-          <span className="text-[#a0a0b8] text-[0.7rem] tracking-[1px] uppercase font-rajdhani">
+          <div className="w-1.5 h-1.5 rounded-full bg-[var(--primary)] animate-pulse" />
+          <span className="text-[var(--text-secondary)] text-[0.7rem] tracking-[1px] uppercase font-rajdhani">
             {activeCount} Active Instance{activeCount !== 1 ? "s" : ""}
           </span>
         </div>
@@ -174,7 +174,7 @@ function SidebarContent({
                 elements: {
                   avatarBox: "w-8 h-8",
                   userButtonPopoverCard:
-                    "bg-[#12121a] border border-[rgba(0,240,255,0.15)]",
+                    "bg-[var(--dark-surface)] border border-[rgba(0,240,255,0.15)]",
                 },
               }}
             />

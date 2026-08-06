@@ -9,7 +9,7 @@ export default function StatsBar() {
         >
           0
         </div>
-        <div className="font-rajdhani text-[0.9rem] md:text-[1rem] text-[#a0a0b8] tracking-[2px] uppercase mt-[8px]">
+        <div className="font-rajdhani text-[0.9rem] md:text-[1rem] text-[var(--text-secondary)] tracking-[2px] uppercase mt-[8px]">
           Projects Delivered
         </div>
       </div>
@@ -21,7 +21,7 @@ export default function StatsBar() {
         >
           0
         </div>
-        <div className="font-rajdhani text-[0.9rem] md:text-[1rem] text-[#a0a0b8] tracking-[2px] uppercase mt-[8px]">
+        <div className="font-rajdhani text-[0.9rem] md:text-[1rem] text-[var(--text-secondary)] tracking-[2px] uppercase mt-[8px]">
           Countries Served
         </div>
       </div>
@@ -33,7 +33,7 @@ export default function StatsBar() {
         >
           0
         </div>
-        <div className="font-rajdhani text-[0.9rem] md:text-[1rem] text-[#a0a0b8] tracking-[2px] uppercase mt-[8px]">
+        <div className="font-rajdhani text-[0.9rem] md:text-[1rem] text-[var(--text-secondary)] tracking-[2px] uppercase mt-[8px]">
           Years Experience
         </div>
       </div>
@@ -45,7 +45,7 @@ export default function StatsBar() {
         >
           0
         </div>
-        <div className="font-rajdhani text-[0.9rem] md:text-[1rem] text-[#a0a0b8] tracking-[2px] uppercase mt-[8px]">
+        <div className="font-rajdhani text-[0.9rem] md:text-[1rem] text-[var(--text-secondary)] tracking-[2px] uppercase mt-[8px]">
           Satisfied Clients
         </div>
       </div>

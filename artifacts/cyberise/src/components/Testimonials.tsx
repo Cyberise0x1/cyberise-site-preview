@@ -34,7 +34,7 @@ export default function Testimonials() {
   return (
     <section id="testimonials">
       <div className="text-center mb-[80px] reveal">
-        <div className="inline-block font-rajdhani text-[0.85rem] font-semibold tracking-[3px] uppercase text-[#00f0ff] mb-[20px] relative before:content-['—'] before:mx-[10px] before:text-[rgba(0,240,255,0.4)] after:content-['—'] after:mx-[10px] after:text-[rgba(0,240,255,0.4)]">
+        <div className="inline-block font-rajdhani text-[0.85rem] font-semibold tracking-[3px] uppercase text-[var(--primary)] mb-[20px] relative before:content-['—'] before:mx-[10px] before:text-[rgba(0,240,255,0.4)] after:content-['—'] after:mx-[10px] after:text-[rgba(0,240,255,0.4)]">
           Clearance Level: UNRESTRICTED
         </div>
         <h2 className="font-orbitron text-[clamp(2rem,4vw,3.5rem)] font-extrabold leading-[1.2] mb-[20px]">
@@ -48,17 +48,17 @@ export default function Testimonials() {
         onMouseLeave={() => setIsHovered(false)}
       >
         <div className="p-[30px] md:p-[50px] bg-[rgba(18,18,26,0.6)] border border-[rgba(0,240,255,0.08)] rounded-[24px] backdrop-blur-[20px] text-center min-h-[300px] flex flex-col justify-center">
-          <div className="text-[3rem] text-[#00f0ff] opacity-30 mb-[10px] leading-none">
+          <div className="text-[3rem] text-[var(--primary)] opacity-30 mb-[10px] leading-none">
             "
           </div>
-          <p className="text-[1.1rem] md:text-[1.2rem] leading-[1.8] text-[#a0a0b8] mb-[30px] italic transition-opacity duration-500">
+          <p className="text-[1.1rem] md:text-[1.2rem] leading-[1.8] text-[var(--text-secondary)] mb-[30px] italic transition-opacity duration-500">
             {testimonials[activeIndex].text}
           </p>
           <div>
             <div className="font-orbitron text-[1rem] font-bold mb-[5px] text-white">
               {testimonials[activeIndex].author}
             </div>
-            <div className="font-rajdhani text-[#00f0ff] text-[0.9rem] tracking-[1px] uppercase">
+            <div className="font-rajdhani text-[var(--primary)] text-[0.9rem] tracking-[1px] uppercase">
               {testimonials[activeIndex].role}
             </div>
           </div>
@@ -72,7 +72,7 @@ export default function Testimonials() {
               className={cn(
                 "w-[12px] h-[12px] rounded-full cursor-pointer transition-all duration-300",
                 i === activeIndex
-                  ? "bg-[#00f0ff] shadow-[0_0_15px_rgba(0,240,255,0.5)]"
+                  ? "bg-[var(--primary)] shadow-[0_0_15px_rgba(0,240,255,0.5)]"
                   : "bg-[rgba(0,240,255,0.2)] hover:bg-[rgba(0,240,255,0.5)]",
               )}
             />

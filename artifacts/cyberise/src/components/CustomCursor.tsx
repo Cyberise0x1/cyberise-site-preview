@@ -47,7 +47,7 @@ export default function CustomCursor() {
   return (
     <>
       <div
-        className="fixed pointer-events-none z-[99999] w-2 h-2 rounded-full bg-[#00f0ff] shadow-[0_0_15px_#00f0ff,0_0_30px_rgba(0,240,255,0.5)] transition-transform duration-100 hidden md:block"
+        className="fixed pointer-events-none z-[99999] w-2 h-2 rounded-full bg-[var(--primary)] shadow-[0_0_15px_#00f0ff,0_0_30px_rgba(0,240,255,0.5)] transition-transform duration-100 hidden md:block"
         style={{
           left: `${position.x}px`,
           top: `${position.y}px`,

@@ -8,7 +8,7 @@ interface FooterProps {
 
 export default function Footer({ onOpenLegal }: FooterProps) {
   return (
-    <footer className="pt-[80px] pb-[30px] px-8 md:px-[60px] relative z-[2] border-t border-[rgba(0,240,255,0.08)] bg-[#0a0a0f]">
+    <footer className="pt-[80px] pb-[30px] px-8 md:px-[60px] relative z-[2] border-t border-[rgba(0,240,255,0.08)] bg-[var(--dark-bg)]">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr] gap-[40px] lg:gap-[60px] max-w-[1400px] mx-auto mb-[60px]">
         <div>
           <a
@@ -24,7 +24,7 @@ export default function Footer({ onOpenLegal }: FooterProps) {
               TECHNOLOGY
             </span>
           </a>
-          <p className="text-[#a0a0b8] leading-[1.8] text-[0.95rem] max-w-[350px]">
+          <p className="text-[var(--text-secondary)] leading-[1.8] text-[0.95rem] max-w-[350px]">
             The elite force in global digital solutions and offensive
             cybersecurity. Securing the present, building the future.
           </p>
@@ -34,7 +34,7 @@ export default function Footer({ onOpenLegal }: FooterProps) {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Follow Cyberise on X"
-              className="w-[45px] h-[45px] rounded-[12px] bg-[rgba(0,240,255,0.05)] border border-[rgba(0,240,255,0.1)] flex items-center justify-center text-[#a0a0b8] transition-all hover:bg-[rgba(0,240,255,0.15)] hover:border-[#00f0ff] hover:text-[#00f0ff] hover:-translate-y-[3px]"
+              className="w-[45px] h-[45px] rounded-[12px] bg-[rgba(0,240,255,0.05)] border border-[rgba(0,240,255,0.1)] flex items-center justify-center text-[var(--text-secondary)] transition-all hover:bg-[rgba(0,240,255,0.15)] hover:border-[var(--primary)] hover:text-[var(--primary)] hover:-translate-y-[3px]"
             >
               <FaXTwitter className="w-5 h-5" aria-hidden="true" />
             </a>
@@ -42,7 +42,7 @@ export default function Footer({ onOpenLegal }: FooterProps) {
               type="button"
               aria-label="LinkedIn — coming soon"
               title="Coming soon"
-              className="w-[45px] h-[45px] rounded-[12px] bg-[rgba(0,240,255,0.05)] border border-[rgba(0,240,255,0.1)] flex items-center justify-center text-[#a0a0b8] transition-all hover:bg-[rgba(0,240,255,0.15)] hover:border-[#00f0ff] hover:text-[#00f0ff] hover:-translate-y-[3px]"
+              className="w-[45px] h-[45px] rounded-[12px] bg-[rgba(0,240,255,0.05)] border border-[rgba(0,240,255,0.1)] flex items-center justify-center text-[var(--text-secondary)] transition-all hover:bg-[rgba(0,240,255,0.15)] hover:border-[var(--primary)] hover:text-[var(--primary)] hover:-translate-y-[3px]"
             >
               <FaLinkedin className="w-5 h-5" aria-hidden="true" />
             </button>
@@ -50,7 +50,7 @@ export default function Footer({ onOpenLegal }: FooterProps) {
               type="button"
               aria-label="GitHub — coming soon"
               title="Coming soon"
-              className="w-[45px] h-[45px] rounded-[12px] bg-[rgba(0,240,255,0.05)] border border-[rgba(0,240,255,0.1)] flex items-center justify-center text-[#a0a0b8] transition-all hover:bg-[rgba(0,240,255,0.15)] hover:border-[#00f0ff] hover:text-[#00f0ff] hover:-translate-y-[3px]"
+              className="w-[45px] h-[45px] rounded-[12px] bg-[rgba(0,240,255,0.05)] border border-[rgba(0,240,255,0.1)] flex items-center justify-center text-[var(--text-secondary)] transition-all hover:bg-[rgba(0,240,255,0.15)] hover:border-[var(--primary)] hover:text-[var(--primary)] hover:-translate-y-[3px]"
             >
               <FaGithub className="w-5 h-5" aria-hidden="true" />
             </button>
@@ -58,7 +58,7 @@ export default function Footer({ onOpenLegal }: FooterProps) {
               type="button"
               aria-label="Discord — coming soon"
               title="Coming soon"
-              className="w-[45px] h-[45px] rounded-[12px] bg-[rgba(0,240,255,0.05)] border border-[rgba(0,240,255,0.1)] flex items-center justify-center text-[#a0a0b8] transition-all hover:bg-[rgba(0,240,255,0.15)] hover:border-[#00f0ff] hover:text-[#00f0ff] hover:-translate-y-[3px]"
+              className="w-[45px] h-[45px] rounded-[12px] bg-[rgba(0,240,255,0.05)] border border-[rgba(0,240,255,0.1)] flex items-center justify-center text-[var(--text-secondary)] transition-all hover:bg-[rgba(0,240,255,0.15)] hover:border-[var(--primary)] hover:text-[var(--primary)] hover:-translate-y-[3px]"
             >
               <MessageSquare className="w-5 h-5" aria-hidden="true" />
             </button>
@@ -73,7 +73,7 @@ export default function Footer({ onOpenLegal }: FooterProps) {
             <li>
               <a
                 href="#services"
-                className="text-[#a0a0b8] text-[0.95rem] hover:text-[#00f0ff] hover:pl-[5px] transition-all inline-block"
+                className="text-[var(--text-secondary)] text-[0.95rem] hover:text-[var(--primary)] hover:pl-[5px] transition-all inline-block"
               >
                 Web Development
               </a>
@@ -81,7 +81,7 @@ export default function Footer({ onOpenLegal }: FooterProps) {
             <li>
               <a
                 href="#services"
-                className="text-[#a0a0b8] text-[0.95rem] hover:text-[#00f0ff] hover:pl-[5px] transition-all inline-block"
+                className="text-[var(--text-secondary)] text-[0.95rem] hover:text-[var(--primary)] hover:pl-[5px] transition-all inline-block"
               >
                 Mobile Applications
               </a>
@@ -89,7 +89,7 @@ export default function Footer({ onOpenLegal }: FooterProps) {
             <li>
               <a
                 href="#services"
-                className="text-[#a0a0b8] text-[0.95rem] hover:text-[#00f0ff] hover:pl-[5px] transition-all inline-block"
+                className="text-[var(--text-secondary)] text-[0.95rem] hover:text-[var(--primary)] hover:pl-[5px] transition-all inline-block"
               >
                 Penetration Testing
               </a>
@@ -97,7 +97,7 @@ export default function Footer({ onOpenLegal }: FooterProps) {
             <li>
               <a
                 href="#services"
-                className="text-[#a0a0b8] text-[0.95rem] hover:text-[#00f0ff] hover:pl-[5px] transition-all inline-block"
+                className="text-[var(--text-secondary)] text-[0.95rem] hover:text-[var(--primary)] hover:pl-[5px] transition-all inline-block"
               >
                 Govt Consultancy
               </a>
@@ -105,7 +105,7 @@ export default function Footer({ onOpenLegal }: FooterProps) {
             <li>
               <a
                 href="#services"
-                className="text-[#a0a0b8] text-[0.95rem] hover:text-[#00f0ff] hover:pl-[5px] transition-all inline-block"
+                className="text-[var(--text-secondary)] text-[0.95rem] hover:text-[var(--primary)] hover:pl-[5px] transition-all inline-block"
               >
                 Hardware Procurement
               </a>
@@ -121,7 +121,7 @@ export default function Footer({ onOpenLegal }: FooterProps) {
             <li>
               <a
                 href="#about"
-                className="text-[#a0a0b8] text-[0.95rem] hover:text-[#00f0ff] hover:pl-[5px] transition-all inline-block"
+                className="text-[var(--text-secondary)] text-[0.95rem] hover:text-[var(--primary)] hover:pl-[5px] transition-all inline-block"
               >
                 About Us
               </a>
@@ -129,7 +129,7 @@ export default function Footer({ onOpenLegal }: FooterProps) {
             <li>
               <a
                 href="#projects"
-                className="text-[#a0a0b8] text-[0.95rem] hover:text-[#00f0ff] hover:pl-[5px] transition-all inline-block"
+                className="text-[var(--text-secondary)] text-[0.95rem] hover:text-[var(--primary)] hover:pl-[5px] transition-all inline-block"
               >
                 Our Projects
               </a>
@@ -137,7 +137,7 @@ export default function Footer({ onOpenLegal }: FooterProps) {
             <li>
               <a
                 href="#why-us"
-                className="text-[#a0a0b8] text-[0.95rem] hover:text-[#00f0ff] hover:pl-[5px] transition-all inline-block"
+                className="text-[var(--text-secondary)] text-[0.95rem] hover:text-[var(--primary)] hover:pl-[5px] transition-all inline-block"
               >
                 Why Cyberise
               </a>
@@ -145,7 +145,7 @@ export default function Footer({ onOpenLegal }: FooterProps) {
             <li>
               <a
                 href="#contact"
-                className="text-[#a0a0b8] text-[0.95rem] hover:text-[#00f0ff] hover:pl-[5px] transition-all inline-block"
+                className="text-[var(--text-secondary)] text-[0.95rem] hover:text-[var(--primary)] hover:pl-[5px] transition-all inline-block"
               >
                 Careers
               </a>
@@ -153,7 +153,7 @@ export default function Footer({ onOpenLegal }: FooterProps) {
             <li>
               <a
                 href="#contact"
-                className="text-[#a0a0b8] text-[0.95rem] hover:text-[#00f0ff] hover:pl-[5px] transition-all inline-block"
+                className="text-[var(--text-secondary)] text-[0.95rem] hover:text-[var(--primary)] hover:pl-[5px] transition-all inline-block"
               >
                 Contact
               </a>
@@ -178,12 +178,12 @@ export default function Footer({ onOpenLegal }: FooterProps) {
                 <button
                   onClick={() => onOpenLegal(tab)}
                   className="group flex items-center gap-[8px] text-[0.95rem] font-medium transition-all text-left"
-                  style={{ color: "#00f0ff" }}
+                  style={{ color: "var(--primary)" }}
                 >
                   <span
                     className="inline-block w-[6px] h-[6px] rounded-full shrink-0 transition-all group-hover:scale-[1.4]"
                     style={{
-                      background: "#00f0ff",
+                      background: "var(--primary)",
                       boxShadow: "0 0 6px rgba(0,240,255,0.7)",
                     }}
                   />
@@ -192,7 +192,7 @@ export default function Footer({ onOpenLegal }: FooterProps) {
                     <span
                       className="absolute bottom-0 left-0 h-[1px] w-full origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300"
                       style={{
-                        background: "linear-gradient(90deg,#00f0ff,#7b2ff7)",
+                        background: "linear-gradient(90deg,var(--primary),#7b2ff7)",
                       }}
                     />
                   </span>
@@ -204,11 +204,11 @@ export default function Footer({ onOpenLegal }: FooterProps) {
       </div>
 
       <div className="pt-[30px] border-t border-[rgba(255,255,255,0.05)] flex flex-col md:flex-row items-center justify-between gap-[15px] max-w-[1400px] mx-auto text-center md:text-left">
-        <p className="text-[#a0a0b8] text-[0.85rem]">
+        <p className="text-[var(--text-secondary)] text-[0.85rem]">
           © 2026 Cyberise Technology. All Rights Reserved.
         </p>
-        <p className="text-[#a0a0b8] text-[0.85rem]">
-          System Status: <span className="text-[#00f0ff]">SECURE & ONLINE</span>
+        <p className="text-[var(--text-secondary)] text-[0.85rem]">
+          System Status: <span className="text-[var(--primary)]">SECURE & ONLINE</span>
         </p>
       </div>
     </footer>

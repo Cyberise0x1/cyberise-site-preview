@@ -60,14 +60,14 @@ export default function About() {
         </div>
 
         <div className="reveal">
-          <div className="inline-block font-rajdhani text-[0.85rem] font-semibold tracking-[3px] uppercase text-[#00f0ff] mb-[20px] relative before:content-['—'] before:mx-[10px] before:text-[rgba(0,240,255,0.4)] after:content-['—'] after:mx-[10px] after:text-[rgba(0,240,255,0.4)]">
+          <div className="inline-block font-rajdhani text-[0.85rem] font-semibold tracking-[3px] uppercase text-[var(--primary)] mb-[20px] relative before:content-['—'] before:mx-[10px] before:text-[rgba(0,240,255,0.4)] after:content-['—'] after:mx-[10px] after:text-[rgba(0,240,255,0.4)]">
             Who We Are
           </div>
           <h2 className="font-orbitron text-[clamp(2rem,3vw,3rem)] font-extrabold leading-[1.2] mb-[25px]">
             A Global Force in Digital Innovation &{" "}
             <span className="text-gradient-1">Cybersecurity</span>
           </h2>
-          <p className="text-[1.1rem] text-[#a0a0b8] leading-[1.8] mb-[30px]">
+          <p className="text-[1.1rem] text-[var(--text-secondary)] leading-[1.8] mb-[30px]">
             Cyberise Technology was founded with a singular vision: to bridge
             the gap between cutting-edge technology and real-world security
             challenges. Based in Nigeria, operating globally.

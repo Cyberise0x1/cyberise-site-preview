@@ -79,7 +79,7 @@ export default function Navbar() {
         <li>
           <Link
             href="/market"
-            className="text-[#00f0ff] no-underline font-rajdhani text-[1rem] font-medium tracking-[1.5px] uppercase transition-all duration-300 relative hover:text-[#7b2ff7] after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-[2px] after:bg-[linear-gradient(135deg,#00f0ff,#7b2ff7)] hover:after:w-full after:transition-all after:duration-300"
+            className="text-[var(--primary)] no-underline font-rajdhani text-[1rem] font-medium tracking-[1.5px] uppercase transition-all duration-300 relative hover:text-[var(--secondary)] after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-[2px] after:bg-[linear-gradient(135deg,var(--primary),#7b2ff7)] hover:after:w-full after:transition-all after:duration-300"
           >
             Marketplace
           </Link>
@@ -87,7 +87,7 @@ export default function Navbar() {
         <li>
           <Link
             href="/dashboard"
-            className="text-[#a0a0b8] no-underline font-rajdhani text-[1rem] font-medium tracking-[1.5px] uppercase transition-all duration-300 relative hover:text-[#00f0ff] after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-[2px] after:bg-[linear-gradient(135deg,#00f0ff,#7b2ff7)] hover:after:w-full after:transition-all after:duration-300"
+            className="text-[var(--text-secondary)] no-underline font-rajdhani text-[1rem] font-medium tracking-[1.5px] uppercase transition-all duration-300 relative hover:text-[var(--primary)] after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-[2px] after:bg-[linear-gradient(135deg,var(--primary),#7b2ff7)] hover:after:w-full after:transition-all after:duration-300"
           >
             Dashboard
           </Link>
@@ -97,7 +97,7 @@ export default function Navbar() {
             <li key={item}>
               <a
                 href={`#${item.toLowerCase().replaceAll(" ", "-")}`}
-                className="text-[#a0a0b8] no-underline font-rajdhani text-[1rem] font-medium tracking-[1.5px] uppercase transition-all duration-300 relative hover:text-[#00f0ff] after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-[2px] after:bg-[linear-gradient(135deg,#00f0ff,#7b2ff7)] hover:after:w-full after:transition-all after:duration-300"
+                className="text-[var(--text-secondary)] no-underline font-rajdhani text-[1rem] font-medium tracking-[1.5px] uppercase transition-all duration-300 relative hover:text-[var(--primary)] after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-[2px] after:bg-[linear-gradient(135deg,var(--primary),#7b2ff7)] hover:after:w-full after:transition-all after:duration-300"
               >
                 {item}
               </a>
@@ -107,7 +107,7 @@ export default function Navbar() {
         <li>
           <a
             href="#contact"
-            className="px-[30px] py-[12px] bg-[linear-gradient(135deg,#00f0ff,#7b2ff7)] rounded-full text-[#0a0a0f] font-rajdhani text-[0.95rem] font-bold tracking-[1.5px] uppercase hover:translate-y-[-2px] hover:shadow-[0_0_30px_rgba(0,240,255,0.3)] transition-all duration-300 inline-block"
+            className="px-[30px] py-[12px] bg-[linear-gradient(135deg,var(--primary),#7b2ff7)] rounded-full text-[var(--dark-bg)] font-rajdhani text-[0.95rem] font-bold tracking-[1.5px] uppercase hover:translate-y-[-2px] hover:shadow-[0_0_30px_rgba(0,240,255,0.3)] transition-all duration-300 inline-block"
           >
             Get In Touch
           </a>
@@ -130,19 +130,19 @@ export default function Navbar() {
       >
         <span
           className={cn(
-            "w-[30px] h-[2px] bg-[#00f0ff] transition-all duration-300",
+            "w-[30px] h-[2px] bg-[var(--primary)] transition-all duration-300",
             menuOpen && "rotate-45 translate-x-[6px] translate-y-[6px]",
           )}
         />
         <span
           className={cn(
-            "w-[30px] h-[2px] bg-[#00f0ff] transition-all duration-300",
+            "w-[30px] h-[2px] bg-[var(--primary)] transition-all duration-300",
             menuOpen && "opacity-0",
           )}
         />
         <span
           className={cn(
-            "w-[30px] h-[2px] bg-[#00f0ff] transition-all duration-300",
+            "w-[30px] h-[2px] bg-[var(--primary)] transition-all duration-300",
             menuOpen && "-rotate-45 translate-x-[6px] -translate-y-[6px]",
           )}
         />
@@ -173,7 +173,7 @@ export default function Navbar() {
               <Link
                 href="/market"
                 onClick={closeMenu}
-                className="text-[#00f0ff] no-underline font-rajdhani text-[1.1rem] font-medium tracking-[1.5px] uppercase transition-all duration-300 relative hover:text-[#7b2ff7] after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-[2px] after:bg-[linear-gradient(135deg,#00f0ff,#7b2ff7)] hover:after:w-full after:transition-all after:duration-300"
+                className="text-[var(--primary)] no-underline font-rajdhani text-[1.1rem] font-medium tracking-[1.5px] uppercase transition-all duration-300 relative hover:text-[var(--secondary)] after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-[2px] after:bg-[linear-gradient(135deg,var(--primary),#7b2ff7)] hover:after:w-full after:transition-all after:duration-300"
               >
                 Marketplace
               </Link>
@@ -182,7 +182,7 @@ export default function Navbar() {
               <Link
                 href="/dashboard"
                 onClick={closeMenu}
-                className="text-[#a0a0b8] no-underline font-rajdhani text-[1.1rem] font-medium tracking-[1.5px] uppercase transition-all duration-300 relative hover:text-[#00f0ff] after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-[2px] after:bg-[linear-gradient(135deg,#00f0ff,#7b2ff7)] hover:after:w-full after:transition-all after:duration-300"
+                className="text-[var(--text-secondary)] no-underline font-rajdhani text-[1.1rem] font-medium tracking-[1.5px] uppercase transition-all duration-300 relative hover:text-[var(--primary)] after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-[2px] after:bg-[linear-gradient(135deg,var(--primary),#7b2ff7)] hover:after:w-full after:transition-all after:duration-300"
               >
                 Dashboard
               </Link>
@@ -193,7 +193,7 @@ export default function Navbar() {
                   <a
                     href={`#${item.toLowerCase().replaceAll(" ", "-")}`}
                     onClick={closeMenu}
-                    className="text-[#a0a0b8] no-underline font-rajdhani text-[1.1rem] font-medium tracking-[1.5px] uppercase transition-all duration-300 relative hover:text-[#00f0ff] after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-[2px] after:bg-[linear-gradient(135deg,#00f0ff,#7b2ff7)] hover:after:w-full after:transition-all after:duration-300"
+                    className="text-[var(--text-secondary)] no-underline font-rajdhani text-[1.1rem] font-medium tracking-[1.5px] uppercase transition-all duration-300 relative hover:text-[var(--primary)] after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-[2px] after:bg-[linear-gradient(135deg,var(--primary),#7b2ff7)] hover:after:w-full after:transition-all after:duration-300"
                   >
                     {item}
                   </a>
@@ -204,7 +204,7 @@ export default function Navbar() {
               <a
                 href="#contact"
                 onClick={closeMenu}
-                className="px-[30px] py-[12px] bg-[linear-gradient(135deg,#00f0ff,#7b2ff7)] rounded-full text-[#0a0a0f] font-rajdhani text-[0.95rem] font-bold tracking-[1.5px] uppercase hover:translate-y-[-2px] hover:shadow-[0_0_30px_rgba(0,240,255,0.3)] transition-all duration-300 inline-block"
+                className="px-[30px] py-[12px] bg-[linear-gradient(135deg,var(--primary),#7b2ff7)] rounded-full text-[var(--dark-bg)] font-rajdhani text-[0.95rem] font-bold tracking-[1.5px] uppercase hover:translate-y-[-2px] hover:shadow-[0_0_30px_rgba(0,240,255,0.3)] transition-all duration-300 inline-block"
               >
                 Get In Touch
               </a>

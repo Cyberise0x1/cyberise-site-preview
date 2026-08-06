@@ -19,14 +19,14 @@ export function ProtectedRoute({
 
   if (!isLoaded) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#12121a] to-[#1a1a2e] flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-[var(--dark-bg)] via-[var(--dark-surface)] to-[var(--dark-card)] flex items-center justify-center">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="flex flex-col items-center gap-4"
         >
-          <Loader2 className="w-8 h-8 animate-spin text-[#00f0ff]" />
-          <p className="text-[#a0a0b8]">Loading...</p>
+          <Loader2 className="w-8 h-8 animate-spin text-[var(--primary)]" />
+          <p className="text-[var(--text-secondary)]">Loading...</p>
         </motion.div>
       </div>
     );
@@ -34,20 +34,20 @@ export function ProtectedRoute({
 
   if (!isSignedIn) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#12121a] to-[#1a1a2e] flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-[var(--dark-bg)] via-[var(--dark-surface)] to-[var(--dark-card)] flex items-center justify-center">
         <AnimatePresence>
           {!dismissed && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 flex items-center justify-center bg-[#0a0a0f]/80 backdrop-blur-sm"
+              className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--dark-bg)]/80 backdrop-blur-sm"
             >
               <motion.div
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
-                className="bg-[#12121a] border border-[#00f0ff]/20 rounded-xl p-6 max-w-md w-full mx-4 relative"
+                className="bg-[var(--dark-surface)] border border-[var(--primary)]/20 rounded-xl p-6 max-w-md w-full mx-4 relative"
               >
                 <button
                   onClick={() => setDismissed(true)}

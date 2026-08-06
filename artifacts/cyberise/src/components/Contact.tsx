@@ -78,7 +78,7 @@ export default function Contact() {
       className="bg-[rgba(18,18,26,0.3)] border-y border-[rgba(0,240,255,0.05)]"
     >
       <div className="text-center mb-[80px] reveal">
-        <div className="inline-block font-rajdhani text-[0.85rem] font-semibold tracking-[3px] uppercase text-[#00f0ff] mb-[20px] relative before:content-['—'] before:mx-[10px] before:text-[rgba(0,240,255,0.4)] after:content-['—'] after:mx-[10px] after:text-[rgba(0,240,255,0.4)]">
+        <div className="inline-block font-rajdhani text-[0.85rem] font-semibold tracking-[3px] uppercase text-[var(--primary)] mb-[20px] relative before:content-['—'] before:mx-[10px] before:text-[rgba(0,240,255,0.4)] after:content-['—'] after:mx-[10px] after:text-[rgba(0,240,255,0.4)]">
           Initiate Contact
         </div>
         <h2 className="font-orbitron text-[clamp(2rem,4vw,3.5rem)] font-extrabold leading-[1.2] mb-[20px]">
@@ -91,18 +91,18 @@ export default function Contact() {
           <h3 className="font-orbitron text-[1.8rem] md:text-[2rem] font-extrabold mb-[20px] text-white">
             Headquarters
           </h3>
-          <p className="text-[#a0a0b8] leading-[1.8] mb-[40px]">
+          <p className="text-[var(--text-secondary)] leading-[1.8] mb-[40px]">
             Secure communications channel. Whether you need a complex web
             platform or an elite red team operation, our lines are open.
           </p>
 
           <div className="flex flex-col gap-[25px]">
             <div className="flex items-center gap-[20px]">
-              <div className="w-[50px] h-[50px] rounded-[14px] bg-[rgba(0,240,255,0.08)] border border-[rgba(0,240,255,0.15)] flex items-center justify-center shrink-0 text-[#00f0ff]">
+              <div className="w-[50px] h-[50px] rounded-[14px] bg-[rgba(0,240,255,0.08)] border border-[rgba(0,240,255,0.15)] flex items-center justify-center shrink-0 text-[var(--primary)]">
                 <MapPin className="w-6 h-6" />
               </div>
               <div>
-                <h5 className="font-rajdhani text-[0.85rem] tracking-[1.5px] uppercase text-[#a0a0b8] mb-[4px]">
+                <h5 className="font-rajdhani text-[0.85rem] tracking-[1.5px] uppercase text-[var(--text-secondary)] mb-[4px]">
                   Location
                 </h5>
                 <span className="text-[1rem] font-medium text-white">
@@ -112,11 +112,11 @@ export default function Contact() {
             </div>
 
             <div className="flex items-center gap-[20px]">
-              <div className="w-[50px] h-[50px] rounded-[14px] bg-[rgba(0,240,255,0.08)] border border-[rgba(0,240,255,0.15)] flex items-center justify-center shrink-0 text-[#00f0ff]">
+              <div className="w-[50px] h-[50px] rounded-[14px] bg-[rgba(0,240,255,0.08)] border border-[rgba(0,240,255,0.15)] flex items-center justify-center shrink-0 text-[var(--primary)]">
                 <Mail className="w-6 h-6" />
               </div>
               <div>
-                <h5 className="font-rajdhani text-[0.85rem] tracking-[1.5px] uppercase text-[#a0a0b8] mb-[4px]">
+                <h5 className="font-rajdhani text-[0.85rem] tracking-[1.5px] uppercase text-[var(--text-secondary)] mb-[4px]">
                   Email
                 </h5>
                 <span className="text-[1rem] font-medium text-white">
@@ -126,11 +126,11 @@ export default function Contact() {
             </div>
 
             <div className="flex items-center gap-[20px]">
-              <div className="w-[50px] h-[50px] rounded-[14px] bg-[rgba(0,240,255,0.08)] border border-[rgba(0,240,255,0.15)] flex items-center justify-center shrink-0 text-[#00f0ff]">
+              <div className="w-[50px] h-[50px] rounded-[14px] bg-[rgba(0,240,255,0.08)] border border-[rgba(0,240,255,0.15)] flex items-center justify-center shrink-0 text-[var(--primary)]">
                 <Phone className="w-6 h-6" />
               </div>
               <div>
-                <h5 className="font-rajdhani text-[0.85rem] tracking-[1.5px] uppercase text-[#a0a0b8] mb-[4px]">
+                <h5 className="font-rajdhani text-[0.85rem] tracking-[1.5px] uppercase text-[var(--text-secondary)] mb-[4px]">
                   Phone / WhatsApp
                 </h5>
                 <span className="text-[1rem] font-medium text-white">
@@ -140,11 +140,11 @@ export default function Contact() {
             </div>
 
             <div className="flex items-center gap-[20px]">
-              <div className="w-[50px] h-[50px] rounded-[14px] bg-[rgba(0,240,255,0.08)] border border-[rgba(0,240,255,0.15)] flex items-center justify-center shrink-0 text-[#00f0ff]">
+              <div className="w-[50px] h-[50px] rounded-[14px] bg-[rgba(0,240,255,0.08)] border border-[rgba(0,240,255,0.15)] flex items-center justify-center shrink-0 text-[var(--primary)]">
                 <Clock className="w-6 h-6" />
               </div>
               <div>
-                <h5 className="font-rajdhani text-[0.85rem] tracking-[1.5px] uppercase text-[#a0a0b8] mb-[4px]">
+                <h5 className="font-rajdhani text-[0.85rem] tracking-[1.5px] uppercase text-[var(--text-secondary)] mb-[4px]">
                   Availability
                 </h5>
                 <span className="text-[1rem] font-medium text-white">
@@ -163,7 +163,7 @@ export default function Contact() {
             <div className="form-group mb-0">
               <label
                 htmlFor="contact-name"
-                className="block font-rajdhani text-[0.85rem] font-semibold tracking-[1.5px] uppercase text-[#a0a0b8] mb-[10px]"
+                className="block font-rajdhani text-[0.85rem] font-semibold tracking-[1.5px] uppercase text-[var(--text-secondary)] mb-[10px]"
               >
                 Name / Callsign
               </label>
@@ -172,13 +172,13 @@ export default function Contact() {
                 id="contact-name"
                 name="name"
                 type="text"
-                className="w-full p-[14px_20px] bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[12px] text-white font-sans text-[1rem] transition-all outline-none focus:border-[#00f0ff] focus:shadow-[0_0_20px_rgba(0,240,255,0.1)] focus:bg-[rgba(0,240,255,0.03)]"
+                className="w-full p-[14px_20px] bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[12px] text-white font-sans text-[1rem] transition-all outline-none focus:border-[var(--primary)] focus:shadow-[0_0_20px_rgba(0,240,255,0.1)] focus:bg-[rgba(0,240,255,0.03)]"
               />
             </div>
             <div className="form-group mb-0">
               <label
                 htmlFor="contact-email"
-                className="block font-rajdhani text-[0.85rem] font-semibold tracking-[1.5px] uppercase text-[#a0a0b8] mb-[10px]"
+                className="block font-rajdhani text-[0.85rem] font-semibold tracking-[1.5px] uppercase text-[var(--text-secondary)] mb-[10px]"
               >
                 Email Address
               </label>
@@ -187,7 +187,7 @@ export default function Contact() {
                 id="contact-email"
                 name="email"
                 type="email"
-                className="w-full p-[14px_20px] bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[12px] text-white font-sans text-[1rem] transition-all outline-none focus:border-[#00f0ff] focus:shadow-[0_0_20px_rgba(0,240,255,0.1)] focus:bg-[rgba(0,240,255,0.03)]"
+                className="w-full p-[14px_20px] bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[12px] text-white font-sans text-[1rem] transition-all outline-none focus:border-[var(--primary)] focus:shadow-[0_0_20px_rgba(0,240,255,0.1)] focus:bg-[rgba(0,240,255,0.03)]"
               />
             </div>
           </div>
@@ -195,7 +195,7 @@ export default function Contact() {
           <div className="form-group mb-[25px]">
             <label
               htmlFor="contact-service"
-              className="block font-rajdhani text-[0.85rem] font-semibold tracking-[1.5px] uppercase text-[#a0a0b8] mb-[10px]"
+              className="block font-rajdhani text-[0.85rem] font-semibold tracking-[1.5px] uppercase text-[var(--text-secondary)] mb-[10px]"
             >
               Service Required
             </label>
@@ -203,24 +203,24 @@ export default function Contact() {
               required
               id="contact-service"
               name="service"
-              className="w-full p-[14px_20px] bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[12px] text-white font-sans text-[1rem] transition-all outline-none focus:border-[#00f0ff] focus:shadow-[0_0_20px_rgba(0,240,255,0.1)] focus:bg-[rgba(0,240,255,0.03)] appearance-none cursor-pointer"
+              className="w-full p-[14px_20px] bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[12px] text-white font-sans text-[1rem] transition-all outline-none focus:border-[var(--primary)] focus:shadow-[0_0_20px_rgba(0,240,255,0.1)] focus:bg-[rgba(0,240,255,0.03)] appearance-none cursor-pointer"
             >
-              <option value="" disabled className="bg-[#0a0a0f]">
+              <option value="" disabled className="bg-[var(--dark-bg)]">
                 Select an option...
               </option>
-              <option value="web" className="bg-[#0a0a0f]">
+              <option value="web" className="bg-[var(--dark-bg)]">
                 Web/App Development
               </option>
-              <option value="cyber" className="bg-[#0a0a0f]">
+              <option value="cyber" className="bg-[var(--dark-bg)]">
                 Cybersecurity & Red Teaming
               </option>
-              <option value="gov" className="bg-[#0a0a0f]">
+              <option value="gov" className="bg-[var(--dark-bg)]">
                 Government Consultancy
               </option>
-              <option value="intel" className="bg-[#0a0a0f]">
+              <option value="intel" className="bg-[var(--dark-bg)]">
                 Intelligence & Tracking
               </option>
-              <option value="other" className="bg-[#0a0a0f]">
+              <option value="other" className="bg-[var(--dark-bg)]">
                 Other / Classified
               </option>
             </select>
@@ -229,7 +229,7 @@ export default function Contact() {
           <div className="form-group mb-[30px]">
             <label
               htmlFor="contact-message"
-              className="block font-rajdhani text-[0.85rem] font-semibold tracking-[1.5px] uppercase text-[#a0a0b8] mb-[10px]"
+              className="block font-rajdhani text-[0.85rem] font-semibold tracking-[1.5px] uppercase text-[var(--text-secondary)] mb-[10px]"
             >
               Transmission Details
             </label>
@@ -237,7 +237,7 @@ export default function Contact() {
               required
               id="contact-message"
               name="message"
-              className="w-full p-[14px_20px] bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[12px] text-white font-sans text-[1rem] transition-all outline-none focus:border-[#00f0ff] focus:shadow-[0_0_20px_rgba(0,240,255,0.1)] focus:bg-[rgba(0,240,255,0.03)] h-[140px] resize-y"
+              className="w-full p-[14px_20px] bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-[12px] text-white font-sans text-[1rem] transition-all outline-none focus:border-[var(--primary)] focus:shadow-[0_0_20px_rgba(0,240,255,0.1)] focus:bg-[rgba(0,240,255,0.03)] h-[140px] resize-y"
             ></textarea>
           </div>
 
@@ -248,7 +248,7 @@ export default function Contact() {
                 <p className="font-rajdhani text-[0.8rem] font-semibold tracking-[1.5px] uppercase text-[#ff2d55] mb-[4px]">
                   Rate Limit Reached
                 </p>
-                <p className="text-[0.92rem] text-[#a0a0b8] leading-[1.6]">
+                <p className="text-[0.92rem] text-[var(--text-secondary)] leading-[1.6]">
                   You've sent too many messages. Please wait{" "}
                   <span className="text-white font-medium">
                     {rateLimitInfo.waitMinutes}{" "}

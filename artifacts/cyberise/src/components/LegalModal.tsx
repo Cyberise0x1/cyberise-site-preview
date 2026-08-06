@@ -18,7 +18,7 @@ const DOCS: Record<
     title: "Privacy Policy",
     effective: "Effective: January 1, 2025",
     body: (
-      <div className="space-y-4 text-[#a0a0b8] leading-[1.8] text-[0.95rem]">
+      <div className="space-y-4 text-[var(--text-secondary)] leading-[1.8] text-[0.95rem]">
         <p>
           Cyberise Technology ("we", "us") respects your privacy. This policy
           explains what personal data we collect when you use this website and
@@ -52,7 +52,7 @@ const DOCS: Record<
           <p>
             Contact form data is retained for up to 12 months. To request
             deletion, email us at{" "}
-            <span className="text-[#00f0ff]">
+            <span className="text-[var(--primary)]">
               Cyberisetecnologies@consultant.com
             </span>{" "}
             with the subject line "Data Deletion Request".
@@ -75,7 +75,7 @@ const DOCS: Record<
     title: "Terms of Service",
     effective: "Effective: January 1, 2025",
     body: (
-      <div className="space-y-4 text-[#a0a0b8] leading-[1.8] text-[0.95rem]">
+      <div className="space-y-4 text-[var(--text-secondary)] leading-[1.8] text-[0.95rem]">
         <p>
           By accessing this website you agree to the following terms. If you
           disagree, please exit now.
@@ -128,7 +128,7 @@ const DOCS: Record<
     title: "NDA Information",
     effective: "Effective: January 1, 2025",
     body: (
-      <div className="space-y-4 text-[#a0a0b8] leading-[1.8] text-[0.95rem]">
+      <div className="space-y-4 text-[var(--text-secondary)] leading-[1.8] text-[0.95rem]">
         <p>
           Cyberise Technology operates in domains where discretion is
           non-negotiable. This page explains how we handle confidential
@@ -153,7 +153,7 @@ const DOCS: Record<
             Prospective clients who require a formal, signed Mutual
             Non-Disclosure Agreement before a discovery call are welcome to
             request one. Contact us at{" "}
-            <span className="text-[#00f0ff]">
+            <span className="text-[var(--primary)]">
               Cyberisetecnologies@consultant.com
             </span>{" "}
             and we will send a template within one business day.
@@ -176,7 +176,7 @@ const DOCS: Record<
     title: "Cookie Policy",
     effective: "Effective: January 1, 2025",
     body: (
-      <div className="space-y-4 text-[#a0a0b8] leading-[1.8] text-[0.95rem]">
+      <div className="space-y-4 text-[var(--text-secondary)] leading-[1.8] text-[0.95rem]">
         <p>We keep this simple because our cookie footprint is minimal.</p>
         <div>
           <h4 className="font-rajdhani font-semibold text-white uppercase tracking-[1.5px] text-[0.85rem] mb-1">
@@ -322,17 +322,17 @@ export default function LegalModal({
         <div
           style={{
             height: "3px",
-            background: "linear-gradient(90deg,#00f0ff,#7b2ff7,#ff2d55)",
+            background: "linear-gradient(90deg,var(--primary),#7b2ff7,#ff2d55)",
           }}
         />
 
         <div className="flex items-center justify-between px-8 pt-6 pb-0 shrink-0">
-          <span className="font-rajdhani text-[0.75rem] font-semibold tracking-[3px] uppercase text-[#00f0ff]">
+          <span className="font-rajdhani text-[0.75rem] font-semibold tracking-[3px] uppercase text-[var(--primary)]">
             // LEGAL DOCS
           </span>
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-[10px] flex items-center justify-center text-[#a0a0b8] transition-all hover:bg-[rgba(0,240,255,0.08)] hover:text-[#00f0ff]"
+            className="w-9 h-9 rounded-[10px] flex items-center justify-center text-[var(--text-secondary)] transition-all hover:bg-[rgba(0,240,255,0.08)] hover:text-[var(--primary)]"
           >
             <X className="w-5 h-5" />
           </button>
@@ -344,14 +344,14 @@ export default function LegalModal({
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
               className="relative shrink-0 px-4 pb-3 font-rajdhani text-[0.85rem] font-semibold tracking-[1px] uppercase transition-colors"
-              style={{ color: activeTab === tab.id ? "#00f0ff" : "#a0a0b8" }}
+              style={{ color: activeTab === tab.id ? "var(--primary)" : "#a0a0b8" }}
             >
               {tab.label}
               {activeTab === tab.id && (
                 <span
                   className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full"
                   style={{
-                    background: "linear-gradient(90deg,#00f0ff,#7b2ff7)",
+                    background: "linear-gradient(90deg,var(--primary),#7b2ff7)",
                   }}
                 />
               )}
@@ -371,7 +371,7 @@ export default function LegalModal({
               <h2 className="font-orbitron text-[1.4rem] font-extrabold text-white mb-1">
                 {doc.title}
               </h2>
-              <p className="font-rajdhani text-[0.8rem] tracking-[1.5px] text-[#a0a0b8] uppercase">
+              <p className="font-rajdhani text-[0.8rem] tracking-[1.5px] text-[var(--text-secondary)] uppercase">
                 {doc.effective}
               </p>
             </div>
@@ -387,11 +387,11 @@ export default function LegalModal({
         </div>
 
         <div className="px-8 py-4 shrink-0 border-t border-[rgba(255,255,255,0.06)]">
-          <p className="text-[#a0a0b8] text-[0.8rem] text-center">
+          <p className="text-[var(--text-secondary)] text-[0.8rem] text-center">
             Questions? Contact us at{" "}
             <a
               href="mailto:Cyberisetecnologies@consultant.com"
-              className="text-[#00f0ff] hover:underline"
+              className="text-[var(--primary)] hover:underline"
             >
               Cyberisetecnologies@consultant.com
             </a>

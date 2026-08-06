@@ -51,9 +51,9 @@ const ACTION_BADGE: Record<string, string> = {
   USER_BANNED: "bg-[#f5b942]/15 text-[#f5b942] border-[#f5b942]/30",
   USER_UNBANNED: "bg-[#7bd389]/15 text-[#7bd389] border-[#7bd389]/30",
   ORDER_TERMINATED_ADMIN: "bg-[#f5b942]/15 text-[#f5b942] border-[#f5b942]/30",
-  SETTINGS_UPDATED: "bg-[#00f0ff]/15 text-[#00f0ff] border-[#00f0ff]/30",
+  SETTINGS_UPDATED: "bg-[var(--primary)]/15 text-[var(--primary)] border-[var(--primary)]/30",
   PROMO_CODE_CREATED: "bg-[#7bd389]/15 text-[#7bd389] border-[#7bd389]/30",
-  PROMO_CODE_UPDATED: "bg-[#00f0ff]/15 text-[#00f0ff] border-[#00f0ff]/30",
+  PROMO_CODE_UPDATED: "bg-[var(--primary)]/15 text-[var(--primary)] border-[var(--primary)]/30",
   PROMO_CODE_DELETED: "bg-[#ff6b9d]/15 text-[#ff6b9d] border-[#ff6b9d]/30",
 };
 
@@ -80,7 +80,7 @@ function MetadataCell({ metadata, action }: { metadata: Record<string, unknown> 
   const isProvisionFailure = PROVISION_ACTIONS.includes(action);
 
   if (!metadata || Object.keys(metadata).length === 0) {
-    return <span className="text-[#a0a0b8] text-xs italic">—</span>;
+    return <span className="text-[var(--text-secondary)] text-xs italic">—</span>;
   }
 
   const linodeError = metadata.linodeError as string | undefined;
@@ -97,7 +97,7 @@ function MetadataCell({ metadata, action }: { metadata: Record<string, unknown> 
         .filter(([k]) => !(isProvisionFailure && k === "linodeError"))
         .map(([k, v]) => (
           <div key={k} className="flex gap-1.5 text-xs">
-            <span className="text-[#a0a0b8] shrink-0">{k}:</span>
+            <span className="text-[var(--text-secondary)] shrink-0">{k}:</span>
             <span className="text-[#e8e8e8] font-mono break-all">
               {typeof v === "object" ? JSON.stringify(v) : String(v)}
             </span>
@@ -161,16 +161,16 @@ export default function AdminAuditLogs() {
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-              <ClipboardList className="w-6 h-6 text-[#00f0ff]" />
+              <ClipboardList className="w-6 h-6 text-[var(--primary)]" />
               Audit Logs
             </h1>
-            <p className="text-[#a0a0b8] text-sm mt-1">
+            <p className="text-[var(--text-secondary)] text-sm mt-1">
               System-wide event history · provisioning failures highlighted
             </p>
           </div>
           <button
             onClick={loadLogs}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-[#a0a0b8] hover:text-white hover:bg-[#ffffff08] border border-[#ffffff0a] transition-all"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-[var(--text-secondary)] hover:text-white hover:bg-[#ffffff08] border border-[#ffffff0a] transition-all"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             Refresh
@@ -186,9 +186,9 @@ export default function AdminAuditLogs() {
 
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#a0a0b8]" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
             <Input
-              className="pl-9 bg-[#0a0a0f] border-[#ffffff12] text-white placeholder:text-[#a0a0b8] focus:border-[#00f0ff]/40"
+              className="pl-9 bg-[var(--dark-bg)] border-[#ffffff12] text-white placeholder:text-[var(--text-secondary)] focus:border-[var(--primary)]/40"
               placeholder="Search action, entity, ID…"
               value={search}
               onChange={(e) => handleSearchChange(e.target.value)}
@@ -196,7 +196,7 @@ export default function AdminAuditLogs() {
             {search && (
               <button
                 onClick={() => handleSearchChange("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#a0a0b8] hover:text-white"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] hover:text-white"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -210,8 +210,8 @@ export default function AdminAuditLogs() {
                 onClick={() => handleActionFilter(f.value)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
                   actionFilter === f.value
-                    ? "bg-[#00f0ff]/10 text-[#00f0ff] border-[#00f0ff]/30"
-                    : "text-[#a0a0b8] border-[#ffffff0a] hover:text-white hover:bg-[#ffffff08]"
+                    ? "bg-[var(--primary)]/10 text-[var(--primary)] border-[var(--primary)]/30"
+                    : "text-[var(--text-secondary)] border-[#ffffff0a] hover:text-white hover:bg-[#ffffff08]"
                 }`}
               >
                 {f.label}
@@ -225,24 +225,24 @@ export default function AdminAuditLogs() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[#ffffff08]">
-                  <th className="text-left px-4 py-3 text-xs text-[#a0a0b8] font-medium uppercase tracking-wider whitespace-nowrap">Time</th>
-                  <th className="text-left px-4 py-3 text-xs text-[#a0a0b8] font-medium uppercase tracking-wider">Action</th>
-                  <th className="text-left px-4 py-3 text-xs text-[#a0a0b8] font-medium uppercase tracking-wider">Entity</th>
-                  <th className="text-left px-4 py-3 text-xs text-[#a0a0b8] font-medium uppercase tracking-wider">Actor</th>
-                  <th className="text-left px-4 py-3 text-xs text-[#a0a0b8] font-medium uppercase tracking-wider">Details</th>
+                  <th className="text-left px-4 py-3 text-xs text-[var(--text-secondary)] font-medium uppercase tracking-wider whitespace-nowrap">Time</th>
+                  <th className="text-left px-4 py-3 text-xs text-[var(--text-secondary)] font-medium uppercase tracking-wider">Action</th>
+                  <th className="text-left px-4 py-3 text-xs text-[var(--text-secondary)] font-medium uppercase tracking-wider">Entity</th>
+                  <th className="text-left px-4 py-3 text-xs text-[var(--text-secondary)] font-medium uppercase tracking-wider">Actor</th>
+                  <th className="text-left px-4 py-3 text-xs text-[var(--text-secondary)] font-medium uppercase tracking-wider">Details</th>
                 </tr>
               </thead>
               <tbody>
                 {loading && (
                   <tr>
-                    <td colSpan={5} className="text-center py-12 text-[#a0a0b8] text-sm">
+                    <td colSpan={5} className="text-center py-12 text-[var(--text-secondary)] text-sm">
                       Loading…
                     </td>
                   </tr>
                 )}
                 {!loading && data?.logs.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="text-center py-12 text-[#a0a0b8] text-sm">
+                    <td colSpan={5} className="text-center py-12 text-[var(--text-secondary)] text-sm">
                       No audit log entries found.
                     </td>
                   </tr>
@@ -261,7 +261,7 @@ export default function AdminAuditLogs() {
                       >
                         <td className="px-4 py-3 whitespace-nowrap">
                           <span
-                            className="text-[#a0a0b8] text-xs"
+                            className="text-[var(--text-secondary)] text-xs"
                             title={new Date(log.createdAt).toLocaleString()}
                           >
                             {timeAgo(log.createdAt)}
@@ -271,7 +271,7 @@ export default function AdminAuditLogs() {
                         <td className="px-4 py-3">
                           <span
                             className={`inline-flex items-center px-2 py-0.5 rounded-md border text-xs font-mono font-medium ${
-                              ACTION_BADGE[log.action] ?? "bg-[#ffffff08] text-[#a0a0b8] border-[#ffffff10]"
+                              ACTION_BADGE[log.action] ?? "bg-[#ffffff08] text-[var(--text-secondary)] border-[#ffffff10]"
                             }`}
                           >
                             {log.action}
@@ -286,7 +286,7 @@ export default function AdminAuditLogs() {
                           )}
                         </td>
                         <td className="px-4 py-3">
-                          <span className="text-[#a0a0b8] text-xs">
+                          <span className="text-[var(--text-secondary)] text-xs">
                             {log.actor?.email ?? <span className="italic text-[#606070]">system</span>}
                           </span>
                         </td>
@@ -302,21 +302,21 @@ export default function AdminAuditLogs() {
 
           {data && data.pagination.totalPages > 1 && (
             <div className="flex items-center justify-between px-4 py-3 border-t border-[#ffffff08]">
-              <p className="text-xs text-[#a0a0b8]">
+              <p className="text-xs text-[var(--text-secondary)]">
                 {data.pagination.total} total · page {data.pagination.page} of {data.pagination.totalPages}
               </p>
               <div className="flex gap-1">
                 <button
                   disabled={page === 1}
                   onClick={() => setPage((p) => p - 1)}
-                  className="p-1.5 rounded-lg text-[#a0a0b8] hover:text-white hover:bg-[#ffffff08] border border-[#ffffff0a] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  className="p-1.5 rounded-lg text-[var(--text-secondary)] hover:text-white hover:bg-[#ffffff08] border border-[#ffffff0a] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
                 <button
                   disabled={page === data.pagination.totalPages}
                   onClick={() => setPage((p) => p + 1)}
-                  className="p-1.5 rounded-lg text-[#a0a0b8] hover:text-white hover:bg-[#ffffff08] border border-[#ffffff0a] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  className="p-1.5 rounded-lg text-[var(--text-secondary)] hover:text-white hover:bg-[#ffffff08] border border-[#ffffff0a] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>

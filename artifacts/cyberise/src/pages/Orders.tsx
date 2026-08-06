@@ -48,7 +48,7 @@ const STATUS_CONFIG: Record<
 > = {
   ACTIVE: {
     label: "Active",
-    color: "#00f0ff",
+    color: "var(--primary)",
     bg: "rgba(0,240,255,0.08)",
     border: "rgba(0,240,255,0.2)",
     Icon: CheckCircle,
@@ -85,7 +85,7 @@ function CopyField({ value, label }: { value: string; label: string }) {
     toast.success(`${label} copied`);
   };
   return (
-    <div className="flex items-center gap-2 bg-[#0a0a0f] rounded-lg px-3 py-2.5 border border-[rgba(255,255,255,0.06)]">
+    <div className="flex items-center gap-2 bg-[var(--dark-bg)] rounded-lg px-3 py-2.5 border border-[rgba(255,255,255,0.06)]">
       <div className="flex-1 min-w-0">
         <p className="text-[#555] text-[9px] uppercase tracking-[1px] font-rajdhani mb-0.5">
           {label}
@@ -96,10 +96,10 @@ function CopyField({ value, label }: { value: string; label: string }) {
       </div>
       <button
         onClick={copy}
-        className="flex-shrink-0 text-[#555] hover:text-[#00f0ff] transition-colors"
+        className="flex-shrink-0 text-[#555] hover:text-[var(--primary)] transition-colors"
       >
         {copied ? (
-          <Check className="w-3.5 h-3.5 text-[#00f0ff]" />
+          <Check className="w-3.5 h-3.5 text-[var(--primary)]" />
         ) : (
           <Copy className="w-3.5 h-3.5" />
         )}
@@ -146,7 +146,7 @@ function OrderCard({
             }`}
           >
             <Server
-              className={`${isPro ? "text-[#a855f7]" : "text-[#00f0ff]"}`}
+              className={`${isPro ? "text-[#a855f7]" : "text-[var(--primary)]"}`}
               style={{ width: 16, height: 16 }}
             />
           </div>
@@ -160,7 +160,7 @@ function OrderCard({
                 className={`text-[9px] font-bold tracking-[1.5px] px-1.5 py-0.5 rounded border font-rajdhani uppercase flex-shrink-0 ${
                   isPro
                     ? "bg-[rgba(123,47,247,0.1)] text-[#a855f7] border-[rgba(123,47,247,0.2)]"
-                    : "bg-[rgba(0,240,255,0.06)] text-[#00f0ff] border-[rgba(0,240,255,0.15)]"
+                    : "bg-[rgba(0,240,255,0.06)] text-[var(--primary)] border-[rgba(0,240,255,0.15)]"
                 }`}
               >
                 {isPro ? "⚡ Pro" : "Basic"}
@@ -232,11 +232,11 @@ function OrderCard({
                       {isPro ? (
                         <Monitor className="w-3.5 h-3.5 text-[#a855f7]" />
                       ) : (
-                        <Terminal className="w-3.5 h-3.5 text-[#00f0ff]" />
+                        <Terminal className="w-3.5 h-3.5 text-[var(--primary)]" />
                       )}
                       <p
                         className={`text-xs font-rajdhani uppercase tracking-[1px] ${
-                          isPro ? "text-[#a855f7]" : "text-[#00f0ff]"
+                          isPro ? "text-[#a855f7]" : "text-[var(--primary)]"
                         }`}
                       >
                         {isPro ? "RDP Credentials" : "SSH Credentials"}
@@ -270,7 +270,7 @@ function OrderCard({
                     <p className="text-[#444] uppercase tracking-[1px] text-[9px] font-rajdhani mb-1">
                       Created
                     </p>
-                    <p className="text-[#a0a0b8]">
+                    <p className="text-[var(--text-secondary)]">
                       {new Date(order.createdAt).toLocaleString()}
                     </p>
                   </div>
@@ -283,7 +283,7 @@ function OrderCard({
                         className={
                           daysLeft !== null && daysLeft <= 3
                             ? "text-[#ff4444]"
-                            : "text-[#a0a0b8]"
+                            : "text-[var(--text-secondary)]"
                         }
                       >
                         {new Date(order.expiresAt).toLocaleString()}
@@ -320,14 +320,14 @@ function OrderCard({
             <AlertDialogTitle className="text-white font-orbitron">
               Terminate Instance?
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-[#a0a0b8]">
+            <AlertDialogDescription className="text-[var(--text-secondary)]">
               This will permanently shut down{" "}
               <span className="text-white font-medium">{order.plan}</span>
               {order.ip && <> ({order.ip})</>}. This cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2">
-            <AlertDialogCancel className="bg-transparent border-[rgba(255,255,255,0.1)] text-[#a0a0b8] hover:text-white font-rajdhani">
+            <AlertDialogCancel className="bg-transparent border-[rgba(255,255,255,0.1)] text-[var(--text-secondary)] hover:text-white font-rajdhani">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
@@ -415,8 +415,8 @@ function OrdersContent() {
       <AppShell>
         <div className="min-h-screen flex items-center justify-center">
           <div className="flex flex-col items-center gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-[#00f0ff]" />
-            <p className="text-[#a0a0b8] text-sm font-rajdhani tracking-widest uppercase">
+            <Loader2 className="w-8 h-8 animate-spin text-[var(--primary)]" />
+            <p className="text-[var(--text-secondary)] text-sm font-rajdhani tracking-widest uppercase">
               Loading orders...
             </p>
           </div>
@@ -427,7 +427,7 @@ function OrdersContent() {
 
   return (
     <AppShell>
-      <div className="min-h-screen bg-[#0a0a0f] py-8 px-4 md:px-8">
+      <div className="min-h-screen bg-[var(--dark-bg)] py-8 px-4 md:px-8">
         <motion.div
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -435,11 +435,11 @@ function OrdersContent() {
         >
           <h1 className="text-3xl md:text-4xl font-orbitron font-bold text-white mb-1">
             My{" "}
-            <span className="bg-gradient-to-r from-[#00f0ff] to-[#7b2ff7] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] bg-clip-text text-transparent">
               Orders
             </span>
           </h1>
-          <p className="text-[#a0a0b8] text-sm font-rajdhani">
+          <p className="text-[var(--text-secondary)] text-sm font-rajdhani">
             Manage and monitor your deployed servers.
           </p>
         </motion.div>
@@ -475,7 +475,7 @@ function OrdersContent() {
                       ? value === "ALL"
                         ? "bg-[rgba(255,255,255,0.1)] border-[rgba(255,255,255,0.2)] text-white"
                         : ""
-                      : "bg-transparent border-[rgba(255,255,255,0.06)] text-[#666] hover:text-[#a0a0b8] hover:border-[rgba(255,255,255,0.12)]"
+                      : "bg-transparent border-[rgba(255,255,255,0.06)] text-[#666] hover:text-[var(--text-secondary)] hover:border-[rgba(255,255,255,0.12)]"
                   }`}
                   style={
                     active && cfg
@@ -520,7 +520,7 @@ function OrdersContent() {
             </p>
             {!search && (
               <Link href="/market">
-                <Button className="bg-gradient-to-r from-[#00f0ff] to-[#7b2ff7] text-[#0a0a0f] font-rajdhani font-bold uppercase tracking-[1.5px] hover:opacity-90">
+                <Button className="bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-[var(--dark-bg)] font-rajdhani font-bold uppercase tracking-[1.5px] hover:opacity-90">
                   <Plus className="w-4 h-4 mr-2" />
                   Deploy Server
                 </Button>

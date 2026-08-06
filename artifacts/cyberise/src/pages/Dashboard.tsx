@@ -55,7 +55,7 @@ function ExpiryBadge({ expiresAt }: { expiresAt: string }) {
           ? "bg-[rgba(255,68,68,0.1)] text-[#ff4444] border-[rgba(255,68,68,0.2)]"
           : warning
             ? "bg-[rgba(255,136,0,0.1)] text-[#ff8800] border-[rgba(255,136,0,0.2)]"
-            : "bg-[rgba(0,240,255,0.08)] text-[#00f0ff] border-[rgba(0,240,255,0.15)]"
+            : "bg-[rgba(0,240,255,0.08)] text-[var(--primary)] border-[rgba(0,240,255,0.15)]"
       }`}
     >
       <Clock className="w-2.5 h-2.5" />
@@ -78,7 +78,7 @@ function InstanceRow({ order }: { order: Order }) {
         }`}
       >
         <Server
-          className={`w-4.5 h-4.5 ${isPro ? "text-[#a855f7]" : "text-[#00f0ff]"}`}
+          className={`w-4.5 h-4.5 ${isPro ? "text-[#a855f7]" : "text-[var(--primary)]"}`}
           style={{ width: 18, height: 18 }}
         />
       </div>
@@ -92,7 +92,7 @@ function InstanceRow({ order }: { order: Order }) {
             className={`text-[9px] font-bold tracking-[1.5px] uppercase px-1.5 py-0.5 rounded font-rajdhani border flex-shrink-0 ${
               isPro
                 ? "bg-[rgba(123,47,247,0.12)] text-[#a855f7] border-[rgba(123,47,247,0.2)]"
-                : "bg-[rgba(0,240,255,0.06)] text-[#00f0ff] border-[rgba(0,240,255,0.15)]"
+                : "bg-[rgba(0,240,255,0.06)] text-[var(--primary)] border-[rgba(0,240,255,0.15)]"
             }`}
           >
             {isPro ? "⚡ Pro" : "Basic"}
@@ -112,7 +112,7 @@ function InstanceRow({ order }: { order: Order }) {
             className={`inline-flex items-center gap-1 text-[9px] font-bold tracking-[1px] uppercase px-1.5 py-0.5 rounded border font-rajdhani ${
               isPro
                 ? "bg-[rgba(123,47,247,0.08)] text-[#a855f7] border-[rgba(123,47,247,0.18)]"
-                : "bg-[rgba(0,240,255,0.06)] text-[#00f0ff] border-[rgba(0,240,255,0.15)]"
+                : "bg-[rgba(0,240,255,0.06)] text-[var(--primary)] border-[rgba(0,240,255,0.15)]"
             }`}
           >
             {isPro ? (
@@ -127,14 +127,14 @@ function InstanceRow({ order }: { order: Order }) {
 
       <div className="flex items-center gap-3 flex-shrink-0">
         <div className="flex items-center gap-1.5">
-          <div className="w-1.5 h-1.5 rounded-full bg-[#00f0ff] animate-pulse" />
-          <span className="text-[#00f0ff] text-[10px] font-rajdhani uppercase tracking-[1px]">
+          <div className="w-1.5 h-1.5 rounded-full bg-[var(--primary)] animate-pulse" />
+          <span className="text-[var(--primary)] text-[10px] font-rajdhani uppercase tracking-[1px]">
             Active
           </span>
         </div>
         {order.expiresAt && <ExpiryBadge expiresAt={order.expiresAt} />}
         <Link href="/orders">
-          <ExternalLink className="w-3.5 h-3.5 text-[#555] hover:text-[#00f0ff] cursor-pointer transition-colors opacity-0 group-hover:opacity-100" />
+          <ExternalLink className="w-3.5 h-3.5 text-[#555] hover:text-[var(--primary)] cursor-pointer transition-colors opacity-0 group-hover:opacity-100" />
         </Link>
       </div>
     </motion.div>
@@ -176,7 +176,7 @@ function DashboardContent() {
       label: "Active Instances",
       value: active.length,
       Icon: Activity,
-      color: "#00f0ff",
+      color: "var(--primary)",
       bg: "rgba(0,240,255,0.08)",
       border: "rgba(0,240,255,0.15)",
     },
@@ -215,8 +215,8 @@ function DashboardContent() {
       <AppShell>
         <div className="min-h-screen flex items-center justify-center">
           <div className="flex flex-col items-center gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-[#00f0ff]" />
-            <p className="text-[#a0a0b8] text-sm font-rajdhani tracking-widest uppercase">
+            <Loader2 className="w-8 h-8 animate-spin text-[var(--primary)]" />
+            <p className="text-[var(--text-secondary)] text-sm font-rajdhani tracking-widest uppercase">
               Loading...
             </p>
           </div>
@@ -227,19 +227,19 @@ function DashboardContent() {
 
   return (
     <AppShell>
-      <div className="min-h-screen bg-[#0a0a0f] py-8 px-4 md:px-8">
+      <div className="min-h-screen bg-[var(--dark-bg)] py-8 px-4 md:px-8">
         <motion.div
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <p className="text-[#a0a0b8] text-sm font-rajdhani mb-1">
+          <p className="text-[var(--text-secondary)] text-sm font-rajdhani mb-1">
             Welcome back,{" "}
             <span className="text-white">{user?.firstName || "User"}</span>
           </p>
           <h1 className="text-3xl md:text-4xl font-orbitron font-bold text-white">
             Control{" "}
-            <span className="bg-gradient-to-r from-[#00f0ff] to-[#7b2ff7] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] bg-clip-text text-transparent">
               Panel
             </span>
           </h1>
@@ -267,7 +267,7 @@ function DashboardContent() {
                       style={{ color, width: 18, height: 18 }}
                     />
                   </div>
-                  <span className="text-[#a0a0b8] text-xs font-rajdhani uppercase tracking-[1px]">
+                  <span className="text-[var(--text-secondary)] text-xs font-rajdhani uppercase tracking-[1px]">
                     {label}
                   </span>
                 </div>
@@ -289,7 +289,7 @@ function DashboardContent() {
           className="flex gap-3 mb-8"
         >
           <Link href="/market">
-            <Button className="bg-gradient-to-r from-[#00f0ff] to-[#7b2ff7] text-[#0a0a0f] font-rajdhani font-bold uppercase tracking-[1.5px] hover:opacity-90">
+            <Button className="bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-[var(--dark-bg)] font-rajdhani font-bold uppercase tracking-[1.5px] hover:opacity-90">
               <Plus className="w-4 h-4 mr-2" />
               Deploy New
             </Button>
@@ -297,7 +297,7 @@ function DashboardContent() {
           <Link href="/orders">
             <Button
               variant="outline"
-              className="border-[rgba(255,255,255,0.1)] text-[#a0a0b8] hover:text-white hover:border-[rgba(0,240,255,0.3)] font-rajdhani uppercase tracking-[1px]"
+              className="border-[rgba(255,255,255,0.1)] text-[var(--text-secondary)] hover:text-white hover:border-[rgba(0,240,255,0.3)] font-rajdhani uppercase tracking-[1px]"
             >
               View Orders
               <ChevronRight className="w-4 h-4 ml-1" />
@@ -312,12 +312,12 @@ function DashboardContent() {
         >
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <Server className="w-4 h-4 text-[#00f0ff]" />
+              <Server className="w-4 h-4 text-[var(--primary)]" />
               <h2 className="text-white font-semibold font-rajdhani tracking-wide">
                 Active Instances
               </h2>
               {active.length > 0 && (
-                <span className="bg-[rgba(0,240,255,0.1)] text-[#00f0ff] text-[10px] font-bold px-2 py-0.5 rounded-full border border-[rgba(0,240,255,0.2)]">
+                <span className="bg-[rgba(0,240,255,0.1)] text-[var(--primary)] text-[10px] font-bold px-2 py-0.5 rounded-full border border-[rgba(0,240,255,0.2)]">
                   {active.length}
                 </span>
               )}
@@ -346,7 +346,7 @@ function DashboardContent() {
                 Deploy your first server and get credentials instantly.
               </p>
               <Link href="/market">
-                <Button className="bg-gradient-to-r from-[#00f0ff] to-[#7b2ff7] text-[#0a0a0f] font-rajdhani font-bold uppercase tracking-[1.5px] hover:opacity-90">
+                <Button className="bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-[var(--dark-bg)] font-rajdhani font-bold uppercase tracking-[1.5px] hover:opacity-90">
                   <Zap className="w-4 h-4 mr-2" />
                   Browse Servers
                 </Button>

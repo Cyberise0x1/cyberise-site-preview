@@ -40,7 +40,7 @@ interface PaginatedOrders {
 }
 
 const statusColors: Record<string, string> = {
-  ACTIVE: "bg-[#00f0ff]/10 text-[#00f0ff]",
+  ACTIVE: "bg-[var(--primary)]/10 text-[var(--primary)]",
   PENDING: "bg-[#ff8800]/10 text-[#ff8800]",
   TERMINATED: "bg-[#666]/10 text-[#666]",
   FAILED: "bg-[#ff4444]/10 text-[#ff4444]",
@@ -95,12 +95,12 @@ export default function AdminOrders() {
             <h1 className="text-3xl font-bold text-white mb-1">
               Order Management
             </h1>
-            <p className="text-[#a0a0b8]">
+            <p className="text-[var(--text-secondary)]">
               {data?.pagination.total ?? 0} total orders
             </p>
           </div>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#a0a0b8]" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
             <Input
               placeholder="Search orders..."
               value={search}
@@ -108,19 +108,19 @@ export default function AdminOrders() {
                 setSearch(e.target.value);
                 setPage(1);
               }}
-              className="pl-9 bg-[#0a0a0f] border-[#ffffff1a] text-white w-64"
+              className="pl-9 bg-[var(--dark-bg)] border-[#ffffff1a] text-white w-64"
             />
           </div>
         </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-[#00f0ff]" />
+            <Loader2 className="w-8 h-8 animate-spin text-[var(--primary)]" />
           </div>
         ) : data?.orders.length === 0 ? (
           <div className="text-center py-16">
             <Server className="w-12 h-12 text-[#ffffff1a] mx-auto mb-4" />
-            <p className="text-[#a0a0b8]">No orders found</p>
+            <p className="text-[var(--text-secondary)]">No orders found</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -131,11 +131,11 @@ export default function AdminOrders() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: i * 0.03 }}
               >
-                <Card className="bg-[#12121a]/80 border-[#ffffff1a] backdrop-blur-sm">
+                <Card className="bg-[var(--dark-surface)]/80 border-[#ffffff1a] backdrop-blur-sm">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between flex-wrap gap-4">
                       <div className="flex items-center gap-4">
-                        <Server className="w-5 h-5 text-[#00f0ff]" />
+                        <Server className="w-5 h-5 text-[var(--primary)]" />
                         <div>
                           <div className="flex items-center gap-2 mb-1">
                             <span
@@ -147,11 +147,11 @@ export default function AdminOrders() {
                               {order.plan}
                             </span>
                             <span className="text-[#666]">|</span>
-                            <span className="text-[#a0a0b8] text-sm">
+                            <span className="text-[var(--text-secondary)] text-sm">
                               {order.region}
                             </span>
                           </div>
-                          <div className="text-[#a0a0b8] text-sm space-y-0.5">
+                          <div className="text-[var(--text-secondary)] text-sm space-y-0.5">
                             <p>
                               User:{" "}
                               {order.user?.email || order.userId.slice(0, 12)}
@@ -202,11 +202,11 @@ export default function AdminOrders() {
               size="sm"
               disabled={page <= 1}
               onClick={() => setPage((p) => p - 1)}
-              className="border-[#ffffff1a] text-[#a0a0b8]"
+              className="border-[#ffffff1a] text-[var(--text-secondary)]"
             >
               Previous
             </Button>
-            <span className="text-[#a0a0b8] text-sm">
+            <span className="text-[var(--text-secondary)] text-sm">
               Page {data.pagination.page} of {data.pagination.totalPages}
             </span>
             <Button
@@ -214,7 +214,7 @@ export default function AdminOrders() {
               size="sm"
               disabled={page >= data.pagination.totalPages}
               onClick={() => setPage((p) => p + 1)}
-              className="border-[#ffffff1a] text-[#a0a0b8]"
+              className="border-[#ffffff1a] text-[var(--text-secondary)]"
             >
               Next
             </Button>
