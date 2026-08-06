@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Shell(pwd && uname -a && node --version 2>/dev/null; git branch --show-current)",
-      "mcp__code-review-graph__list_graph_stats_tool"
+      "mcp__code-review-graph__list_graph_stats_tool",
+      "mcp__code-review-graph__list_flows_tool",
+      "mcp__code-review-graph__get_community_tool",
+      "Shell(curl -sL https://gofile.io/d/OWtOqO)"
     ],
     "deny": [],
     "defaultMode": "default"
