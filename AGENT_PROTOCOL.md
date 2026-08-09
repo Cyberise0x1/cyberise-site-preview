@@ -15,6 +15,7 @@ Shared state lives in `.agent_context.json` at the project root. That file is th
 - **Auth:** Clerk — production keys locked to cyberise.org; dev-sandbox login errors are expected
 - **Email:** Resend
 - **Cache:** Upstash Redis
+- **Mockup sandbox:** `artifacts/mockup-sandbox/` — Component Preview Server on port 8081, base path `/__mockup`. Workflow command **must** include `BASE_PATH=/__mockup PORT=8081`; omitting `BASE_PATH` causes the proxy to 404 even though Vite starts cleanly.
 - **Provisioning:** Linode (Basic tier), rdp.monster (Pro tier — HMAC-SHA256 auth, NOT Bearer; key file `artifacts/api-server/src/services/rdpmonster.ts`)
 - **Payments:** NowPayments.io (crypto)
 - **Remote:** github.com/Cyberise0x1/cyberise-site-preview
