@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Smell Report — Cyberise Landing Prototype</title>
+<style>
+  :root { --bg: #0d0f16; --card: #131722; --line: #232a3a; --ink: #f2f4f8; --dim: #9aa3b5; --bad: #f87171; --ok: #34d399; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink); font-family: ui-sans-serif, system-ui, sans-serif; line-height: 1.6; padding: 48px 24px; }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  h1 { font-size: 1.8rem; margin-bottom: 8px; }
+  .score { display: inline-block; padding: 4px 12px; border-radius: 999px; background: rgba(248,113,113,0.12); color: var(--bad); font-weight: 700; font-size: 0.9rem; margin: 12px 0 24px; }
+  p.sub { color: var(--dim); margin-bottom: 24px; }
+  table { width: 100%; border-collapse: collapse; margin: 20px 0 32px; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--dim); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  .num { font-weight: 700; color: var(--bad); white-space: nowrap; }
+  h2 { font-size: 1.15rem; margin: 28px 0 10px; }
+  p, li { color: var(--dim); }
+  ul { padding-left: 20px; }
+  li { margin-bottom: 6px; }
+  .ok { color: var(--ok); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Smell Report — Cyberise Landing Prototype</h1>
+  <span class="score">2/10 — IDENTITY FAILURE</span>
+  <p class="sub">8 of 10 tracked odors detected. Structural verdict: redesign.</p>
+
+  <h2>Odors detected</h2>
+  <table>
+    <thead><tr><th>#</th><th>Odor</th><th>Where</th><th>Reflex</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1</td><td>Tech gradient</td><td>Hero, logo, text-gradient utility</td><td>indigo-cyan energy on hero + CTA</td></tr>
+      <tr><td class="num">2</td><td>Generic tech hue</td><td>--color-brand: #4f7cff</td><td>blue-purple for anything software-adjacent</td></tr>
+      <tr><td class="num">3</td><td>Feature tile grid</td><td>Services (6), Tools (4), Testimonials (3)</td><td>uniform icon + heading + sentence grid</td></tr>
+      <tr><td class="num">4</td><td>Accent rail</td><td>Hero card borders, plan card top border</td><td>colored stripe simulating structure</td></tr>
+      <tr><td class="num">5</td><td>Icon topper</td><td>Every section heading icon</td><td>rounded-square icon above each heading</td></tr>
+      <tr><td class="num">6</td><td>Center stack</td><td>Hero, section headers, CTAs</td><td>safe-middle composition</td></tr>
+      <tr><td class="num">7</td><td>Default type</td><td>Space Grotesk + Inter</td><td>common family with no voice</td></tr>
+      <tr><td class="num">8</td><td>Unearned blur</td><td>Hero cards, navbar backdrop-blur</td><td>frosted glass with no depth system</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Close calls (suspicion, not confirmed)</h2>
+  <ul>
+    <li>Stat monument — absent today, risk if trust section fills with counts.</li>
+    <li>Bounce everywhere — springs are subtle today, but elastic easing would tip it.</li>
+  </ul>
+
+  <h2>The one original idea worth keeping</h2>
+  <p>The <strong>4-card fan</strong> (Marketplace / Tools / What We Do / Who We Are) belongs to this specific brief. The problem is the generic treatment, not the concept.</p>
+
+  <h2>What the redesign must do</h2>
+  <ul>
+    <li>Kill the indigo-cyan gradient; pick a hue with a reason (infrastructure, security, control).</li>
+    <li>Build a real type system with voice, measure, and scale.</li>
+    <li>Change the composition — the 4-card fan carries the page; sections beneath vary in structure.</li>
+    <li>Remove icon toppers, accent rails, unearned blur.</li>
+    <li>Write copy with a voice — infrastructure, not startup pitch.</li>
+    <li>Tint neutrals toward the brand hue; clamp chroma at extremes.</li>
+    <li>Keep the 4-card fan, restyled with the new system.</li>
+  </ul>
+
+  <h2>Heuristics (1 = absent, 0 = detected)</h2>
+  <table>
+    <thead><tr><th>Odor</th><th>Score</th></tr></thead>
+    <tbody>
+      <tr><td>Tech gradient</td><td>0</td></tr>
+      <tr><td>Generic tech hue</td><td>0</td></tr>
+      <tr><td>Feature tile grid</td><td>0</td></tr>
+      <tr><td>Accent rail</td><td>0</td></tr>
+      <tr><td>Unearned blur</td><td>0</td></tr>
+      <tr><td>Stat monument</td><td class="ok">1</td></tr>
+      <tr><td>Icon topper</td><td>0</td></tr>
+      <tr><td>Bounce everywhere</td><td class="ok">1</td></tr>
+      <tr><td>Default type</td><td>0</td></tr>
+      <tr><td>Center stack</td><td>0</td></tr>
+      <tr><td><strong>Total</strong></td><td><strong>2/10</strong></td></tr>
+    </tbody>
+  </table>
+</div>
+</body>
+</html>

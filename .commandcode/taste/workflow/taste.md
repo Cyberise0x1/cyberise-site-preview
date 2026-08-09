@@ -3,7 +3,9 @@
 - Always read .agent_context.json fully before starting any task to check active claims, recent Replit activity, and project notes. Confidence: 0.80
 - Log every file edit to commandcode_log with ts, file, action (edit|create|delete), and summary fields; keep only the last 50 entries. Confidence: 0.80
 - Use active_claims.commandcode to claim files before editing and release them when done; never touch files claimed by Replit. Confidence: 0.80
-- Always provide a local preview link so the user can review changes before pushing to GitHub. Confidence: 0.85
+- Always provide a concrete, clickable preview link (URL) so the user can review changes before pushing to GitHub — telling them to run a dev server themselves is not sufficient; merely naming a port ("it's on port 8081") is also not enough, and they will follow up with "where is the preview link?", "preview link i need", or "show link i can click" until they get an actual URL. Confidence: 0.98
+- Verify the public preview URL end-to-end (curl the public domain, not just localhost) before presenting it — the user tests the link themselves and asks "is this the link?"; a URL that 404s or serves the wrong process (e.g., an API backend on the proxied port instead of the dev server) is not acceptable. Confidence: 0.75
+- When the platform's default proxy doesn't expose a dev-server port publicly (e.g., a Replit workspace where only the main webview port is proxied), the user expects the agent to self-serve a working clickable link — e.g., by setting up a public tunnel (cloudflared/lt) — rather than deferring to the user to use a preview panel or track down the URL themselves ("yes gen the right link for me"). A dead/expired tunnel URL (Cloudflare 530) should be replaced with a fresh working tunnel to the right port, not reported as unfixable. Confidence: 0.75
 - Push changes to GitHub first; Vercel deployments must only come from GitHub, never directly from the local environment. Confidence: 0.85
 - Push via a feature branch and open a PR — never commit directly to main; PRs must pass the 5 CI checks (TypeCheck, Lint, Build, Test, Secret Scan). Confidence: 0.85
 - Prefer Prisma migrations over `db push` for schema changes, and never run destructive DB commands without explicit human approval. Confidence: 0.85
@@ -18,3 +20,9 @@
 - When asked to check/review a site or product, inspect the actual live deployed state (fetch the site, check deployed repo state) rather than judging from the codebase alone. Confidence: 0.55
 - Expects the agent to retain and recall prior session discussions about planned/intended work (e.g., "remember the last time we wanted to redesign the frontend?"), not just completed tasks — keep notes on upcoming intentions so they can be recalled across sessions. Confidence: 0.6
 - Before starting a task on a codebase (e.g., a frontend redesign), wants the agent to thoroughly explore and map the full structure first — read ALL relevant files, not just a sample — so the work is grounded in a complete, accurate picture. Confidence: 0.65
+- Prefers to prototype new UI/design work in a throwaway sandbox app (e.g., `artifacts/mockup-sandbox`) first, review the result, then port it into the real production app on a branch — rather than building directly in the live codebase. Confidence: 0.7
+- Expects prototypes/deliverables to actually run out of the box: a preview/dev server must start with a plain command (no required env vars, no hidden routes) and the root route should render the work — verify it opens before presenting it, and don't hand over a broken open command. Confidence: 0.7
+- Don't kill a user's running backend/process (e.g., the api-server holding the preview port) without explicitly asking first and getting approval — offer options (restart it on another port) rather than silently taking it down. Confidence: 0.7
+port) without explicitly asking first and getting approval — offer options (restart it on another port) rather than silently taking it down. Confidence: 0.7
+han silently taking it down. Confidence: 0.7
+down. Confidence: 0.7

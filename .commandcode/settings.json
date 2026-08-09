@@ -5,9 +5,16 @@
       "mcp__code-review-graph__list_graph_stats_tool",
       "mcp__code-review-graph__list_flows_tool",
       "mcp__code-review-graph__get_community_tool",
-      "Shell(curl -sL https://gofile.io/d/OWtOqO)"
+      "Shell(curl -sL https://gofile.io/d/OWtOqO)",
+      "Shell(curl -s http://localhost:8080/)",
+      "Shell(grep:*)",
+      "Shell(curl -s http://localhost:8080/src/App.tsx)",
+      "Shell(curl -s -o /dev/null -w %{http_code}\\n http://localhost:8080/)",
+      "Shell(pnpm:*)",
+      "Shell(ps:*)"
     ],
     "deny": [],
     "defaultMode": "default"
-  }
+  },
+  "tasteLearning": false
 }
