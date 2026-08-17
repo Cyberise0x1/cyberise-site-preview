@@ -35,10 +35,10 @@
     "@types/crypto-js": "^4.2.2",
     "@types/express": "^5.0.6",
     "@types/node": "catalog:",
-    "esbuild": "^0.28.1",
+    "esbuild": "^0.28.2",
     "esbuild-plugin-pino": "^2.3.3",
     "pino-pretty": "^13",
     "thread-stream": "4.2.0",
-    "vitest": "^4.1.9"
+    "vitest": "^4.1.10"
   }
 }
