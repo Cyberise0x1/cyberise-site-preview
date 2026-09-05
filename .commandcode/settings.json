@@ -11,7 +11,19 @@
       "Shell(curl -s http://localhost:8080/src/App.tsx)",
       "Shell(curl -s -o /dev/null -w %{http_code}\\n http://localhost:8080/)",
       "Shell(pnpm:*)",
-      "Shell(ps:*)"
+      "Shell(ps:*)",
+      "Shell(ls -la ~/.nix-profile 2>/dev/null; echo \"---per-user---\"; ls -la /nix/var/nix/profiles/per-user/runner/ 2>/dev/null; echo \"---profile---\"; ls -la /nix/var/nix/profiles/per-user/runner/profile 2>/dev/null; readlink -f /nix/var/nix/profiles/per-user/runner/profile 2>/dev/null)",
+      "Shell(nix-shell:*)",
+      "Shell(python3 -c \" import html, re with open('command-code-session-f478adbe.html') as f: content = f.read() text = re.sub(r'<style.*?</style>', '', content, flags=re.S) text = re.sub(r'<script.*?</script>', '', text, flags=re.S) text = re.sub(r'<[^>]+>', '\\n', text) text = html.unescape(text) lines = [l.rstrip() for l in text.split('\\n')] lines = [l for l in lines if l.strip()] out = '\\n'.join(lines) print(out[:8000]) \")",
+      "Shell(python3 -c \" import html, re with open('command-code-session-f478adbe.html') as f: content = f.read() text = re.sub(r'<style.*?</style>', '', content, flags=re.S) text = re.sub(r'<script.*?</script>', '', text, flags=re.S) text = re.sub(r'<[^>]+>', '\\n', text) text = html.unescape(text) lines = [l.rstrip() for l in text.split('\\n')] lines = [l for l in lines if l.strip()] out = '\\n'.join(lines) # From 'can we make some edit' onward — find that marker idx = out.find('can we make some edit') print(out[idx:idx+12000]) \")",
+      "Shell(ls -la artifacts/ attached_assets/ 2>/dev/null | head -40; echo \"---API---\"; ls api/ 2>/dev/null; echo \"---LIB---\"; ls lib/ 2>/dev/null)",
+      "Shell(python3 -c \" import html, re with open('command-code-session-f478adbe.html') as f: content = f.read() text = re.sub(r'<style.*?</style>', '', content, flags=re.S) text = re.sub(r'<script.*?</script>', '', text, flags=re.S) text = re.sub(r'<[^>]+>', '\\n', text) text = html.unescape(text) lines = [l.rstrip() for l in text.split('\\n')] lines = [l for l in lines if l.strip()] out = '\\n'.join(lines) # Print the tail - the most recent part of the conversation print(out[-8000:]) \")",
+      "Shell(python3 -c \" import html, re with open('command-code-session-a041676e.html') as f: content = f.read() text = re.sub(r'<style.*?</style>', '', content, flags=re.S) text = re.sub(r'<script.*?</script>', '', text, flags=re.S) text = re.sub(r'<[^>]+>', '\\n', text) text = html.unescape(text) lines = [l.rstrip() for l in text.split('\\n')] lines = [l for l in lines if l.strip()] out = '\\n'.join(lines) print(out[-6000:]) \")",
+      "Shell(cat artifacts/mockup-sandbox/vite.config.ts; echo \"---GENERATED---\"; ls artifacts/mockup-sandbox/src/.generated/ 2>/dev/null; echo \"---MAIN---\"; cat artifacts/mockup-sandbox/src/main.tsx)",
+      "Shell(curl -s -o /dev/null -w 8081 root: %{http_code}\\n http://localhost:8081/__mockup/)",
+      "Shell(curl -s -o /dev/null -w 8081 V2 preview: %{http_code}\\n http://localhost:8081/__mockup/preview/LandingPageV2)",
+      "Shell(curl -s https://1fa24770-c4f1-49eb-b70d-8bee58ecf98e-00-3a9wp99hru3p4.janeway.replit.dev/__mockup/preview/LandingPageV2)",
+      "Shell(agent-browser:*)"
     ],
     "deny": [],
     "defaultMode": "default"
