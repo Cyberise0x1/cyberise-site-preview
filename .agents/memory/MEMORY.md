@@ -1,0 +1,1 @@
+- [Vite smoke-test lifecycle](vite-smoke-test-lifecycle.md) — isolate Vite route checks in a child process so watcher handles cannot keep the test runner alive.
