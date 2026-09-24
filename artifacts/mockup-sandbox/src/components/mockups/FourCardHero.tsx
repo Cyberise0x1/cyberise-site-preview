@@ -1,12 +1,19 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { ArrowRight, Server, Wrench, Briefcase } from "lucide-react";
+import { useEffect, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import {
+  ArrowRight,
+  Briefcase,
+  ChevronLeft,
+  ChevronRight,
+  Server,
+  Wrench,
+} from "lucide-react";
 
 /*
  * 4-Card Hero — "network operations console" voice.
- *   Marketplace / Tools / What We Do fan asymmetrically left-anchored;
+ *   Marketplace / Tools / What We Do rotate around a compact elliptical path;
  *   Who We Are is the terminal row beneath.
- * Clicking a card fans it to the front; the active card carries the accent.
+ * Selecting a card rotates it to the front; the active card carries the accent.
  * Amber is reserved for the active card + the primary action.
  */
 
@@ -45,18 +52,57 @@ const CARDS: Record<
   },
 };
 
-export default function FourCardHero() {
-  const [active, setActive] = useState<CardId>("marketplace");
-  const order: CardId[] = ["marketplace", "tools", "what-we-do"];
+const ORDER: CardId[] = ["marketplace", "tools", "what-we-do"];
 
-  const fanStyle = (id: CardId) => {
-    const idx = order.indexOf(id);
-    const activeIdx = order.indexOf(active);
-    if (id === active) return { zIndex: 30, x: 0, y: 0, rotate: 0, scale: 1 };
-    const behind = (idx - activeIdx + order.length) % order.length;
-    if (behind === 1) return { zIndex: 20, x: 72, y: 16, rotate: 5, scale: 0.9 };
-    if (behind === 2) return { zIndex: 10, x: -72, y: 30, rotate: -6, scale: 0.82 };
-    return { zIndex: 10, x: 120, y: 40, rotate: 8, scale: 0.78 };
+export default function FourCardHero() {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isNarrow, setIsNarrow] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(max-width: 767px)").matches,
+  );
+  const prefersReducedMotion = useReducedMotion() ?? false;
+  const active = ORDER[activeIndex];
+  const orbitDistance = isNarrow ? 132 : 220;
+
+  useEffect(() => {
+    const breakpoint = window.matchMedia("(max-width: 767px)");
+    const updateLayout = () => setIsNarrow(breakpoint.matches);
+    updateLayout();
+    breakpoint.addEventListener("change", updateLayout);
+    return () => breakpoint.removeEventListener("change", updateLayout);
+  }, []);
+
+  const moveActive = (offset: number) => {
+    setActiveIndex(
+      (current) => (current + offset + ORDER.length) % ORDER.length,
+    );
+  };
+
+  const carouselStyle = (id: CardId) => {
+    const idx = ORDER.indexOf(id);
+    const relativePosition = (idx - activeIndex + ORDER.length) % ORDER.length;
+    if (relativePosition === 0) {
+      return { zIndex: 30, x: 0, y: 0, rotate: 0, scale: 1, opacity: 1 };
+    }
+    if (relativePosition === 1) {
+      return {
+        zIndex: 20,
+        x: orbitDistance,
+        y: 18,
+        rotate: 8,
+        scale: 0.84,
+        opacity: 0.88,
+      };
+    }
+    return {
+      zIndex: 10,
+      x: -orbitDistance,
+      y: 18,
+      rotate: -8,
+      scale: 0.84,
+      opacity: 0.88,
+    };
   };
 
   return (
@@ -73,17 +119,33 @@ export default function FourCardHero() {
             Servers you deploy. Systems you trust. Ops that hold.
           </h1>
           <p className="text-lg text-[var(--color-ink-dim)] leading-relaxed max-w-xl">
-            Instant VPS & RDP, professional tools, and elite security work.
-            One console, all of it.
+            Instant VPS & RDP, professional tools, and elite security work. One
+            console, all of it.
           </p>
         </div>
 
-        {/* ── The fan ── */}
-        <div className="relative h-[360px] md:h-[420px] max-w-3xl">
-          {order.map((id) => {
+        {/* ── Circular feature carousel ── */}
+        <div
+          id="feature-carousel"
+          className="relative mx-auto h-[360px] max-w-3xl md:h-[420px]"
+          role="region"
+          aria-label="Featured services"
+          aria-roledescription="carousel"
+          tabIndex={0}
+          onKeyDown={(event) => {
+            if (event.key === "ArrowRight") {
+              event.preventDefault();
+              moveActive(1);
+            } else if (event.key === "ArrowLeft") {
+              event.preventDefault();
+              moveActive(-1);
+            }
+          }}
+        >
+          {ORDER.map((id, idx) => {
             const card = CARDS[id];
             const Icon = card.Icon;
-            const s = fanStyle(id);
+            const s = carouselStyle(id);
             const isActive = active === id;
 
             return (
@@ -93,7 +155,7 @@ export default function FourCardHero() {
                 onClick={(e) => {
                   if (!isActive) {
                     e.preventDefault();
-                    setActive(id);
+                    setActiveIndex(idx);
                   }
                 }}
                 initial={false}
@@ -102,11 +164,20 @@ export default function FourCardHero() {
                   y: s.y,
                   rotate: s.rotate,
                   scale: s.scale,
-                  zIndex: s.zIndex,
+                  opacity: s.opacity,
                 }}
-                transition={{ type: "spring", stiffness: 240, damping: 26 }}
-                whileHover={{ y: s.y - 4 }}
-                className={`absolute left-0 top-0 w-[260px] md:w-[300px] h-[300px] md:h-[340px] rounded-lg border p-6 flex flex-col justify-between text-left transition-colors duration-200 ${
+                transition={
+                  prefersReducedMotion
+                    ? { duration: 0.01 }
+                    : { type: "spring", stiffness: 240, damping: 26 }
+                }
+                whileHover={prefersReducedMotion ? undefined : { y: s.y - 4 }}
+                style={{ zIndex: s.zIndex }}
+                aria-label={`Feature ${idx + 1} of ${ORDER.length}: ${card.label}${isActive ? ", current slide" : ""}`}
+                aria-current={isActive ? "true" : undefined}
+                aria-roledescription="slide"
+                data-testid={`card-feature-${id}`}
+                className={`absolute left-1/2 top-0 -ml-[130px] h-[300px] w-[260px] rounded-lg border p-6 flex flex-col justify-between text-left transition-colors duration-200 md:-ml-[150px] md:h-[340px] md:w-[300px] ${
                   isActive
                     ? "border-[var(--color-brand)]/60 bg-[var(--color-surface-2)]"
                     : "border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-border-strong)]"
@@ -144,6 +215,41 @@ export default function FourCardHero() {
               </motion.a>
             );
           })}
+
+          <div
+            className="absolute inset-x-0 bottom-0 z-40 flex justify-center gap-3"
+            role="group"
+            aria-label="Carousel controls"
+          >
+            <button
+              type="button"
+              onClick={() => moveActive(-1)}
+              aria-label="Previous feature"
+              aria-controls="feature-carousel"
+              data-testid="button-previous-feature"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-ink)] transition-colors hover:border-[var(--color-brand)]/60 hover:text-[var(--color-brand)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)]"
+            >
+              <ChevronLeft aria-hidden="true" className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => moveActive(1)}
+              aria-label="Next feature"
+              aria-controls="feature-carousel"
+              data-testid="button-next-feature"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-ink)] transition-colors hover:border-[var(--color-brand)]/60 hover:text-[var(--color-brand)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)]"
+            >
+              <ChevronRight aria-hidden="true" className="h-5 w-5" />
+            </button>
+          </div>
+          <p
+            aria-live="polite"
+            aria-atomic="true"
+            data-testid="text-active-feature"
+            className="sr-only"
+          >
+            {CARDS[active].label}, feature {activeIndex + 1} of {ORDER.length}
+          </p>
         </div>
 
         {/* ── Who We Are — terminal row beneath ── */}
