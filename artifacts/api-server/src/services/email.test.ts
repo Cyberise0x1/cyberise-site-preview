@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   generateRDPCredentialsEmail,
   generateSSHCredentialsEmail,
+  generateTerminationEmail,
 } from "./email";
 
 const BASE_PARAMS = {
@@ -64,5 +65,36 @@ describe("generateSSHCredentialsEmail", () => {
     });
     expect(html).not.toContain("Administrator");
     expect(text).not.toContain("Administrator");
+  });
+});
+
+describe("generateTerminationEmail", () => {
+  const terminatedAt = new Date("2026-08-15T12:30:00.000Z");
+
+  it("labels Linux termination as SSH in the subject content and both bodies", () => {
+    const { html, text } = generateTerminationEmail({
+      ip: "1.2.3.4",
+      terminatedAt,
+      connectionType: "SSH",
+    });
+
+    expect(html).toContain("SSH Service Terminated");
+    expect(html).toContain("Connection Type:");
+    expect(html).toContain(">SSH</span>");
+    expect(text).toContain("Connection Type: SSH");
+    expect(text).not.toContain("RDP Service Terminated");
+  });
+
+  it("keeps Windows termination explicitly labeled as RDP", () => {
+    const { html, text } = generateTerminationEmail({
+      ip: "1.2.3.4",
+      terminatedAt,
+      connectionType: "RDP",
+    });
+
+    expect(html).toContain("RDP Service Terminated");
+    expect(html).toContain("Connection Type:");
+    expect(html).toContain(">RDP</span>");
+    expect(text).toContain("Connection Type: RDP");
   });
 });

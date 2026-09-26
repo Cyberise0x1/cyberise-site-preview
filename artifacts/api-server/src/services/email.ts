@@ -212,14 +212,15 @@ Keep these credentials secure. You can also access them from your dashboard.`;
 export function generateTerminationEmail(params: {
   ip: string;
   terminatedAt: Date;
+  connectionType: "RDP" | "SSH";
 }): { html: string; text: string } {
-  const { ip, terminatedAt } = params;
+  const { ip, terminatedAt, connectionType } = params;
 
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>RDP Service Terminated</title>
+  <title>${connectionType} Service Terminated</title>
 </head>
 <body style="margin:0;padding:0;background-color:#0a0a0f;font-family:system-ui,-apple-system,sans-serif;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0a0a0f;">
@@ -230,10 +231,11 @@ export function generateTerminationEmail(params: {
             <td style="background:linear-gradient(135deg,#1a1a2e,#0f0f1a);border:1px solid #ff444433;border-radius:12px;overflow:hidden;">
               <div style="height:4px;background:linear-gradient(90deg,#ff4444,#ff8800);"></div>
               <div style="padding:32px;">
-                <h1 style="margin:0 0 8px;color:#ffffff;font-size:24px;">RDP Service Terminated</h1>
-                <p style="margin:0 0 24px;color:#a0a0b8;">Your RDP instance has been terminated.</p>
+                <h1 style="margin:0 0 8px;color:#ffffff;font-size:24px;">${connectionType} Service Terminated</h1>
+                <p style="margin:0 0 24px;color:#a0a0b8;">Your ${connectionType} instance has been terminated.</p>
                 <div style="background:#12121a;border:1px solid #ff444422;border-radius:8px;padding:20px;">
                   <p style="margin:0 0 8px;color:#a0a0b8;">IP Address: <span style="color:#ffffff;font-family:monospace;">${ip}</span></p>
+                  <p style="margin:0 0 8px;color:#a0a0b8;">Connection Type: <span style="color:#ffffff;">${connectionType}</span></p>
                   <p style="margin:0;color:#a0a0b8;">Terminated: <span style="color:#ffffff;">${terminatedAt.toLocaleString()}</span></p>
                 </div>
               </div>
@@ -246,14 +248,15 @@ export function generateTerminationEmail(params: {
 </body>
 </html>`;
 
-  const text = `RDP Service Terminated
+  const text = `${connectionType} Service Terminated
 
-Your RDP instance has been terminated.
+Your ${connectionType} instance has been terminated.
 
 IP Address: ${ip}
+Connection Type: ${connectionType}
 Terminated: ${terminatedAt.toLocaleString()}
 
-To continue using RDP services, please place a new order.`;
+To continue using ${connectionType} services, please place a new order.`;
 
   return { html, text };
 }

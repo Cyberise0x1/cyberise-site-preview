@@ -15,6 +15,7 @@ vi.mock("../lib/logger", () => ({
 
 import {
   getLinuxImages,
+  isLinuxImageId,
   validateLinuxImagesAgainstLinode,
 } from "./linode";
 import { logger } from "../lib/logger";
@@ -69,6 +70,16 @@ describe("getLinuxImages()", () => {
     const a = getLinuxImages();
     const b = getLinuxImages();
     expect(a).not.toBe(b);
+  });
+});
+
+describe("isLinuxImageId()", () => {
+  it("recognizes configured Linux image IDs", () => {
+    expect(isLinuxImageId("linode/ubuntu22.04")).toBe(true);
+  });
+
+  it("does not treat an unknown image ID as Linux", () => {
+    expect(isLinuxImageId("private/12345")).toBe(false);
   });
 });
 

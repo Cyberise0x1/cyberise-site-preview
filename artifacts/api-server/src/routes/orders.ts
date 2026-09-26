@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { OrderStatus } from "@workspace/db";
 import { prisma } from "@workspace/db";
-import { deleteInstance } from "../services/linode";
+import { deleteInstance, isLinuxImageId } from "../services/linode";
 import { deleteProInstance } from "../services/rdpmonster";
 import { sendEmail, generateTerminationEmail } from "../services/email";
 import { decrypt } from "../utils/encryption";
@@ -170,11 +170,13 @@ router.post(
         }
       }
 
+      const terminatedAt = new Date();
+      const connectionType = isLinuxImageId(order.image) ? "SSH" : "RDP";
       const updatedOrder = await prisma.order.update({
         where: { id: order.id },
         data: {
           status: OrderStatus.TERMINATED,
-          terminatedAt: new Date(),
+          terminatedAt,
           terminationReason: "User requested",
         },
       });
@@ -182,12 +184,13 @@ router.post(
       if (order.ip) {
         const emailContent = generateTerminationEmail({
           ip: order.ip,
-          terminatedAt: new Date(),
+          terminatedAt,
+          connectionType,
         });
 
         await sendEmail({
           to: req.user!.email,
-          subject: "RDP Service Terminated - Cyberise",
+          subject: `${connectionType} Service Terminated - Cyberise`,
           html: emailContent.html,
           text: emailContent.text,
           userId,

@@ -204,6 +204,10 @@ export function getLinuxImages(): LinodeImage[] {
   ];
 }
 
+export function isLinuxImageId(imageId: string): boolean {
+  return getLinuxImages().some((image) => image.id === imageId);
+}
+
 interface LinodeImageListResponse {
   data: LinodeImage[];
   pages: number;
