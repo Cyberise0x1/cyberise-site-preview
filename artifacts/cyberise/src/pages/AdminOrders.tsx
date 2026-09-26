@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import { useApi } from "@/lib/api";
 import { AdminLayout } from "./AdminLayout";
@@ -13,6 +13,7 @@ import {
   Ban,
   ExternalLink,
   AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -43,6 +44,26 @@ interface PaginatedOrders {
   };
 }
 
+interface CredentialEmailDelivery {
+  id: string;
+  orderId: string;
+  status: "PENDING" | "FAILED";
+  attempts: number;
+  lastAttemptAt: string | null;
+  order: { plan: string; region: string };
+  errorSummary: string;
+}
+
+interface PaginatedCredentialEmailDeliveries {
+  deliveries: CredentialEmailDelivery[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
 const statusColors: Record<string, string> = {
   ACTIVE: "bg-[var(--primary)]/10 text-[var(--primary)]",
   PENDING: "bg-[#ff8800]/10 text-[#ff8800]",
@@ -57,11 +78,18 @@ function getLinodeError(metadata: Record<string, unknown> | null): string | null
 
 export default function AdminOrders() {
   const { api } = useApi();
+  const apiRef = useRef(api);
+  apiRef.current = api;
   const [data, setData] = useState<PaginatedOrders | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState("");
+  const [credentialEmailData, setCredentialEmailData] =
+    useState<PaginatedCredentialEmailDeliveries | null>(null);
+  const [credentialEmailLoading, setCredentialEmailLoading] = useState(true);
+  const [credentialEmailError, setCredentialEmailError] = useState(false);
+  const [credentialEmailPage, setCredentialEmailPage] = useState(1);
 
   const loadOrders = useCallback(async () => {
     try {
@@ -83,6 +111,46 @@ export default function AdminOrders() {
   useEffect(() => {
     loadOrders();
   }, [loadOrders]);
+
+  const loadCredentialEmailDeliveries = useCallback(async () => {
+    try {
+      setCredentialEmailLoading(true);
+      setCredentialEmailError(false);
+      const params = new URLSearchParams({
+        page: String(credentialEmailPage),
+        limit: "20",
+      });
+      const response = await apiRef.current<{
+        success: boolean;
+        data: PaginatedCredentialEmailDeliveries;
+      }>(`/admin/credential-email-deliveries?${params}`);
+      setCredentialEmailData(response.data);
+    } catch {
+      setCredentialEmailError(true);
+    } finally {
+      setCredentialEmailLoading(false);
+    }
+  }, [credentialEmailPage]);
+
+  useEffect(() => {
+    void loadCredentialEmailDeliveries();
+    const refreshInterval = window.setInterval(
+      () => void loadCredentialEmailDeliveries(),
+      60_000,
+    );
+    return () => window.clearInterval(refreshInterval);
+  }, [loadCredentialEmailDeliveries]);
+
+  useEffect(() => {
+    if (!credentialEmailData) return;
+    const lastAvailablePage = Math.max(
+      credentialEmailData.pagination.totalPages,
+      1,
+    );
+    if (credentialEmailPage > lastAvailablePage) {
+      setCredentialEmailPage(lastAvailablePage);
+    }
+  }, [credentialEmailData, credentialEmailPage]);
 
   async function terminateOrder(orderId: string) {
     try {
@@ -150,6 +218,162 @@ export default function AdminOrders() {
             </select>
           </div>
         </div>
+
+        <section
+          id="credential-email-deliveries"
+          aria-labelledby="credential-email-heading"
+          className="mb-8"
+        >
+          <div className="mb-3 flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <h2
+                id="credential-email-heading"
+                className="text-xl font-semibold text-white"
+              >
+                Credential emails needing attention
+              </h2>
+              <p className="text-sm text-[var(--text-secondary)]">
+                {credentialEmailData?.pagination.total ?? 0} pending or failed
+                deliveries
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => void loadCredentialEmailDeliveries()}
+              disabled={credentialEmailLoading}
+              className="border-[#ffffff1a] text-[var(--text-secondary)]"
+            >
+              <RefreshCw
+                className={`mr-2 h-3.5 w-3.5 ${
+                  credentialEmailLoading ? "animate-spin" : ""
+                }`}
+              />
+              Refresh
+            </Button>
+          </div>
+
+          {credentialEmailLoading && !credentialEmailData ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-[var(--primary)]" />
+            </div>
+          ) : credentialEmailError && !credentialEmailData ? (
+            <Card className="border-[#ff4444]/25 bg-[var(--dark-surface)]/80">
+              <CardContent className="flex items-center justify-between gap-3 p-4">
+                <p className="text-sm text-[#ff9999]">
+                  Could not load credential email delivery status.
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => void loadCredentialEmailDeliveries()}
+                >
+                  Try again
+                </Button>
+              </CardContent>
+            </Card>
+          ) : credentialEmailData?.deliveries.length === 0 ? (
+            <Card className="border-[#ffffff1a] bg-[var(--dark-surface)]/80">
+              <CardContent className="p-4 text-sm text-[var(--text-secondary)]">
+                No pending or failed credential emails.
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-2">
+              {credentialEmailError && (
+                <p className="text-sm text-[#ffb347]" role="status">
+                  Could not refresh delivery status. Showing the last loaded
+                  results.
+                </p>
+              )}
+              {credentialEmailData?.deliveries.map((delivery) => (
+                <Card
+                  key={delivery.id}
+                  className={`bg-[var(--dark-surface)]/80 border-[#ffffff1a] ${
+                    delivery.status === "FAILED"
+                      ? "border-l-4 border-l-[#ff4444]"
+                      : "border-l-4 border-l-[#ff8800]"
+                  }`}
+                >
+                  <CardContent className="flex flex-wrap items-start justify-between gap-4 p-4">
+                    <div className="min-w-0">
+                      <div className="mb-1 flex flex-wrap items-center gap-2">
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                            delivery.status === "FAILED"
+                              ? "bg-[#ff4444]/10 text-[#ff7777]"
+                              : "bg-[#ff8800]/10 text-[#ffb347]"
+                          }`}
+                        >
+                          {delivery.status}
+                        </span>
+                        <span className="font-medium text-white">
+                          {delivery.order.plan}
+                        </span>
+                        <span className="text-[#666]">|</span>
+                        <span className="text-sm text-[var(--text-secondary)]">
+                          {delivery.order.region}
+                        </span>
+                        <span className="break-all font-mono text-xs text-[#777]">
+                          Order {delivery.orderId}
+                        </span>
+                      </div>
+                      <p className="text-sm text-[var(--text-secondary)]">
+                        {delivery.errorSummary}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-[var(--text-secondary)]">
+                      <span>
+                        Retries: {Math.max(delivery.attempts - 1, 0)}
+                      </span>
+                      <span>
+                        Last attempt:{" "}
+                        {delivery.lastAttemptAt
+                          ? new Date(delivery.lastAttemptAt).toLocaleString()
+                          : "Never"}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+
+              {credentialEmailData &&
+                credentialEmailData.pagination.totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 pt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={credentialEmailPage <= 1}
+                      onClick={() =>
+                        setCredentialEmailPage((current) => current - 1)
+                      }
+                      className="border-[#ffffff1a] text-[var(--text-secondary)]"
+                    >
+                      Previous
+                    </Button>
+                    <span className="text-sm text-[var(--text-secondary)]">
+                      Page {credentialEmailData.pagination.page} of{" "}
+                      {credentialEmailData.pagination.totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={
+                        credentialEmailPage >=
+                        credentialEmailData.pagination.totalPages
+                      }
+                      onClick={() =>
+                        setCredentialEmailPage((current) => current + 1)
+                      }
+                      className="border-[#ffffff1a] text-[var(--text-secondary)]"
+                    >
+                      Next
+                    </Button>
+                  </div>
+                )}
+            </div>
+          )}
+        </section>
 
         {loading ? (
           <div className="flex items-center justify-center py-20">

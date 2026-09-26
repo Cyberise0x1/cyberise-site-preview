@@ -122,6 +122,7 @@ model CredentialEmailDelivery {
   orderId       String    @unique
   status        String    @default("PENDING")
   attempts      Int       @default(0)
+  lastAttemptAt DateTime?
   nextAttemptAt DateTime  @default(now())
   lockedAt      DateTime?
   lockToken     String?

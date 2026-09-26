@@ -21,6 +21,10 @@ vi.mock("@workspace/db", () => ({
       findUnique: vi.fn(),
       update: vi.fn(),
     },
+    credentialEmailDelivery: {
+      findMany: vi.fn(),
+      count: vi.fn(),
+    },
     user: {},
     auditLog: { create: vi.fn() },
     marketSettings: { findMany: vi.fn(), upsert: vi.fn() },
@@ -64,6 +68,12 @@ vi.mock("../lib/logger", () => ({
 import { prisma } from "@workspace/db";
 import adminRouter from "./admin";
 
+const mockCredentialEmailDelivery =
+  prisma.credentialEmailDelivery as unknown as {
+    findMany: ReturnType<typeof vi.fn>;
+    count: ReturnType<typeof vi.fn>;
+  };
+
 const mockOrder = prisma.order as unknown as {
   findMany: ReturnType<typeof vi.fn>;
   count: ReturnType<typeof vi.fn>;
@@ -94,6 +104,27 @@ type OrdersResponse = {
   details?: Record<string, unknown>;
 };
 
+type CredentialEmailDeliveriesResponse = {
+  success: boolean;
+  data?: {
+    deliveries: Array<{
+      id: string;
+      orderId: string;
+      status: string;
+      attempts: number;
+      lastAttemptAt: string | null;
+      order: { plan: string; region: string };
+      errorSummary: string;
+    }>;
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  };
+};
+
 let server: Server;
 let baseUrl: string;
 
@@ -116,6 +147,8 @@ beforeEach(() => {
   mockOrder.findMany.mockResolvedValue([]);
   mockOrder.count.mockResolvedValue(0);
   mockOrder.groupBy.mockResolvedValue([]);
+  mockCredentialEmailDelivery.findMany.mockResolvedValue([]);
+  mockCredentialEmailDelivery.count.mockResolvedValue(0);
 });
 
 function makeOrder(
@@ -149,6 +182,16 @@ async function getOrders(query = "") {
   return {
     response,
     body: (await response.json()) as OrdersResponse,
+  };
+}
+
+async function getCredentialEmailDeliveries(query = "") {
+  const response = await fetch(
+    `${baseUrl}/admin/credential-email-deliveries${query}`,
+  );
+  return {
+    response,
+    body: (await response.json()) as CredentialEmailDeliveriesResponse,
   };
 }
 
@@ -258,5 +301,77 @@ describe("GET /admin/orders", () => {
       },
     });
     expect(mockOrder.groupBy).not.toHaveBeenCalled();
+  });
+});
+
+describe("GET /admin/credential-email-deliveries", () => {
+  it("lists unresolved deliveries without returning stored errors or credentials", async () => {
+    const lastAttemptAt = new Date("2026-09-25T12:30:00.000Z");
+    mockCredentialEmailDelivery.findMany.mockResolvedValue([
+      {
+        id: "delivery-1",
+        orderId: "failed-order-1",
+        status: "FAILED",
+        attempts: 3,
+        lastAttemptAt,
+        order: { plan: "g6-nanode-1", region: "us-east" },
+      },
+      {
+        id: "delivery-2",
+        orderId: "pending-order-1",
+        status: "PENDING",
+        attempts: 0,
+        lastAttemptAt: null,
+        order: { plan: "g6-nanode-2", region: "us-west" },
+      },
+    ]);
+    mockCredentialEmailDelivery.count.mockResolvedValue(2);
+
+    const { response, body } = await getCredentialEmailDeliveries();
+
+    expect(response.status).toBe(200);
+    expect(body.success).toBe(true);
+    expect(body.data?.deliveries).toEqual([
+      {
+        id: "delivery-1",
+        orderId: "failed-order-1",
+        status: "FAILED",
+        attempts: 3,
+        lastAttemptAt: lastAttemptAt.toISOString(),
+        order: { plan: "g6-nanode-1", region: "us-east" },
+        errorSummary:
+          "The last delivery attempt failed. Sensitive error details are hidden.",
+      },
+      {
+        id: "delivery-2",
+        orderId: "pending-order-1",
+        status: "PENDING",
+        attempts: 0,
+        lastAttemptAt: null,
+        order: { plan: "g6-nanode-2", region: "us-west" },
+        errorSummary: "Waiting for the first delivery attempt.",
+      },
+    ]);
+    expect(mockCredentialEmailDelivery.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { status: { in: ["PENDING", "FAILED"] } },
+        skip: 0,
+        take: 20,
+      }),
+    );
+    expect(JSON.stringify(body)).not.toContain("lastError");
+    expect(JSON.stringify(body)).not.toContain("rdpPassword");
+    expect(JSON.stringify(body)).not.toContain("password");
+    expect(mockCredentialEmailDelivery.count).toHaveBeenCalledWith({
+      where: { status: { in: ["PENDING", "FAILED"] } },
+    });
+  });
+
+  it("validates pagination before querying the outbox", async () => {
+    const { response } = await getCredentialEmailDeliveries("?page=0");
+
+    expect(response.status).toBe(400);
+    expect(mockCredentialEmailDelivery.findMany).not.toHaveBeenCalled();
+    expect(mockCredentialEmailDelivery.count).not.toHaveBeenCalled();
   });
 });

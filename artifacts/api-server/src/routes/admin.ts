@@ -219,6 +219,70 @@ router.get("/admin/orders", async (req: AuthRequest, res) => {
   }
 });
 
+router.get(
+  "/admin/credential-email-deliveries",
+  async (req: AuthRequest, res) => {
+    try {
+      const parsed = paginationSchema.safeParse(req.query);
+      if (!parsed.success) {
+        sendValidationError(res, parsed.error.flatten().fieldErrors);
+        return;
+      }
+
+      const { page, limit } = parsed.data;
+      const where = { status: { in: ["PENDING", "FAILED"] } };
+      const [deliveries, total] = await Promise.all([
+        prisma.credentialEmailDelivery.findMany({
+          where,
+          skip: (page - 1) * limit,
+          take: limit,
+          orderBy: { updatedAt: "desc" },
+          select: {
+            id: true,
+            orderId: true,
+            status: true,
+            attempts: true,
+            lastAttemptAt: true,
+            order: {
+              select: {
+                plan: true,
+                region: true,
+              },
+            },
+          },
+        }),
+        prisma.credentialEmailDelivery.count({ where }),
+      ]);
+
+      sendSuccess(res, {
+        deliveries: deliveries.map((delivery) => ({
+          id: delivery.id,
+          orderId: delivery.orderId,
+          status: delivery.status,
+          attempts: delivery.attempts,
+          lastAttemptAt: delivery.lastAttemptAt,
+          order: delivery.order,
+          errorSummary:
+            delivery.status === "FAILED"
+              ? "The last delivery attempt failed. Sensitive error details are hidden."
+              : delivery.attempts > 0
+                ? "Waiting for the next delivery attempt."
+                : "Waiting for the first delivery attempt.",
+        })),
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      });
+    } catch (error) {
+      logger.error({ error }, "Failed to fetch credential email deliveries");
+      sendError(res, "Failed to fetch credential email deliveries");
+    }
+  },
+);
+
 router.delete(
   "/admin/orders/:id",
   strictRateLimit,

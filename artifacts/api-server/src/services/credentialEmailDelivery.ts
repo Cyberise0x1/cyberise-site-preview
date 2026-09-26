@@ -57,6 +57,7 @@ export async function attemptCredentialEmailDelivery(
       data: {
         status: "PROCESSING",
         attempts: { increment: 1 },
+        lastAttemptAt: now,
         lockedAt: now,
         lockToken,
       },
