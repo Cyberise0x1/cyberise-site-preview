@@ -256,12 +256,28 @@ function OrderCard({
                     )}
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 text-[#666] text-sm py-2">
+                  <div className="flex flex-wrap items-center gap-2 text-[#666] text-sm py-2">
                     <Clock className="w-4 h-4" />
                     <span className="font-rajdhani">
                       Server is being provisioned — credentials will appear
                       shortly
                     </span>
+                    {order.status === "PENDING" && (
+                      <span
+                        className={`inline-flex items-center gap-1 text-[9px] font-bold tracking-[1px] uppercase px-1.5 py-0.5 rounded border font-rajdhani ${
+                          isPro
+                            ? "bg-[rgba(123,47,247,0.08)] text-[#a855f7] border-[rgba(123,47,247,0.18)]"
+                            : "bg-[rgba(0,240,255,0.06)] text-[var(--primary)] border-[rgba(0,240,255,0.15)]"
+                        }`}
+                      >
+                        {isPro ? (
+                          <Monitor className="w-2.5 h-2.5" />
+                        ) : (
+                          <Terminal className="w-2.5 h-2.5" />
+                        )}
+                        {isPro ? "RDP" : "SSH"}
+                      </span>
+                    )}
                   </div>
                 )}
 
