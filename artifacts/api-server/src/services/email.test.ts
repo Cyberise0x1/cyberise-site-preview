@@ -108,11 +108,16 @@ describe("generateRenewalReminderEmail", () => {
       ip: "1.2.3.4",
       expiresAt,
       username: "root",
+      connectionType: "SSH",
     });
 
+    expect(html).toContain("SSH Renewal Reminder");
+    expect(html).toContain(">SSH</span>");
     expect(html).toContain("Username:");
     expect(html).toContain(">root</span>");
+    expect(text).toContain("Connection Type: SSH");
     expect(text).toContain("Username: root");
+    expect(text).not.toContain("RDP");
   });
 
   it("includes the saved Windows username in both email formats", () => {
@@ -120,9 +125,38 @@ describe("generateRenewalReminderEmail", () => {
       ip: "1.2.3.4",
       expiresAt,
       username: "Administrator",
+      connectionType: "RDP",
     });
 
+    expect(html).toContain("RDP Renewal Reminder");
+    expect(html).toContain(">RDP</span>");
     expect(html).toContain(">Administrator</span>");
+    expect(text).toContain("Connection Type: RDP");
     expect(text).toContain("Username: Administrator");
+  });
+
+  it("omits optional connection details when they are not supplied", () => {
+    const { html, text } = generateRenewalReminderEmail({
+      ip: "1.2.3.4",
+      expiresAt,
+    });
+    expect(html).toContain("Service Renewal Reminder");
+    expect(text).toContain("IP Address: 1.2.3.4");
+    expect(html).not.toContain("Username:");
+    expect(text).not.toContain("Username:");
+    expect(html).not.toContain("Connection Type:");
+    expect(text).not.toContain("Connection Type:");
+  });
+
+  it("escapes a saved username in HTML while keeping it readable in plain text", () => {
+    const { html, text } = generateRenewalReminderEmail({
+      ip: "1.2.3.4",
+      expiresAt,
+      username: "user<&",
+      connectionType: "SSH",
+    });
+    expect(html).toContain("user&lt;&amp;");
+    expect(html).not.toContain("user<&");
+    expect(text).toContain("Username: user<&");
   });
 });

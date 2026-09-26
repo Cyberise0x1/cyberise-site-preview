@@ -264,9 +264,17 @@ To continue using ${connectionType} services, please place a new order.`;
 export function generateRenewalReminderEmail(params: {
   ip: string;
   expiresAt: Date;
-  username: string;
+  username?: string;
+  connectionType?: "RDP" | "SSH";
 }): { html: string; text: string } {
-  const { ip, expiresAt, username } = params;
+  const { ip, expiresAt, username, connectionType } = params;
+  const serviceName = connectionType ?? "Service";
+  const escapedUsername = username
+    ?.replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
   const daysLeft = Math.ceil(
     (expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
   );
@@ -275,7 +283,7 @@ export function generateRenewalReminderEmail(params: {
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>RDP Renewal Reminder</title>
+  <title>${serviceName} Renewal Reminder</title>
 </head>
 <body style="margin:0;padding:0;background-color:#0a0a0f;font-family:system-ui,-apple-system,sans-serif;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0a0a0f;">
@@ -286,11 +294,12 @@ export function generateRenewalReminderEmail(params: {
             <td style="background:linear-gradient(135deg,#1a1a2e,#0f0f1a);border:1px solid #00f0ff33;border-radius:12px;overflow:hidden;">
               <div style="height:4px;background:linear-gradient(90deg,#00f0ff,#7b2ff7);"></div>
               <div style="padding:32px;">
-                <h1 style="margin:0 0 8px;color:#ffffff;font-size:24px;">RDP Renewal Reminder</h1>
-                <p style="margin:0 0 24px;color:#a0a0b8;">Your RDP service expires in ${daysLeft} day${daysLeft !== 1 ? "s" : ""}.</p>
+                <h1 style="margin:0 0 8px;color:#ffffff;font-size:24px;">${serviceName} Renewal Reminder</h1>
+                <p style="margin:0 0 24px;color:#a0a0b8;">Your ${connectionType ? `${connectionType} service` : "service"} expires in ${daysLeft} day${daysLeft !== 1 ? "s" : ""}.</p>
                 <div style="background:#12121a;border:1px solid #00f0ff22;border-radius:8px;padding:20px;">
                   <p style="margin:0 0 8px;color:#a0a0b8;">IP Address: <span style="color:#00f0ff;font-family:monospace;">${ip}</span></p>
-                  <p style="margin:0 0 8px;color:#a0a0b8;">Username: <span style="color:#ffffff;font-family:monospace;">${username}</span></p>
+                  ${connectionType ? `<p style="margin:0 0 8px;color:#a0a0b8;">Connection Type: <span style="color:#ffffff;">${connectionType}</span></p>` : ""}
+                  ${username ? `<p style="margin:0 0 8px;color:#a0a0b8;">Username: <span style="color:#ffffff;font-family:monospace;">${escapedUsername}</span></p>` : ""}
                   <p style="margin:0;color:#a0a0b8;">Expires: <span style="color:#ffffff;">${expiresAt.toLocaleDateString()}</span></p>
                 </div>
                 <p style="margin:20px 0 0;color:#666;font-size:14px;">
@@ -306,13 +315,12 @@ export function generateRenewalReminderEmail(params: {
 </body>
 </html>`;
 
-  const text = `RDP Renewal Reminder
+  const text = `${serviceName} Renewal Reminder
 
-Your RDP service expires in ${daysLeft} day${daysLeft !== 1 ? "s" : ""}.
+Your ${connectionType ? `${connectionType} service` : "service"} expires in ${daysLeft} day${daysLeft !== 1 ? "s" : ""}.
 
 IP Address: ${ip}
-Username: ${username}
-Expires: ${expiresAt.toLocaleDateString()}
+${connectionType ? `Connection Type: ${connectionType}\n` : ""}${username ? `Username: ${username}\n` : ""}Expires: ${expiresAt.toLocaleDateString()}
 
 Visit your dashboard to renew your service.`;
 

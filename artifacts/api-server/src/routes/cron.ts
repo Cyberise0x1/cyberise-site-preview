@@ -174,15 +174,17 @@ router.post("/cron/expire-instances", async (req, res) => {
       if (!order.ip || !order.user?.email) continue;
 
       try {
+        const connectionType = isLinuxImageId(order.image) ? "SSH" : "RDP";
         const emailContent = generateRenewalReminderEmail({
           ip: order.ip,
           expiresAt: order.expiresAt!,
           username: getRenewalReminderUsername(order),
+          connectionType,
         });
 
         await sendEmail({
           to: order.user.email,
-          subject: "RDP Renewal Reminder - Cyberise",
+          subject: `${connectionType} Renewal Reminder - Cyberise`,
           html: emailContent.html,
           text: emailContent.text,
           userId: order.userId,
