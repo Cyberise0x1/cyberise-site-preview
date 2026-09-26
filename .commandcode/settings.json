@@ -23,7 +23,8 @@
       "Shell(curl -s -o /dev/null -w 8081 root: %{http_code}\\n http://localhost:8081/__mockup/)",
       "Shell(curl -s -o /dev/null -w 8081 V2 preview: %{http_code}\\n http://localhost:8081/__mockup/preview/LandingPageV2)",
       "Shell(curl -s https://1fa24770-c4f1-49eb-b70d-8bee58ecf98e-00-3a9wp99hru3p4.janeway.replit.dev/__mockup/preview/LandingPageV2)",
-      "Shell(agent-browser:*)"
+      "Shell(agent-browser:*)",
+      "Shell(cd /home/runner/workspace && python3 - <<'EOF' import re,html s=open(\"command-code-session-f478adbe.html\",encoding=\"utf-8\",errors=\"replace\").read() seen=set() for m in re.finditer(r'❯\\s*(.{0,160})', s): t=html.unescape(re.sub(r'<[^>]+>','',m.group(1)))[:160] if t not in seen: seen.add(t); print(\"P:\",t) EOF)"
     ],
     "deny": [],
     "defaultMode": "default"
