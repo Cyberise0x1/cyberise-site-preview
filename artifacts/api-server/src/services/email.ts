@@ -17,19 +17,25 @@ interface EmailOptions {
   html: string;
   text?: string;
   userId?: string;
+  idempotencyKey?: string;
 }
 
 export async function sendEmail(
   options: EmailOptions,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const { error } = await getResend().emails.send({
-      from: `Cyberise RDP <${env.RESEND_SENDER_ADDRESS}>`,
-      to: [options.to],
-      subject: options.subject,
-      html: options.html,
-      text: options.text,
-    });
+    const { error } = await getResend().emails.send(
+      {
+        from: `Cyberise RDP <${env.RESEND_SENDER_ADDRESS}>`,
+        to: [options.to],
+        subject: options.subject,
+        html: options.html,
+        text: options.text,
+      },
+      options.idempotencyKey
+        ? { idempotencyKey: options.idempotencyKey }
+        : undefined,
+    );
 
     const status = error ? "failed" : "sent";
 

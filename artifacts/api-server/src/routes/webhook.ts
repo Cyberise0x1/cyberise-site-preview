@@ -8,10 +8,9 @@ import { verifyIpnSignature } from "../services/nowpayments";
 import { provisionInstance } from "../services/provisioning";
 import { encrypt } from "../utils/encryption";
 import {
-  sendEmail,
-  generateRDPCredentialsEmail,
-  generateSSHCredentialsEmail,
-} from "../services/email";
+  attemptCredentialEmailDelivery,
+  ensureCredentialEmailDelivery,
+} from "../services/credentialEmailDelivery";
 
 const router: IRouter = Router();
 
@@ -225,6 +224,10 @@ router.post("/webhooks/nowpayments", async (req, res) => {
       const order = cryptoPayment.order;
 
       if (order.status !== OrderStatus.PENDING) {
+        if (order.status === OrderStatus.ACTIVE) {
+          await ensureCredentialEmailDelivery(order.id);
+          await attemptCredentialEmailDelivery(order.id);
+        }
         logger.info(
           { orderId: order.id, status: order.status },
           "Order already processed, skipping provisioning",
@@ -254,24 +257,32 @@ router.post("/webhooks/nowpayments", async (req, res) => {
           markupPercent,
         });
 
-        await prisma.order.update({
-          where: { id: order.id },
-          data: {
-            status: OrderStatus.ACTIVE,
-            ip: provisionResult.ip,
-            rdpUsername: provisionResult.username,
-            rdpPasswordEncrypted: encrypt(provisionResult.password),
-            linodeInstanceId:
-              tier === "basic" && typeof provisionResult.instanceId === "number"
-                ? provisionResult.instanceId
-                : undefined,
-            expiresAt: provisionResult.expiresAt,
-            metadata: {
-              ...(order.metadata as object),
-              instanceId: provisionResult.instanceId,
+        await prisma.$transaction(async (tx) => {
+          await tx.order.update({
+            where: { id: order.id },
+            data: {
+              status: OrderStatus.ACTIVE,
               ip: provisionResult.ip,
+              rdpUsername: provisionResult.username,
+              rdpPasswordEncrypted: encrypt(provisionResult.password),
+              linodeInstanceId:
+                tier === "basic" &&
+                typeof provisionResult.instanceId === "number"
+                  ? provisionResult.instanceId
+                  : undefined,
+              expiresAt: provisionResult.expiresAt,
+              metadata: {
+                ...(order.metadata as object),
+                instanceId: provisionResult.instanceId,
+                ip: provisionResult.ip,
+              },
             },
-          },
+          });
+          await tx.credentialEmailDelivery.upsert({
+            where: { orderId: order.id },
+            create: { orderId: order.id, nextAttemptAt: new Date(0) },
+            update: {},
+          });
         });
 
         await prisma.cryptoPayment.update({
@@ -279,39 +290,7 @@ router.post("/webhooks/nowpayments", async (req, res) => {
           data: { completedAt: new Date() },
         });
 
-        const user = await prisma.user.findUnique({
-          where: { id: order.userId },
-        });
-
-        if (user?.email) {
-          const emailContent =
-            tier === "basic"
-              ? generateSSHCredentialsEmail({
-                  ip: provisionResult.ip,
-                  username: provisionResult.username,
-                  password: provisionResult.password,
-                  expiresAt: provisionResult.expiresAt,
-                })
-              : generateRDPCredentialsEmail({
-                  ip: provisionResult.ip,
-                  username: provisionResult.username,
-                  password: provisionResult.password,
-                  expiresAt: provisionResult.expiresAt,
-                });
-
-          const emailSubject =
-            tier === "basic"
-              ? "Your Linux Server Credentials — Cyberise"
-              : "Your RDP Server Credentials — Cyberise";
-
-          await sendEmail({
-            to: user.email,
-            subject: emailSubject,
-            html: emailContent.html,
-            text: emailContent.text,
-            userId: order.userId,
-          });
-        }
+        await attemptCredentialEmailDelivery(order.id);
 
         await prisma.auditLog.create({
           data: {

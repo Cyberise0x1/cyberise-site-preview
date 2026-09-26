@@ -56,8 +56,9 @@ model Order {
   terminationReason    String?
   metadata             Json?
 
-  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  cryptoPayments CryptoPayment[]
+  user                    User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cryptoPayments          CryptoPayment[]
+  credentialEmailDelivery CredentialEmailDelivery?
 
   @@index([userId])
   @@index([status])
@@ -116,6 +117,26 @@ model EmailLog {
   @@map("email_logs")
 }
 
+model CredentialEmailDelivery {
+  id            String    @id @default(cuid())
+  orderId       String    @unique
+  status        String    @default("PENDING")
+  attempts      Int       @default(0)
+  nextAttemptAt DateTime  @default(now())
+  lockedAt      DateTime?
+  lockToken     String?
+  sentAt        DateTime?
+  lastError     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([status, nextAttemptAt])
+  @@index([status, lockedAt])
+  @@map("credential_email_deliveries")
+}
+
 model AuditLog {
   id        String   @id @default(cuid())
   actorId   String?
@@ -137,8 +158,8 @@ model AuditLog {
 model PromoCode {
   id              String    @id @default(cuid())
   code            String    @unique
-  discountPercent Decimal   @db.Decimal(5, 2)   // e.g., 10.00 = 10% off
-  maxUses         Int?                            // null = unlimited
+  discountPercent Decimal   @db.Decimal(5, 2) // e.g., 10.00 = 10% off
+  maxUses         Int? // null = unlimited
   usedCount       Int       @default(0)
   validFrom       DateTime  @default(now())
   validUntil      DateTime?
@@ -162,10 +183,8 @@ model PromoCodeUsage {
   promoCode PromoCode @relation(fields: [promoCodeId], references: [id])
   user      User      @relation(fields: [userId], references: [id])
 
-  @@unique([promoCodeId, userId])  // One use per user per code
+  @@unique([promoCodeId, userId]) // One use per user per code
   @@index([promoCodeId])
   @@index([userId])
   @@map("promo_code_usages")
 }
-
-

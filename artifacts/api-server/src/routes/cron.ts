@@ -7,6 +7,7 @@ import {
   generateRenewalReminderEmail,
   generateTerminationEmail,
 } from "../services/email";
+import { retryDueCredentialEmailDeliveries } from "../services/credentialEmailDelivery";
 import { sendSuccess, sendError } from "../utils/responses";
 import { logger } from "../lib/logger";
 import { timingSafeEqual } from "node:crypto";
@@ -196,11 +197,22 @@ router.post("/cron/expire-instances", async (req, res) => {
       }
     }
 
-    logger.info({ terminated, remindersSent }, "Cron job completed");
+    let credentialEmails = { attempted: 0, sent: 0, failed: 0 };
+    try {
+      credentialEmails = await retryDueCredentialEmailDeliveries();
+    } catch (error) {
+      logger.error({ error }, "Failed to retry credential email deliveries");
+    }
+
+    logger.info(
+      { terminated, remindersSent, credentialEmails },
+      "Cron job completed",
+    );
 
     sendSuccess(res, {
       terminated,
       remindersSent,
+      credentialEmails,
       timestamp: now.toISOString(),
     });
   } catch (error) {

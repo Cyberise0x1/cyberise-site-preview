@@ -13,6 +13,7 @@ import {
 const mocks = vi.hoisted(() => ({
   orderFindMany: vi.fn(),
   orderUpdateMany: vi.fn(),
+  credentialEmailDeliveryFindMany: vi.fn(),
   auditLogCreate: vi.fn(),
   deleteInstance: vi.fn(),
   isLinuxImageId: vi.fn(),
@@ -30,6 +31,9 @@ vi.mock("@workspace/db", () => ({
     order: {
       findMany: mocks.orderFindMany,
       updateMany: mocks.orderUpdateMany,
+    },
+    credentialEmailDelivery: {
+      findMany: mocks.credentialEmailDeliveryFindMany,
     },
     auditLog: { create: mocks.auditLogCreate },
   },
@@ -69,9 +73,7 @@ interface ExpiredOrder {
   user: { email: string };
 }
 
-function makeExpiredOrder(
-  overrides: Partial<ExpiredOrder> = {},
-): ExpiredOrder {
+function makeExpiredOrder(overrides: Partial<ExpiredOrder> = {}): ExpiredOrder {
   return {
     id: "order-1",
     userId: "user-1",
@@ -117,6 +119,7 @@ beforeEach(() => {
 
   mocks.orderFindMany.mockResolvedValue([]);
   mocks.orderUpdateMany.mockResolvedValue({ count: 1 });
+  mocks.credentialEmailDeliveryFindMany.mockResolvedValue([]);
   mocks.auditLogCreate.mockResolvedValue({});
   mocks.deleteInstance.mockResolvedValue(undefined);
   mocks.isLinuxImageId.mockImplementation(
@@ -254,8 +257,9 @@ describe("expired order termination notifications", () => {
     );
 
     expect(responses.every((response) => response.status === 200)).toBe(true);
-    expect(payloads.reduce((total, payload) => total + payload.data.terminated, 0))
-      .toBe(1);
+    expect(
+      payloads.reduce((total, payload) => total + payload.data.terminated, 0),
+    ).toBe(1);
     expect(mocks.sendEmail).toHaveBeenCalledTimes(1);
     expect(mocks.auditLogCreate).toHaveBeenCalledTimes(1);
   });
