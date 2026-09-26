@@ -2,8 +2,12 @@ import { spawn } from "node:child_process";
 import { createServer as createNetServer } from "node:net";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { assertRenderedPreview } from "./browser-preview.mjs";
 
-const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const projectRoot = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..",
+);
 const viteEntry = fileURLToPath(import.meta.resolve("vite"));
 const viteCli = path.resolve(path.dirname(viteEntry), "../../bin/vite.js");
 const basePath = (process.env.BASE_PATH ?? "/__mockup").replace(/\/+$/, "");
@@ -17,7 +21,9 @@ function reservePort() {
       const address = probe.address();
       if (!address || typeof address === "string") {
         probe.close();
-        reject(new Error("Could not reserve a local port for the route smoke test."));
+        reject(
+          new Error("Could not reserve a local port for the route smoke test."),
+        );
         return;
       }
 
@@ -30,7 +36,8 @@ function reservePort() {
 }
 
 async function stopServer(child) {
-  if (spawnError || child.exitCode !== null || child.signalCode !== null) return;
+  if (spawnError || child.exitCode !== null || child.signalCode !== null)
+    return;
 
   const exited = new Promise((resolve) => child.once("exit", resolve));
   child.kill("SIGTERM");
@@ -118,6 +125,7 @@ try {
 
   const previewRoute = `${basePath}/preview/LandingPage`;
   await assertAppEntry(previewRoute, await fetch(`${origin}${previewRoute}`));
+  await assertRenderedPreview(`${origin}${previewRoute}`);
 } finally {
   await stopServer(child);
 }
