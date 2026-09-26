@@ -13,7 +13,11 @@ import {
 } from "../utils/responses";
 import { requireAuth, attachUser, requireAdmin } from "../middleware/auth";
 import { strictRateLimit } from "../middleware/rateLimit";
-import { updateSettingsSchema, paginationSchema } from "../validators/admin";
+import {
+  updateSettingsSchema,
+  paginationSchema,
+  adminOrdersQuerySchema,
+} from "../validators/admin";
 import { logger } from "../lib/logger";
 import type { AuthRequest } from "../middleware/auth";
 
@@ -131,18 +135,20 @@ router.patch(
 
 router.get("/admin/orders", async (req: AuthRequest, res) => {
   try {
-    const parsed = paginationSchema.safeParse(req.query);
+    const parsed = adminOrdersQuerySchema.safeParse(req.query);
     if (!parsed.success) {
       sendValidationError(res, parsed.error.flatten().fieldErrors);
       return;
     }
 
-    const { page, limit, search } = parsed.data;
+    const { page, limit, search, status } = parsed.data;
     const skip = (page - 1) * limit;
 
-    const where = search
-      ? {
-          OR: [
+    const where: Prisma.OrderWhereInput = {
+      ...(status ? { status } : {}),
+      ...(search
+        ? {
+            OR: [
             { id: { contains: search } },
             { ip: { contains: search } },
             {
@@ -150,9 +156,10 @@ router.get("/admin/orders", async (req: AuthRequest, res) => {
                 email: { contains: search, mode: "insensitive" as const },
               },
             },
-          ],
-        }
-      : {};
+            ],
+          }
+        : {}),
+    };
 
     const [orders, total] = await Promise.all([
       prisma.order.findMany({
@@ -166,9 +173,27 @@ router.get("/admin/orders", async (req: AuthRequest, res) => {
       }),
       prisma.order.count({ where }),
     ]);
+    const userIds = [...new Set(orders.map((order) => order.userId))];
+    const failedOrderCounts = userIds.length
+      ? await prisma.order.groupBy({
+          by: ["userId"],
+          where: {
+            userId: { in: userIds },
+            status: OrderStatus.FAILED,
+          },
+          _count: { _all: true },
+        })
+      : [];
+    const failedOrderCountsByUser = new Map(
+      failedOrderCounts.map((entry) => [entry.userId, entry._count._all]),
+    );
+    const ordersWithFailureCounts = orders.map((order) => ({
+      ...order,
+      failedOrderCount: failedOrderCountsByUser.get(order.userId) ?? 0,
+    }));
 
     sendSuccess(res, {
-      orders,
+      orders: ordersWithFailureCounts,
       pagination: {
         page,
         limit,
