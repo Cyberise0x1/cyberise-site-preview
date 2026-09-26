@@ -22,7 +22,11 @@ vi.mock("@workspace/db", () => ({
     user: { findUnique: vi.fn(), update: vi.fn() },
     auditLog: { create: vi.fn() },
   },
-  OrderStatus: { PENDING: "PENDING", ACTIVE: "ACTIVE" },
+  OrderStatus: {
+    PENDING: "PENDING",
+    ACTIVE: "ACTIVE",
+    FAILED: "FAILED",
+  },
 }));
 
 vi.mock("../services/linode", () => ({
@@ -120,7 +124,14 @@ vi.mock("../services/nowpayments", () => ({
 
 vi.mock("../middleware/auth", () => ({
   requireAuth: (_req: unknown, _res: unknown, next: () => void) => next(),
-  attachUser: (_req: unknown, _res: unknown, next: () => void) => next(),
+  attachUser: (
+    req: { user?: unknown },
+    _res: unknown,
+    next: () => void,
+  ) => {
+    req.user = { id: "user-1", balance: 1000, email: "test@example.com" };
+    next();
+  },
   requireActiveUser: (_req: unknown, _res: unknown, next: () => void) => next(),
 }));
 
@@ -144,6 +155,9 @@ vi.mock("../lib/logger", () => ({
 }));
 
 import marketRouter from "./market";
+import { OrderStatus, prisma } from "@workspace/db";
+import { createOrderSchema } from "../validators/market";
+import { cryptoOrderSchema } from "../validators/crypto";
 
 let server: Server;
 let baseUrl: string;
@@ -223,5 +237,75 @@ describe("GET /market/plans — images array", () => {
     };
     expect(Array.isArray(body.data.plans)).toBe(true);
     expect(Array.isArray(body.data.regions)).toBe(true);
+  });
+});
+
+describe("active order limit", () => {
+  it("excludes FAILED orders when checking balance orders", async () => {
+    vi.mocked(createOrderSchema.safeParse).mockReturnValue({
+      success: true,
+      data: {
+        plan: "g6-nanode-1",
+        region: "us-east",
+        image: "linode/ubuntu24.04",
+        durationDays: 30,
+        tier: "basic",
+      },
+    });
+    vi.mocked(prisma.order.count).mockResolvedValue(5);
+
+    const res = await fetch(`${baseUrl}/market/order`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        plan: "g6-nanode-1",
+        region: "us-east",
+        durationDays: 30,
+        tier: "basic",
+      }),
+    });
+
+    expect(res.status).toBe(400);
+    expect(prisma.order.count).toHaveBeenCalledWith({
+      where: {
+        userId: "user-1",
+        status: { in: [OrderStatus.PENDING, OrderStatus.ACTIVE] },
+      },
+    });
+  });
+
+  it("excludes FAILED orders when checking crypto orders", async () => {
+    vi.mocked(cryptoOrderSchema.safeParse).mockReturnValue({
+      success: true,
+      data: {
+        plan: "g6-nanode-1",
+        region: "us-east",
+        image: "linode/ubuntu24.04",
+        durationDays: 30,
+        tier: "basic",
+        payCurrency: "btc",
+      },
+    });
+    vi.mocked(prisma.order.count).mockResolvedValue(5);
+
+    const res = await fetch(`${baseUrl}/market/crypto/order`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        plan: "g6-nanode-1",
+        region: "us-east",
+        durationDays: 30,
+        tier: "basic",
+        payCurrency: "btc",
+      }),
+    });
+
+    expect(res.status).toBe(400);
+    expect(prisma.order.count).toHaveBeenCalledWith({
+      where: {
+        userId: "user-1",
+        status: { in: [OrderStatus.PENDING, OrderStatus.ACTIVE] },
+      },
+    });
   });
 });
