@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 
 vi.mock("../utils/env", () => ({
   env: {
@@ -13,7 +13,11 @@ vi.mock("../lib/logger", () => ({
   logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
 
-import { getLinuxImages } from "./linode";
+import {
+  getLinuxImages,
+  validateLinuxImagesAgainstLinode,
+} from "./linode";
+import { logger } from "../lib/logger";
 
 const VALID_IMAGE_ID_RE = /^linode\//;
 
@@ -65,5 +69,103 @@ describe("getLinuxImages()", () => {
     const a = getLinuxImages();
     const b = getLinuxImages();
     expect(a).not.toBe(b);
+  });
+});
+
+describe("validateLinuxImagesAgainstLinode()", () => {
+  const fetchMock = vi.fn();
+
+  function imageListResponse(data: unknown[], pages: number): Response {
+    return {
+      ok: true,
+      json: async () => ({ data, pages }),
+    } as unknown as Response;
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    fetchMock.mockReset();
+    vi.stubEnv("LINODE_API_TOKEN", "test-token");
+    vi.stubGlobal("fetch", fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
+  });
+
+  it("skips the live check when the Linode API token is missing", async () => {
+    vi.stubEnv("LINODE_API_TOKEN", "");
+
+    const result = await validateLinuxImagesAgainstLinode();
+
+    expect(result.status).toBe("skipped");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("checks every page and accepts available configured images", async () => {
+    const configuredImages = getLinuxImages();
+    fetchMock
+      .mockResolvedValueOnce(
+        imageListResponse(configuredImages.slice(0, 3), 2),
+      )
+      .mockResolvedValueOnce(
+        imageListResponse(configuredImages.slice(3), 2),
+      );
+
+    const result = await validateLinuxImagesAgainstLinode();
+
+    expect(result.status).toBe("valid");
+    expect(result.checkedIds).toBe(configuredImages.length);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock.mock.calls[0][0]).toContain("page=1");
+    expect(fetchMock.mock.calls[1][0]).toContain("page=2");
+  });
+
+  it("warns and reports missing, deprecated, and unavailable images", async () => {
+    const configuredImages = getLinuxImages();
+    const liveImages = configuredImages.slice(1).map((image) => ({ ...image }));
+    liveImages[0] = { ...liveImages[0], deprecated: true };
+    liveImages[1] = { ...liveImages[1], status: "unavailable" };
+    fetchMock.mockResolvedValueOnce(imageListResponse(liveImages, 1));
+
+    const result = await validateLinuxImagesAgainstLinode();
+
+    expect(result.status).toBe("mismatch");
+    expect(result.missingIds).toContain(configuredImages[0].id);
+    expect(result.unavailableIds).toEqual([
+      liveImages[0].id,
+      liveImages[1].id,
+    ]);
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        missingIds: [configuredImages[0].id],
+        unavailableIds: [liveImages[0].id, liveImages[1].id],
+      }),
+      expect.stringContaining("missing, deprecated, or unavailable"),
+    );
+  });
+
+  it("throws on mismatches when strict validation is enabled", async () => {
+    fetchMock.mockResolvedValueOnce(imageListResponse([], 1));
+
+    await expect(
+      validateLinuxImagesAgainstLinode({ strict: true }),
+    ).rejects.toThrow("Linode Linux image validation failed");
+  });
+
+  it("warns on provider errors by default and throws in strict mode", async () => {
+    fetchMock.mockRejectedValue(new Error("Linode unavailable"));
+
+    const result = await validateLinuxImagesAgainstLinode();
+
+    expect(result.status).toBe("error");
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ err: expect.any(Error) }),
+      "Unable to validate Linux image IDs against Linode",
+    );
+    await expect(
+      validateLinuxImagesAgainstLinode({ strict: true }),
+    ).rejects.toThrow("Linode unavailable");
   });
 });
