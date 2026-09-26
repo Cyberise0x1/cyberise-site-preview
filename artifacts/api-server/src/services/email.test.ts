@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   generateRDPCredentialsEmail,
   generateSSHCredentialsEmail,
+  generateRenewalReminderEmail,
   generateTerminationEmail,
 } from "./email";
 
@@ -96,5 +97,32 @@ describe("generateTerminationEmail", () => {
     expect(html).toContain("Connection Type:");
     expect(html).toContain(">RDP</span>");
     expect(text).toContain("Connection Type: RDP");
+  });
+});
+
+describe("generateRenewalReminderEmail", () => {
+  const expiresAt = new Date("2026-12-31T00:00:00.000Z");
+
+  it("includes the Linux username in both email formats", () => {
+    const { html, text } = generateRenewalReminderEmail({
+      ip: "1.2.3.4",
+      expiresAt,
+      username: "root",
+    });
+
+    expect(html).toContain("Username:");
+    expect(html).toContain(">root</span>");
+    expect(text).toContain("Username: root");
+  });
+
+  it("includes the saved Windows username in both email formats", () => {
+    const { html, text } = generateRenewalReminderEmail({
+      ip: "1.2.3.4",
+      expiresAt,
+      username: "Administrator",
+    });
+
+    expect(html).toContain(">Administrator</span>");
+    expect(text).toContain("Username: Administrator");
   });
 });

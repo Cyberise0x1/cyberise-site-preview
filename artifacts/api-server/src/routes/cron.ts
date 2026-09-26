@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { OrderStatus } from "@workspace/db";
 import { prisma } from "@workspace/db";
-import { deleteInstance } from "../services/linode";
+import { deleteInstance, isLinuxImageId } from "../services/linode";
 import { sendEmail, generateRenewalReminderEmail } from "../services/email";
 import { sendSuccess, sendError } from "../utils/responses";
 import { logger } from "../lib/logger";
@@ -33,6 +33,16 @@ export function isAuthorizedCron(req: {
   // timingSafeEqual throws on length mismatch, so guard first.
   if (provided.length !== expected.length) return false;
   return timingSafeEqual(provided, expected);
+}
+
+export function getRenewalReminderUsername(order: {
+  image: string;
+  rdpUsername: string | null;
+}): string {
+  const storedUsername = order.rdpUsername?.trim();
+  if (storedUsername) return storedUsername;
+
+  return isLinuxImageId(order.image) ? "root" : "Administrator";
 }
 
 router.post("/cron/expire-instances", async (req, res) => {
@@ -126,6 +136,7 @@ router.post("/cron/expire-instances", async (req, res) => {
         const emailContent = generateRenewalReminderEmail({
           ip: order.ip,
           expiresAt: order.expiresAt!,
+          username: getRenewalReminderUsername(order),
         });
 
         await sendEmail({

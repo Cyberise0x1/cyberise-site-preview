@@ -264,8 +264,9 @@ To continue using ${connectionType} services, please place a new order.`;
 export function generateRenewalReminderEmail(params: {
   ip: string;
   expiresAt: Date;
+  username: string;
 }): { html: string; text: string } {
-  const { ip, expiresAt } = params;
+  const { ip, expiresAt, username } = params;
   const daysLeft = Math.ceil(
     (expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
   );
@@ -289,6 +290,7 @@ export function generateRenewalReminderEmail(params: {
                 <p style="margin:0 0 24px;color:#a0a0b8;">Your RDP service expires in ${daysLeft} day${daysLeft !== 1 ? "s" : ""}.</p>
                 <div style="background:#12121a;border:1px solid #00f0ff22;border-radius:8px;padding:20px;">
                   <p style="margin:0 0 8px;color:#a0a0b8;">IP Address: <span style="color:#00f0ff;font-family:monospace;">${ip}</span></p>
+                  <p style="margin:0 0 8px;color:#a0a0b8;">Username: <span style="color:#ffffff;font-family:monospace;">${username}</span></p>
                   <p style="margin:0;color:#a0a0b8;">Expires: <span style="color:#ffffff;">${expiresAt.toLocaleDateString()}</span></p>
                 </div>
                 <p style="margin:20px 0 0;color:#666;font-size:14px;">
@@ -309,6 +311,7 @@ export function generateRenewalReminderEmail(params: {
 Your RDP service expires in ${daysLeft} day${daysLeft !== 1 ? "s" : ""}.
 
 IP Address: ${ip}
+Username: ${username}
 Expires: ${expiresAt.toLocaleDateString()}
 
 Visit your dashboard to renew your service.`;
