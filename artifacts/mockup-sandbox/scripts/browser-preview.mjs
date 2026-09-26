@@ -10,6 +10,18 @@ function delay(milliseconds) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
+function isLocalStylesheet(url, type, previewOrigin) {
+  try {
+    const resource = new URL(url);
+    return (
+      resource.origin === previewOrigin &&
+      (type === "Stylesheet" || resource.pathname.toLowerCase().endsWith(".css"))
+    );
+  } catch {
+    return false;
+  }
+}
+
 async function waitForDevToolsPort(browser, profileDir, getOutput) {
   const activePortFile = path.join(profileDir, "DevToolsActivePort");
   const deadline = Date.now() + 15_000;
@@ -221,19 +233,35 @@ export async function assertRenderedPreview(url) {
     cdp = await connectToPage(page.webSocketDebuggerUrl);
     const pageErrors = [];
     const scriptRequests = new Map();
+    const stylesheetRequests = new Map();
+    const previewOrigin = new URL(url).origin;
     cdp.on("Runtime.exceptionThrown", ({ exceptionDetails }) => {
       const detail =
         exceptionDetails.exception?.description ?? exceptionDetails.text;
       pageErrors.push(`Uncaught page error: ${detail}`);
     });
     cdp.on("Network.requestWillBeSent", (event) => {
-      scriptRequests.set(event.requestId, {
+      const request = {
         url: event.request.url,
         type: event.type,
-      });
+      };
+      scriptRequests.set(event.requestId, request);
+      if (isLocalStylesheet(request.url, request.type, previewOrigin)) {
+        stylesheetRequests.set(event.requestId, request);
+      }
     });
-    cdp.on("Network.responseReceived", ({ response, type }) => {
-      if (type === "Script" && response.status >= 400) {
+    cdp.on("Network.responseReceived", ({ requestId, response, type }) => {
+      const stylesheet =
+        stylesheetRequests.get(requestId) ??
+        (isLocalStylesheet(response.url, type, previewOrigin)
+          ? { url: response.url }
+          : null);
+      if (stylesheet && response.status >= 400) {
+        pageErrors.push(
+          `Local stylesheet request failed with HTTP ${response.status}: ${stylesheet.url}`,
+        );
+      }
+      if (!stylesheet && type === "Script" && response.status >= 400) {
         pageErrors.push(
           `JavaScript module request failed with HTTP ${response.status}: ${response.url}`,
         );
@@ -241,7 +269,17 @@ export async function assertRenderedPreview(url) {
     });
     cdp.on("Network.loadingFailed", ({ requestId, type, errorText }) => {
       const request = scriptRequests.get(requestId);
-      if (type === "Script" || request?.type === "Script") {
+      const stylesheet =
+        stylesheetRequests.get(requestId) ??
+        (request &&
+        isLocalStylesheet(request.url, type ?? request.type, previewOrigin)
+          ? request
+          : null);
+      if (stylesheet) {
+        pageErrors.push(
+          `Local stylesheet failed to load: ${stylesheet.url} (${errorText})`,
+        );
+      } else if (type === "Script" || request?.type === "Script") {
         pageErrors.push(
           `JavaScript module failed to load${request?.url ? `: ${request.url}` : ""} (${errorText})`,
         );
@@ -290,6 +328,7 @@ export async function assertRenderedPreview(url) {
             text,
             heroText: hero?.innerText ?? "",
             heroVisible: Boolean(hero && hero.getClientRects().length),
+            heroFontFamily: hero ? getComputedStyle(hero).fontFamily : "",
             featureCards:
               carousel?.querySelectorAll("[data-testid^='card-feature-']")
                 .length ?? 0,
@@ -315,8 +354,13 @@ export async function assertRenderedPreview(url) {
         ) &&
         lastSnapshot.featureCards >= 3
       ) {
+        if (!lastSnapshot.heroFontFamily.includes("IBM Plex Mono")) {
+          throw new Error(
+            `Preview hero is missing its expected local font styling. Computed font-family: ${lastSnapshot.heroFontFamily || "(empty)"}`,
+          );
+        }
         console.log(
-          "PASS /preview/LandingPage renders its hero and feature cards in Chromium",
+          "PASS /preview/LandingPage renders its hero and feature cards with local styles in Chromium",
         );
         return;
       }
