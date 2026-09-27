@@ -14,6 +14,13 @@ _Replace the heading above with the project's name, and this line with one sente
 - `pnpm --filter @workspace/db run generate` — regenerate Prisma client
 - Required env: `DATABASE_URL` — Postgres connection string (see `lib/env/src/index.ts` for full list)
 
+## GitHub workflow
+
+- Canonical GitHub remote: `origin` → `https://github.com/Cyberise0x1/cyberise-site-preview.git`
+- Work on a feature branch and open a pull request; `main` is protected and requires all five CI checks before merge.
+- Keep GitHub authentication in the configured credential flow. Never place tokens in files, remote URLs, commit messages, or logs.
+- Do not bypass secret scanning or force-push. Historical commits contain credentials that must be rotated and handled through an approved history-cleanup plan if GitHub rejects a push.
+
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
