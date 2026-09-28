@@ -83,9 +83,7 @@
       "mcp__code-review-graph__list_flows_tool"
     ]
   },
-  "enabledMcpjsonServers": [
-    "code-review-graph"
-  ],
+  "enabledMcpjsonServers": ["code-review-graph"],
   "skillOverrides": {
     "caveman": "user-invocable-only"
   }

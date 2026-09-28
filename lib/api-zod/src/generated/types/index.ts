@@ -6,15 +6,15 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export * from './adminOrder';
-export * from './adminOrderMetadata';
-export * from './adminOrdersData';
-export * from './adminOrdersPagination';
-export * from './adminOrdersResponse';
-export * from './adminOrderStatus';
-export * from './adminOrderUser';
-export * from './apiError';
-export * from './apiErrorDetails';
-export * from './healthStatus';
-export * from './listAdminOrdersParams';
-export * from './listAdminOrdersStatus';
+export * from "./adminOrder";
+export * from "./adminOrderMetadata";
+export * from "./adminOrdersData";
+export * from "./adminOrdersPagination";
+export * from "./adminOrdersResponse";
+export * from "./adminOrderStatus";
+export * from "./adminOrderUser";
+export * from "./apiError";
+export * from "./apiErrorDetails";
+export * from "./healthStatus";
+export * from "./listAdminOrdersParams";
+export * from "./listAdminOrdersStatus";

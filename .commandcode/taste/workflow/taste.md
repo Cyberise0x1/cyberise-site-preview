@@ -23,6 +23,6 @@
 - Prefers to prototype new UI/design work in a throwaway sandbox app (e.g., `artifacts/mockup-sandbox`) first, review the result, then port it into the real production app on a branch — rather than building directly in the live codebase. Confidence: 0.7
 - Expects prototypes/deliverables to actually run out of the box: a preview/dev server must start with a plain command (no required env vars, no hidden routes) and the root route should render the work — verify it opens before presenting it, and don't hand over a broken open command. Confidence: 0.7
 - Don't kill a user's running backend/process (e.g., the api-server holding the preview port) without explicitly asking first and getting approval — offer options (restart it on another port) rather than silently taking it down. Confidence: 0.7
-port) without explicitly asking first and getting approval — offer options (restart it on another port) rather than silently taking it down. Confidence: 0.7
-han silently taking it down. Confidence: 0.7
-down. Confidence: 0.7
+  port) without explicitly asking first and getting approval — offer options (restart it on another port) rather than silently taking it down. Confidence: 0.7
+  han silently taking it down. Confidence: 0.7
+  down. Confidence: 0.7

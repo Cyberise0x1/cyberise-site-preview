@@ -6,12 +6,12 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type AdminOrderStatus = typeof AdminOrderStatus[keyof typeof AdminOrderStatus];
-
+export type AdminOrderStatus =
+  (typeof AdminOrderStatus)[keyof typeof AdminOrderStatus];
 
 export const AdminOrderStatus = {
-  PENDING: 'PENDING',
-  ACTIVE: 'ACTIVE',
-  TERMINATED: 'TERMINATED',
-  FAILED: 'FAILED',
+  PENDING: "PENDING",
+  ACTIVE: "ACTIVE",
+  TERMINATED: "TERMINATED",
+  FAILED: "FAILED",
 } as const;

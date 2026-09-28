@@ -91,7 +91,9 @@ function LogPanel({
                 <span className="font-mono text-[#e8e8e8] break-all">
                   {e.file}
                 </span>
-                <span className="text-[var(--text-secondary)] ml-1">— {e.summary}</span>
+                <span className="text-[var(--text-secondary)] ml-1">
+                  — {e.summary}
+                </span>
               </div>
             </div>
           ))}
@@ -125,7 +127,9 @@ function MapFrame({ title, src }: { title: string; src: string }) {
           </a>
         )}
         {available === false && (
-          <span className="text-xs text-[var(--text-secondary)]">Not generated yet</span>
+          <span className="text-xs text-[var(--text-secondary)]">
+            Not generated yet
+          </span>
         )}
       </div>
       {available === true ? (
@@ -133,7 +137,9 @@ function MapFrame({ title, src }: { title: string; src: string }) {
       ) : (
         <div className="h-[480px] flex flex-col items-center justify-center text-center px-6">
           <FileCode className="w-10 h-10 text-[#2a2a2a] mb-3" />
-          <p className="text-[var(--text-secondary)] text-sm">Map not generated yet</p>
+          <p className="text-[var(--text-secondary)] text-sm">
+            Map not generated yet
+          </p>
           <p className="text-[var(--text-secondary)] text-xs mt-2 max-w-xs leading-relaxed">
             Run the architecture-map prompt with an agent, then place the output
             HTML file in{" "}
@@ -319,7 +325,9 @@ export default function AdminDev() {
                           {c.agent_a} vs {c.agent_b}
                         </span>
                       </p>
-                      <p className="text-[var(--text-secondary)] text-xs">{c.reason}</p>
+                      <p className="text-[var(--text-secondary)] text-xs">
+                        {c.reason}
+                      </p>
                     </div>
                   ))}
                 </div>

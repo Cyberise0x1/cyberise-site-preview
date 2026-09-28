@@ -71,7 +71,9 @@ const statusColors: Record<string, string> = {
   FAILED: "bg-[#ff4444]/10 text-[#ff4444]",
 };
 
-function getLinodeError(metadata: Record<string, unknown> | null): string | null {
+function getLinodeError(
+  metadata: Record<string, unknown> | null,
+): string | null {
   const value = metadata?.linodeError;
   return typeof value === "string" && value.trim() ? value : null;
 }
@@ -323,9 +325,7 @@ export default function AdminOrders() {
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-[var(--text-secondary)]">
-                      <span>
-                        Retries: {Math.max(delivery.attempts - 1, 0)}
-                      </span>
+                      <span>Retries: {Math.max(delivery.attempts - 1, 0)}</span>
                       <span>
                         Last attempt:{" "}
                         {delivery.lastAttemptAt
@@ -395,7 +395,9 @@ export default function AdminOrders() {
               >
                 <Card
                   className={`bg-[var(--dark-surface)]/80 border-[#ffffff1a] backdrop-blur-sm ${
-                    order.status === "FAILED" ? "border-l-4 border-l-[#ff4444]" : ""
+                    order.status === "FAILED"
+                      ? "border-l-4 border-l-[#ff4444]"
+                      : ""
                   }`}
                 >
                   <CardContent className="p-4">

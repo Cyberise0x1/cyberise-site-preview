@@ -1,4 +1,5 @@
 # communication
+
 - Communicates in terse, abbreviated lowercase messages (e.g., "preview link i need", "is this the link?", "mockup sandbox in port 8081 doesnt open show link i can click", "i want to see the mockup", "yesyes") and wants the requested artifact delivered directly in the reply — lead with the answer/URL, keep preamble and explanation minimal. Confidence: 0.8
 - When presenting a list of sequential configuration steps, guide users through one item at a time rather than giving the full list upfront. Confidence: 0.85
 - Be transparent about which skills/rules are actually active in the session — state what is loaded and invoked vs. merely listed, and don't claim a skill is in use unless it was actually invoked. Confidence: 0.55

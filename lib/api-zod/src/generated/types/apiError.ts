@@ -5,7 +5,7 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import type { ApiErrorDetails } from './apiErrorDetails';
+import type { ApiErrorDetails } from "./apiErrorDetails";
 
 export interface ApiError {
   success: boolean;

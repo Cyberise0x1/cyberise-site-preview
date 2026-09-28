@@ -192,7 +192,8 @@ export default function Footer({ onOpenLegal }: FooterProps) {
                     <span
                       className="absolute bottom-0 left-0 h-[1px] w-full origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300"
                       style={{
-                        background: "linear-gradient(90deg,var(--primary),#7b2ff7)",
+                        background:
+                          "linear-gradient(90deg,var(--primary),#7b2ff7)",
                       }}
                     />
                   </span>
@@ -208,7 +209,8 @@ export default function Footer({ onOpenLegal }: FooterProps) {
           © 2026 Cyberise Technology. All Rights Reserved.
         </p>
         <p className="text-[var(--text-secondary)] text-[0.85rem]">
-          System Status: <span className="text-[var(--primary)]">SECURE & ONLINE</span>
+          System Status:{" "}
+          <span className="text-[var(--primary)]">SECURE & ONLINE</span>
         </p>
       </div>
     </footer>

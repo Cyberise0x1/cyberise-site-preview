@@ -71,7 +71,9 @@ export default function ThemeProvider({ children }: ThemeProviderProps) {
     // Load theme from backend on mount — no auth needed for public page
     (async () => {
       try {
-        const headers: Record<string, string> = { "Content-Type": "application/json" };
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json",
+        };
         const token = await getToken();
         if (token) {
           headers.Authorization = `Bearer ${token}`;

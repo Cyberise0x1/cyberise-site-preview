@@ -5,9 +5,9 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import type { AdminOrderMetadata } from './adminOrderMetadata';
-import type { AdminOrderStatus } from './adminOrderStatus';
-import type { AdminOrderUser } from './adminOrderUser';
+import type { AdminOrderMetadata } from "./adminOrderMetadata";
+import type { AdminOrderStatus } from "./adminOrderStatus";
+import type { AdminOrderUser } from "./adminOrderUser";
 
 export interface AdminOrder {
   id: string;

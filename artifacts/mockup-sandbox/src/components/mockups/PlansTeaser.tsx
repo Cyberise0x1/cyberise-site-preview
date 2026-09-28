@@ -6,20 +6,33 @@ const PLANS = [
     name: "Basic",
     spec: "linux vps",
     price: 5,
-    features: ["1 vCPU / 1GB RAM", "25GB NVMe", "1Gbps network", "Instant deploy"],
+    features: [
+      "1 vCPU / 1GB RAM",
+      "25GB NVMe",
+      "1Gbps network",
+      "Instant deploy",
+    ],
   },
   {
     tier: "pro",
     name: "Pro",
     spec: "windows rdp",
     price: 15,
-    features: ["2 vCPU / 4GB RAM", "80GB NVMe", "1Gbps network", "Priority support"],
+    features: [
+      "2 vCPU / 4GB RAM",
+      "80GB NVMe",
+      "1Gbps network",
+      "Priority support",
+    ],
   },
 ];
 
 export default function PlansTeaser() {
   return (
-    <section id="plans" className="py-20 md:py-28 border-t border-[var(--color-border)]">
+    <section
+      id="plans"
+      className="py-20 md:py-28 border-t border-[var(--color-border)]"
+    >
       <div className="max-w-6xl mx-auto px-6">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-14">
           <div className="max-w-xl">

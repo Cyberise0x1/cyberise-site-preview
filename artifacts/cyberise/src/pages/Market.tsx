@@ -79,7 +79,8 @@ function CopyButton({ value, label }: { value: string; label: string }) {
     const textarea = document.createElement("textarea");
     textarea.value = text;
     textarea.setAttribute("readonly", "");
-    textarea.style.cssText = "position:fixed;top:-9999px;left:-9999px;opacity:0";
+    textarea.style.cssText =
+      "position:fixed;top:-9999px;left:-9999px;opacity:0";
     document.body.appendChild(textarea);
     textarea.focus();
     textarea.select();
@@ -456,7 +457,9 @@ export default function Market() {
           plan: selectedPlan,
           region: selectedRegion,
           image:
-            selectedTier === "basic" ? selectedImage || "linode/debian12" : "windows",
+            selectedTier === "basic"
+              ? selectedImage || "linode/debian12"
+              : "windows",
           durationDays: duration,
           tier: selectedTier,
           payCurrency,
@@ -946,7 +949,9 @@ export default function Market() {
                   <div className="space-y-2 mb-4">
                     {promoApplied && promoDiscount && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-[var(--text-secondary)]">Subtotal</span>
+                        <span className="text-[var(--text-secondary)]">
+                          Subtotal
+                        </span>
                         <span className="text-[#666] line-through">
                           ${basePrice.toFixed(2)}
                         </span>
@@ -963,7 +968,9 @@ export default function Market() {
                       </div>
                     )}
                     <div className="flex items-end justify-between">
-                      <span className="text-[var(--text-secondary)] text-sm">Total</span>
+                      <span className="text-[var(--text-secondary)] text-sm">
+                        Total
+                      </span>
                       <div className="text-right">
                         <span
                           className={`text-2xl font-bold font-orbitron ${selectedTier === "pro" ? "text-[#a855f7]" : "text-[var(--primary)]"}`}

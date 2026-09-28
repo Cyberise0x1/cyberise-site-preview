@@ -5,7 +5,7 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import type { AdminOrdersData } from './adminOrdersData';
+import type { AdminOrdersData } from "./adminOrdersData";
 
 export interface AdminOrdersResponse {
   success: boolean;

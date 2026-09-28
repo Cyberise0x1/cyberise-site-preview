@@ -15,7 +15,10 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 border-b border-[var(--color-border)] bg-[var(--color-bg)]">
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo — mono wordmark, no glow */}
-        <a href="/" className="font-display font-semibold text-lg text-white tracking-tight">
+        <a
+          href="/"
+          className="font-display font-semibold text-lg text-white tracking-tight"
+        >
           cyberise<span className="text-[var(--color-brand)]">/</span>
         </a>
 

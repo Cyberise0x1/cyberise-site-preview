@@ -4,7 +4,10 @@ export default function Contact() {
   const [sent, setSent] = useState(false);
 
   return (
-    <section id="contact" className="py-20 md:py-28 border-t border-[var(--color-border)]">
+    <section
+      id="contact"
+      className="py-20 md:py-28 border-t border-[var(--color-border)]"
+    >
       <div className="max-w-6xl mx-auto px-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           <div>
@@ -15,8 +18,8 @@ export default function Contact() {
               Start a project
             </h2>
             <p className="text-lg text-[var(--color-ink-dim)] leading-relaxed mb-8">
-              Servers, a full product build, or a security assessment. Our
-              lines are open 24/7.
+              Servers, a full product build, or a security assessment. Our lines
+              are open 24/7.
             </p>
 
             <div className="space-y-3 text-sm text-[var(--color-ink-dim)]">

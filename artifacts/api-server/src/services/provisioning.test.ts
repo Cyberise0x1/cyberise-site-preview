@@ -163,7 +163,9 @@ describe("provisionInstance", () => {
   });
 
   it("surfaces a 503 when createInstance rejects and does not swallow the error", async () => {
-    createInstance.mockRejectedValue(new Error("Linode API error: 422 - bad image"));
+    createInstance.mockRejectedValue(
+      new Error("Linode API error: 422 - bad image"),
+    );
     await expect(
       provisionInstance({
         plan: "g6-standard-1",

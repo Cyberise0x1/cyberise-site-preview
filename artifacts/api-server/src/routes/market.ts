@@ -76,13 +76,12 @@ router.get("/market/plans", marketRateLimit, async (_req, res) => {
       settings.map((s) => [s.key, s.value]),
     );
 
-    const [basicPlans, basicRegions, proPlans, proRegions] =
-      await Promise.all([
-        getPlans(),
-        getRegions(),
-        getProPlans(),
-        getProRegions(),
-      ]);
+    const [basicPlans, basicRegions, proPlans, proRegions] = await Promise.all([
+      getPlans(),
+      getRegions(),
+      getProPlans(),
+      getProRegions(),
+    ]);
     const images = getLinuxImages();
 
     const enabledRegions =

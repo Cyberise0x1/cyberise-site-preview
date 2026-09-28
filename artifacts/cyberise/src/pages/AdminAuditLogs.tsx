@@ -33,7 +33,10 @@ interface PaginatedLogs {
   };
 }
 
-const PROVISION_ACTIONS = ["PROVISION_FAILED", "PROVISION_FAILED_AFTER_PAYMENT"];
+const PROVISION_ACTIONS = [
+  "PROVISION_FAILED",
+  "PROVISION_FAILED_AFTER_PAYMENT",
+];
 
 const ACTION_FILTERS = [
   { label: "All", value: "" },
@@ -47,13 +50,16 @@ const ACTION_FILTERS = [
 
 const ACTION_BADGE: Record<string, string> = {
   PROVISION_FAILED: "bg-[#ff6b9d]/15 text-[#ff6b9d] border-[#ff6b9d]/30",
-  PROVISION_FAILED_AFTER_PAYMENT: "bg-[#ff6b9d]/15 text-[#ff6b9d] border-[#ff6b9d]/30",
+  PROVISION_FAILED_AFTER_PAYMENT:
+    "bg-[#ff6b9d]/15 text-[#ff6b9d] border-[#ff6b9d]/30",
   USER_BANNED: "bg-[#f5b942]/15 text-[#f5b942] border-[#f5b942]/30",
   USER_UNBANNED: "bg-[#7bd389]/15 text-[#7bd389] border-[#7bd389]/30",
   ORDER_TERMINATED_ADMIN: "bg-[#f5b942]/15 text-[#f5b942] border-[#f5b942]/30",
-  SETTINGS_UPDATED: "bg-[var(--primary)]/15 text-[var(--primary)] border-[var(--primary)]/30",
+  SETTINGS_UPDATED:
+    "bg-[var(--primary)]/15 text-[var(--primary)] border-[var(--primary)]/30",
   PROMO_CODE_CREATED: "bg-[#7bd389]/15 text-[#7bd389] border-[#7bd389]/30",
-  PROMO_CODE_UPDATED: "bg-[var(--primary)]/15 text-[var(--primary)] border-[var(--primary)]/30",
+  PROMO_CODE_UPDATED:
+    "bg-[var(--primary)]/15 text-[var(--primary)] border-[var(--primary)]/30",
   PROMO_CODE_DELETED: "bg-[#ff6b9d]/15 text-[#ff6b9d] border-[#ff6b9d]/30",
 };
 
@@ -76,11 +82,19 @@ function formatDate(ts: string): string {
   });
 }
 
-function MetadataCell({ metadata, action }: { metadata: Record<string, unknown> | null; action: string }) {
+function MetadataCell({
+  metadata,
+  action,
+}: {
+  metadata: Record<string, unknown> | null;
+  action: string;
+}) {
   const isProvisionFailure = PROVISION_ACTIONS.includes(action);
 
   if (!metadata || Object.keys(metadata).length === 0) {
-    return <span className="text-[var(--text-secondary)] text-xs italic">—</span>;
+    return (
+      <span className="text-[var(--text-secondary)] text-xs italic">—</span>
+    );
   }
 
   const linodeError = metadata.linodeError as string | undefined;
@@ -90,7 +104,9 @@ function MetadataCell({ metadata, action }: { metadata: Record<string, unknown> 
       {isProvisionFailure && linodeError && (
         <div className="flex items-start gap-1.5 bg-[#ff6b9d]/10 border border-[#ff6b9d]/20 rounded-lg px-2.5 py-1.5">
           <AlertTriangle className="w-3 h-3 text-[#ff6b9d] shrink-0 mt-0.5" />
-          <span className="text-xs text-[#ff6b9d] font-mono break-all">{linodeError}</span>
+          <span className="text-xs text-[#ff6b9d] font-mono break-all">
+            {linodeError}
+          </span>
         </div>
       )}
       {Object.entries(metadata)
@@ -151,9 +167,8 @@ export default function AdminAuditLogs() {
     setPage(1);
   }
 
-  const provisionFailureCount = data?.logs.filter((l) =>
-    PROVISION_ACTIONS.includes(l.action),
-  ).length ?? 0;
+  const provisionFailureCount =
+    data?.logs.filter((l) => PROVISION_ACTIONS.includes(l.action)).length ?? 0;
 
   return (
     <AdminLayout>
@@ -180,7 +195,9 @@ export default function AdminAuditLogs() {
         {provisionFailureCount > 0 && (
           <div className="flex items-center gap-2 bg-[#ff6b9d]/10 border border-[#ff6b9d]/20 rounded-xl px-4 py-3 text-sm text-[#ff6b9d]">
             <AlertTriangle className="w-4 h-4 shrink-0" />
-            {provisionFailureCount} provisioning failure{provisionFailureCount !== 1 ? "s" : ""} on this page — check Linode error details below.
+            {provisionFailureCount} provisioning failure
+            {provisionFailureCount !== 1 ? "s" : ""} on this page — check Linode
+            error details below.
           </div>
         )}
 
@@ -225,24 +242,40 @@ export default function AdminAuditLogs() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[#ffffff08]">
-                  <th className="text-left px-4 py-3 text-xs text-[var(--text-secondary)] font-medium uppercase tracking-wider whitespace-nowrap">Time</th>
-                  <th className="text-left px-4 py-3 text-xs text-[var(--text-secondary)] font-medium uppercase tracking-wider">Action</th>
-                  <th className="text-left px-4 py-3 text-xs text-[var(--text-secondary)] font-medium uppercase tracking-wider">Entity</th>
-                  <th className="text-left px-4 py-3 text-xs text-[var(--text-secondary)] font-medium uppercase tracking-wider">Actor</th>
-                  <th className="text-left px-4 py-3 text-xs text-[var(--text-secondary)] font-medium uppercase tracking-wider">Details</th>
+                  <th className="text-left px-4 py-3 text-xs text-[var(--text-secondary)] font-medium uppercase tracking-wider whitespace-nowrap">
+                    Time
+                  </th>
+                  <th className="text-left px-4 py-3 text-xs text-[var(--text-secondary)] font-medium uppercase tracking-wider">
+                    Action
+                  </th>
+                  <th className="text-left px-4 py-3 text-xs text-[var(--text-secondary)] font-medium uppercase tracking-wider">
+                    Entity
+                  </th>
+                  <th className="text-left px-4 py-3 text-xs text-[var(--text-secondary)] font-medium uppercase tracking-wider">
+                    Actor
+                  </th>
+                  <th className="text-left px-4 py-3 text-xs text-[var(--text-secondary)] font-medium uppercase tracking-wider">
+                    Details
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {loading && (
                   <tr>
-                    <td colSpan={5} className="text-center py-12 text-[var(--text-secondary)] text-sm">
+                    <td
+                      colSpan={5}
+                      className="text-center py-12 text-[var(--text-secondary)] text-sm"
+                    >
                       Loading…
                     </td>
                   </tr>
                 )}
                 {!loading && data?.logs.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="text-center py-12 text-[var(--text-secondary)] text-sm">
+                    <td
+                      colSpan={5}
+                      className="text-center py-12 text-[var(--text-secondary)] text-sm"
+                    >
                       No audit log entries found.
                     </td>
                   </tr>
@@ -266,32 +299,47 @@ export default function AdminAuditLogs() {
                           >
                             {timeAgo(log.createdAt)}
                           </span>
-                          <div className="text-[#606070] text-[10px] mt-0.5">{formatDate(log.createdAt)}</div>
+                          <div className="text-[#606070] text-[10px] mt-0.5">
+                            {formatDate(log.createdAt)}
+                          </div>
                         </td>
                         <td className="px-4 py-3">
                           <span
                             className={`inline-flex items-center px-2 py-0.5 rounded-md border text-xs font-mono font-medium ${
-                              ACTION_BADGE[log.action] ?? "bg-[#ffffff08] text-[var(--text-secondary)] border-[#ffffff10]"
+                              ACTION_BADGE[log.action] ??
+                              "bg-[#ffffff08] text-[var(--text-secondary)] border-[#ffffff10]"
                             }`}
                           >
                             {log.action}
                           </span>
                         </td>
                         <td className="px-4 py-3">
-                          <span className="text-white text-xs">{log.entity}</span>
+                          <span className="text-white text-xs">
+                            {log.entity}
+                          </span>
                           {log.entityId && (
-                            <div className="text-[#606070] font-mono text-[10px] mt-0.5 truncate max-w-[120px]" title={log.entityId}>
+                            <div
+                              className="text-[#606070] font-mono text-[10px] mt-0.5 truncate max-w-[120px]"
+                              title={log.entityId}
+                            >
                               {log.entityId}
                             </div>
                           )}
                         </td>
                         <td className="px-4 py-3">
                           <span className="text-[var(--text-secondary)] text-xs">
-                            {log.actor?.email ?? <span className="italic text-[#606070]">system</span>}
+                            {log.actor?.email ?? (
+                              <span className="italic text-[#606070]">
+                                system
+                              </span>
+                            )}
                           </span>
                         </td>
                         <td className="px-4 py-3">
-                          <MetadataCell metadata={log.metadata} action={log.action} />
+                          <MetadataCell
+                            metadata={log.metadata}
+                            action={log.action}
+                          />
                         </td>
                       </tr>
                     );
@@ -303,7 +351,8 @@ export default function AdminAuditLogs() {
           {data && data.pagination.totalPages > 1 && (
             <div className="flex items-center justify-between px-4 py-3 border-t border-[#ffffff08]">
               <p className="text-xs text-[var(--text-secondary)]">
-                {data.pagination.total} total · page {data.pagination.page} of {data.pagination.totalPages}
+                {data.pagination.total} total · page {data.pagination.page} of{" "}
+                {data.pagination.totalPages}
               </p>
               <div className="flex gap-1">
                 <button

@@ -48,18 +48,19 @@ Hierarchical AGENTS.md infrastructure so agents navigate codebases like senior e
 
 ## When to Create Child Nodes
 
-| Signal | Action |
-|--------|--------|
-| >20k tokens in directory | Create AGENTS.md |
-| Responsibility shift | Create AGENTS.md |
+| Signal                      | Action                       |
+| --------------------------- | ---------------------------- |
+| >20k tokens in directory    | Create AGENTS.md             |
+| Responsibility shift        | Create AGENTS.md             |
 | Hidden contracts/invariants | Document in nearest ancestor |
-| Cross-cutting concern | Place at LCA |
+| Cross-cutting concern       | Place at LCA                 |
 
 Do NOT create for: every directory, simple utilities, test folders (unless complex).
 
 ## Capture Questions
 
 When documenting existing code, ask:
+
 1. What does this area own? What's out of scope?
 2. What invariants must never be violated?
 3. What repeatedly confuses new engineers?
@@ -68,11 +69,13 @@ When documenting existing code, ask:
 ## Resources
 
 **Scripts:**
+
 - `scripts/detect_state.sh` - Check Intent Layer state (none/partial/complete)
 - `scripts/analyze_structure.sh` - Find semantic boundaries
 - `scripts/estimate_tokens.sh` - Measure directory complexity
 
 **References:**
+
 - `references/templates.md` - Root and child node templates
 - `references/node-examples.md` - Real-world examples
 - `references/capture-protocol.md` - SME interview protocol

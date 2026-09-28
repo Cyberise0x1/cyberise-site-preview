@@ -92,9 +92,10 @@ export default function AdminSettings() {
 
   async function loadSettings() {
     try {
-      const response = await api<{ success: boolean; data: Record<string, unknown> }>(
-        "/admin/settings",
-      );
+      const response = await api<{
+        success: boolean;
+        data: Record<string, unknown>;
+      }>("/admin/settings");
       setSettings(response.data as unknown as Settings);
 
       // Load saved theme
@@ -394,9 +395,7 @@ export default function AdminSettings() {
         <div className="mt-8">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-2xl font-bold text-white mb-1">
-                Site Theme
-              </h2>
+              <h2 className="text-2xl font-bold text-white mb-1">Site Theme</h2>
               <p className="text-[var(--text-secondary)]">
                 Choose a visual theme preset for the entire marketplace
               </p>
@@ -404,62 +403,62 @@ export default function AdminSettings() {
           </div>
 
           <div className="grid grid-cols-3 gap-4">
-            {(Object.entries(THEME_PRESETS) as [ThemePreset, ThemeConfig][]).map(
-              ([name, config]) => (
-                <button
-                  key={name}
-                  type="button"
-                  onClick={() => saveTheme(name)}
-                  disabled={themeSaving}
-                  className={`relative rounded-xl border-2 p-4 text-left transition-all duration-200 ${
-                    currentTheme === name
-                      ? "border-[var(--primary)] bg-[#00f0ff10] shadow-[0_0_20px_rgba(0,240,255,0.1)]"
-                      : "border-[#ffffff1a] bg-[var(--dark-surface)]/80 hover:border-[#ffffff33]"
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="font-orbitron text-sm font-bold text-white capitalize">
-                      {name}
-                    </span>
-                    {currentTheme === name && (
-                      <span className="w-2 h-2 rounded-full bg-[var(--primary)] animate-pulse" />
-                    )}
-                  </div>
-
-                  {/* Mini color swatch */}
-                  <div className="flex gap-1.5 mb-3">
-                    {[config.primary, config.secondary, config.accent].map(
-                      (color, i) => (
-                        <div
-                          key={i}
-                          className="w-5 h-5 rounded-full border border-[#ffffff1a]"
-                          style={{ backgroundColor: color }}
-                        />
-                      ),
-                    )}
-                  </div>
-
-                  {/* Surface preview */}
-                  <div className="flex gap-1.5">
-                    <div
-                      className="w-full h-3 rounded-sm border border-[#ffffff1a]"
-                      style={{ backgroundColor: config.darkBg }}
-                    />
-                    <div
-                      className="w-full h-3 rounded-sm border border-[#ffffff1a]"
-                      style={{ backgroundColor: config.darkSurface }}
-                    />
-                  </div>
-
-                  {/* Active indicator */}
+            {(
+              Object.entries(THEME_PRESETS) as [ThemePreset, ThemeConfig][]
+            ).map(([name, config]) => (
+              <button
+                key={name}
+                type="button"
+                onClick={() => saveTheme(name)}
+                disabled={themeSaving}
+                className={`relative rounded-xl border-2 p-4 text-left transition-all duration-200 ${
+                  currentTheme === name
+                    ? "border-[var(--primary)] bg-[#00f0ff10] shadow-[0_0_20px_rgba(0,240,255,0.1)]"
+                    : "border-[#ffffff1a] bg-[var(--dark-surface)]/80 hover:border-[#ffffff33]"
+                }`}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <span className="font-orbitron text-sm font-bold text-white capitalize">
+                    {name}
+                  </span>
                   {currentTheme === name && (
-                    <div className="mt-2 text-[10px] font-semibold text-[var(--primary)] uppercase tracking-[2px] text-center">
-                      Active
-                    </div>
+                    <span className="w-2 h-2 rounded-full bg-[var(--primary)] animate-pulse" />
                   )}
-                </button>
-              ),
-            )}
+                </div>
+
+                {/* Mini color swatch */}
+                <div className="flex gap-1.5 mb-3">
+                  {[config.primary, config.secondary, config.accent].map(
+                    (color, i) => (
+                      <div
+                        key={i}
+                        className="w-5 h-5 rounded-full border border-[#ffffff1a]"
+                        style={{ backgroundColor: color }}
+                      />
+                    ),
+                  )}
+                </div>
+
+                {/* Surface preview */}
+                <div className="flex gap-1.5">
+                  <div
+                    className="w-full h-3 rounded-sm border border-[#ffffff1a]"
+                    style={{ backgroundColor: config.darkBg }}
+                  />
+                  <div
+                    className="w-full h-3 rounded-sm border border-[#ffffff1a]"
+                    style={{ backgroundColor: config.darkSurface }}
+                  />
+                </div>
+
+                {/* Active indicator */}
+                {currentTheme === name && (
+                  <div className="mt-2 text-[10px] font-semibold text-[var(--primary)] uppercase tracking-[2px] text-center">
+                    Active
+                  </div>
+                )}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -600,7 +599,9 @@ export default function AdminSettings() {
           </DialogHeader>
           <div className="space-y-4 mt-4">
             <div>
-              <Label className="text-[var(--text-secondary)] text-sm">Code</Label>
+              <Label className="text-[var(--text-secondary)] text-sm">
+                Code
+              </Label>
               <Input
                 value={newPromo.code}
                 onChange={(e) =>

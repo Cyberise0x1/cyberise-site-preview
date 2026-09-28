@@ -56,7 +56,9 @@ function AdminLayoutInner({ children }: { children: ReactNode }) {
               </div>
               <div>
                 <p className="text-white font-semibold text-sm">Admin Panel</p>
-                <p className="text-[var(--text-secondary)] text-xs">Cyberise RDP</p>
+                <p className="text-[var(--text-secondary)] text-xs">
+                  Cyberise RDP
+                </p>
               </div>
             </div>
           </div>
@@ -81,7 +83,10 @@ function AdminLayoutInner({ children }: { children: ReactNode }) {
 
         <div className="lg:hidden w-full px-4 py-3 border-b border-[#ffffff0a] bg-[var(--dark-bg)]">
           <div className="flex items-center gap-3 overflow-x-auto">
-            <Link href="/" className="text-[var(--text-secondary)] hover:text-white">
+            <Link
+              href="/"
+              className="text-[var(--text-secondary)] hover:text-white"
+            >
               <ArrowLeft className="w-4 h-4" />
             </Link>
             {navItems.map((item) => (

@@ -10,10 +10,10 @@ Monorepo containing payment, billing, and user services.
 ## Architecture
 
 platform/
-├── services/          # Microservices (each has own DB)
-├── packages/          # Shared libraries
-├── platform-config/   # Runtime configuration
-└── scripts/           # Build and deploy tooling
+├── services/ # Microservices (each has own DB)
+├── packages/ # Shared libraries
+├── platform-config/ # Runtime configuration
+└── scripts/ # Build and deploy tooling
 
 ## Key Invariants
 
@@ -53,6 +53,7 @@ Does NOT own: invoicing (see billing-service), user accounts.
 ## Patterns
 
 Adding a new payment method:
+
 1. Add type to `src/types/payment-method.ts`
 2. Implement adapter in `src/adapters/`
 3. Register in `src/adapters/index.ts`
@@ -86,7 +87,7 @@ it uses PostgreSQL as its database through Prisma ORM.
 - TypeScript 5.0
 - Express.js 4.x
 - PostgreSQL 15
-...
+  ...
 ```
 
 ### After (~250 tokens)

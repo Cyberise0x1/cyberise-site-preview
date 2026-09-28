@@ -26,27 +26,34 @@ Each AGENTS.md in subdirectories:
 # {Area Name}
 
 ## Purpose
+
 [1-2 sentences: what this area owns, what it explicitly doesn't do]
 
 ## Entry Points
+
 - `main_api.ts` - Primary API surface
 - `cli.ts` - CLI commands
 
 ## Contracts & Invariants
+
 - All DB calls go through `./db/client.ts`
 - Never import from `./internal/` outside this directory
 
 ## Patterns
+
 To add a new endpoint:
+
 1. Create handler in `./handlers/`
 2. Register in `./routes.ts`
 3. Add types to `./types.ts`
 
 ## Anti-patterns
+
 - Never call external APIs directly; use `./clients/`
 - Don't bypass validation layer
 
 ## Related Context
+
 - Database layer: `./db/AGENTS.md`
 - Shared utilities: `../shared/AGENTS.md`
 ```
@@ -62,6 +69,7 @@ To add a new endpoint:
 ```
 
 Thresholds:
+
 - <20k tokens → No node needed
 - 20-64k tokens → 2-3k token node
-- >64k tokens → Split into child nodes
+- > 64k tokens → Split into child nodes

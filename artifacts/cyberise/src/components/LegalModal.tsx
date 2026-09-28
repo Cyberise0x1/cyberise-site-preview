@@ -344,7 +344,9 @@ export default function LegalModal({
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
               className="relative shrink-0 px-4 pb-3 font-rajdhani text-[0.85rem] font-semibold tracking-[1px] uppercase transition-colors"
-              style={{ color: activeTab === tab.id ? "var(--primary)" : "#a0a0b8" }}
+              style={{
+                color: activeTab === tab.id ? "var(--primary)" : "#a0a0b8",
+              }}
             >
               {tab.label}
               {activeTab === tab.id && (

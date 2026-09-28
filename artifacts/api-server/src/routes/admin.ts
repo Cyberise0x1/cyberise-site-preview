@@ -149,13 +149,13 @@ router.get("/admin/orders", async (req: AuthRequest, res) => {
       ...(search
         ? {
             OR: [
-            { id: { contains: search } },
-            { ip: { contains: search } },
-            {
-              user: {
-                email: { contains: search, mode: "insensitive" as const },
+              { id: { contains: search } },
+              { ip: { contains: search } },
+              {
+                user: {
+                  email: { contains: search, mode: "insensitive" as const },
+                },
               },
-            },
             ],
           }
         : {}),

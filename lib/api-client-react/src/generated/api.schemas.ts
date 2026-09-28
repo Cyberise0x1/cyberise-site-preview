@@ -9,14 +9,14 @@ export interface HealthStatus {
   status: string;
 }
 
-export type AdminOrderStatus = typeof AdminOrderStatus[keyof typeof AdminOrderStatus];
-
+export type AdminOrderStatus =
+  (typeof AdminOrderStatus)[keyof typeof AdminOrderStatus];
 
 export const AdminOrderStatus = {
-  PENDING: 'PENDING',
-  ACTIVE: 'ACTIVE',
-  TERMINATED: 'TERMINATED',
-  FAILED: 'FAILED',
+  PENDING: "PENDING",
+  ACTIVE: "ACTIVE",
+  TERMINATED: "TERMINATED",
+  FAILED: "FAILED",
 } as const;
 
 export interface AdminOrderUser {
@@ -77,26 +77,25 @@ export interface ApiError {
 }
 
 export type ListAdminOrdersParams = {
-/**
- * @minimum 1
- */
-page?: number;
-/**
- * @minimum 1
- * @maximum 100
- */
-limit?: number;
-search?: string;
-status?: ListAdminOrdersStatus;
+  /**
+   * @minimum 1
+   */
+  page?: number;
+  /**
+   * @minimum 1
+   * @maximum 100
+   */
+  limit?: number;
+  search?: string;
+  status?: ListAdminOrdersStatus;
 };
 
-export type ListAdminOrdersStatus = typeof ListAdminOrdersStatus[keyof typeof ListAdminOrdersStatus];
-
+export type ListAdminOrdersStatus =
+  (typeof ListAdminOrdersStatus)[keyof typeof ListAdminOrdersStatus];
 
 export const ListAdminOrdersStatus = {
-  PENDING: 'PENDING',
-  ACTIVE: 'ACTIVE',
-  TERMINATED: 'TERMINATED',
-  FAILED: 'FAILED',
+  PENDING: "PENDING",
+  ACTIVE: "ACTIVE",
+  TERMINATED: "TERMINATED",
+  FAILED: "FAILED",
 } as const;
-

@@ -5,6 +5,7 @@ Set up hierarchical AGENTS.md infrastructure so agents navigate codebases like s
 ## What It Does
 
 Creates an Intent Layer for your codebase:
+
 - Root context file (AGENTS.md or CLAUDE.md)
 - Child AGENTS.md in complex subdirectories
 - Scripts to measure, analyze, and maintain the hierarchy
@@ -28,6 +29,7 @@ Ask Claude to set up the Intent Layer:
 ```
 
 Claude will:
+
 1. Detect current state (none/partial/complete)
 2. Analyze directory structure and token counts
 3. Ask whether to use CLAUDE.md or AGENTS.md at root
@@ -37,6 +39,7 @@ Claude will:
 ## When to Use
 
 Use intent-layer when:
+
 - Starting a new project that needs agent-friendly context
 - Existing codebase where agents struggle to understand structure
 - Onboarding engineers faster with hierarchical docs
@@ -47,6 +50,7 @@ Use intent-layer when:
 **Only ONE root context file.** CLAUDE.md and AGENTS.md should NOT coexist at project root.
 
 Child AGENTS.md files in subdirectories are encouraged for:
+
 - Directories with >20k tokens
 - Responsibility boundaries
 - Complex subsystems with hidden contracts
@@ -74,6 +78,7 @@ Child AGENTS.md files in subdirectories are encouraged for:
 ## Examples
 
 Projects using Intent Layer:
+
 - [crafter-code](https://github.com/crafter-station/crafter-code) - Multi-agent IDE
 - [elements](https://github.com/crafter-station/elements) - Full-stack components
 

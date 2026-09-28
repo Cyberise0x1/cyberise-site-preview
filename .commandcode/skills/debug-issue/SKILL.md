@@ -19,7 +19,7 @@ Systematically debug using the code knowledge graph.
 ## Principles
 
 - Reproduce the bug first if possible (test, repro script, or trace).
-- Find the *root cause*, not the symptom. Don't paper over it.
+- Find the _root cause_, not the symptom. Don't paper over it.
 - Check tests: `query_graph(pattern="tests_for")` for existing coverage.
 - Verify the fix with the repo's checks (typecheck/test/build).
 - If the graph lacks coverage, fall back to Grep/Read — but graph first.

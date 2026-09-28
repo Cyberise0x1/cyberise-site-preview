@@ -74,7 +74,8 @@ export default function Services() {
         {services.map((s, i) => {
           const Icon = s.icon;
 
-          let gradientClass = "bg-[linear-gradient(135deg,var(--primary),#7b2ff7)]";
+          let gradientClass =
+            "bg-[linear-gradient(135deg,var(--primary),#7b2ff7)]";
           let iconBg =
             "bg-[rgba(0,240,255,0.08)] border-[rgba(0,240,255,0.15)] text-[var(--primary)]";
           let shadowClass =
@@ -87,7 +88,8 @@ export default function Services() {
             shadowClass =
               "hover:shadow-[0_30px_60px_rgba(0,0,0,0.3),0_0_30px_rgba(123,47,247,0.3)]";
           } else if (s.color === "accent") {
-            gradientClass = "bg-[linear-gradient(135deg,#ff2d55,var(--primary))]";
+            gradientClass =
+              "bg-[linear-gradient(135deg,#ff2d55,var(--primary))]";
             iconBg =
               "bg-[rgba(255,45,85,0.08)] border-[rgba(255,45,85,0.15)] text-[#ff2d55]";
             shadowClass =

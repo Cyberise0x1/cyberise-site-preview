@@ -117,12 +117,8 @@ describe("validateLinuxImagesAgainstLinode()", () => {
   it("checks every page and accepts available configured images", async () => {
     const configuredImages = getLinuxImages();
     fetchMock
-      .mockResolvedValueOnce(
-        imageListResponse(configuredImages.slice(0, 3), 2),
-      )
-      .mockResolvedValueOnce(
-        imageListResponse(configuredImages.slice(3), 2),
-      );
+      .mockResolvedValueOnce(imageListResponse(configuredImages.slice(0, 3), 2))
+      .mockResolvedValueOnce(imageListResponse(configuredImages.slice(3), 2));
 
     const result = await validateLinuxImagesAgainstLinode();
 
@@ -144,10 +140,7 @@ describe("validateLinuxImagesAgainstLinode()", () => {
 
     expect(result.status).toBe("mismatch");
     expect(result.missingIds).toContain(configuredImages[0].id);
-    expect(result.unavailableIds).toEqual([
-      liveImages[0].id,
-      liveImages[1].id,
-    ]);
+    expect(result.unavailableIds).toEqual([liveImages[0].id, liveImages[1].id]);
     expect(logger.warn).toHaveBeenCalledWith(
       expect.objectContaining({
         missingIds: [configuredImages[0].id],

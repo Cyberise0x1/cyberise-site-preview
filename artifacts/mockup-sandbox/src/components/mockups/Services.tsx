@@ -35,7 +35,10 @@ const SERVICES = [
 
 export default function Services() {
   return (
-    <section id="services" className="py-20 md:py-28 border-t border-[var(--color-border)]">
+    <section
+      id="services"
+      className="py-20 md:py-28 border-t border-[var(--color-border)]"
+    >
       <div className="max-w-6xl mx-auto px-6">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-14">
           <div className="max-w-xl">

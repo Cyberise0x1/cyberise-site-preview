@@ -13,7 +13,9 @@
 - Never commit secrets or plain-text credentials in code. Confidence: 0.85
 
 # communication
+
 See [communication/taste.md](communication/taste.md)
+
 # workflow
 
 See [workflow/taste.md](workflow/taste.md)

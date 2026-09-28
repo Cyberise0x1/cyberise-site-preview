@@ -11,16 +11,16 @@ are baked into the palette, type, and composition at once.
 
 ## Odors detected
 
-| # | Odor | Where | Reflex | Why it weakens this brief |
-|---|------|-------|--------|---------------------------|
-| 1 | **Tech gradient** | Hero "Build. Secure. Deploy.", brand logo mark, `text-gradient` utility | indigo-cyan glossy energy plastered on hero + CTA | A VPS/security brand gets the exact look of an AI startup; says nothing about infrastructure |
-| 2 | **Generic tech hue** | `--color-brand: #4f7cff` (indigo) as primary identity | blue-purple for anything software-adjacent | Indigo is the median "tech" choice; the palette could be guessed from the industry |
-| 3 | **Feature tile grid** | Services (6), Tools (4), Testimonials (3) — icon + heading + one sentence, uniform grid | repeated card grid until sections stop meaning anything | Every card equal; nothing prioritized; no work-pattern reason |
-| 4 | **Accent rail** | Hero card borders, plan card "Popular" top border | colored stripe simulating structure | Decoration pretending to organize |
-| 5 | **Icon topper** | Every section heading has a rounded-square icon above it | template reflex | The icon carries no function beyond filling space |
-| 6 | **Center stack** | Hero, section headers, CTAs all centered | safe-middle composition | No composition decision; the landing becomes the median generated page |
-| 7 | **Default type** | Space Grotesk + Inter everywhere | common family with no voice, no scale, no reason | No project-specific typographic decision |
-| 8 | **Unearned blur** | `backdrop-blur` on hero cards and navbar | frosted glass with no depth system | Depth is implied but never committed to |
+| #   | Odor                  | Where                                                                                   | Reflex                                                  | Why it weakens this brief                                                                    |
+| --- | --------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| 1   | **Tech gradient**     | Hero "Build. Secure. Deploy.", brand logo mark, `text-gradient` utility                 | indigo-cyan glossy energy plastered on hero + CTA       | A VPS/security brand gets the exact look of an AI startup; says nothing about infrastructure |
+| 2   | **Generic tech hue**  | `--color-brand: #4f7cff` (indigo) as primary identity                                   | blue-purple for anything software-adjacent              | Indigo is the median "tech" choice; the palette could be guessed from the industry           |
+| 3   | **Feature tile grid** | Services (6), Tools (4), Testimonials (3) — icon + heading + one sentence, uniform grid | repeated card grid until sections stop meaning anything | Every card equal; nothing prioritized; no work-pattern reason                                |
+| 4   | **Accent rail**       | Hero card borders, plan card "Popular" top border                                       | colored stripe simulating structure                     | Decoration pretending to organize                                                            |
+| 5   | **Icon topper**       | Every section heading has a rounded-square icon above it                                | template reflex                                         | The icon carries no function beyond filling space                                            |
+| 6   | **Center stack**      | Hero, section headers, CTAs all centered                                                | safe-middle composition                                 | No composition decision; the landing becomes the median generated page                       |
+| 7   | **Default type**      | Space Grotesk + Inter everywhere                                                        | common family with no voice, no scale, no reason        | No project-specific typographic decision                                                     |
+| 8   | **Unearned blur**     | `backdrop-blur` on hero cards and navbar                                                | frosted glass with no depth system                      | Depth is implied but never committed to                                                      |
 
 ## Close calls (suspicion, not confirmed)
 
@@ -54,16 +54,16 @@ fanned on a centered hero) makes even that feel templated.
 
 Heuristics table (1 = odor absent, 0 = detected):
 
-| Odor | Score |
-|------|-------|
-| Tech gradient | 0 |
-| Generic tech hue | 0 |
-| Feature tile grid | 0 |
-| Accent rail | 0 |
-| Unearned blur | 0 |
-| Stat monument | 1 |
-| Icon topper | 0 |
-| Bounce everywhere | 1 |
-| Default type | 0 |
-| Center stack | 0 |
-| **Total** | **2/10** |
+| Odor              | Score    |
+| ----------------- | -------- |
+| Tech gradient     | 0        |
+| Generic tech hue  | 0        |
+| Feature tile grid | 0        |
+| Accent rail       | 0        |
+| Unearned blur     | 0        |
+| Stat monument     | 1        |
+| Icon topper       | 0        |
+| Bounce everywhere | 1        |
+| Default type      | 0        |
+| Center stack      | 0        |
+| **Total**         | **2/10** |

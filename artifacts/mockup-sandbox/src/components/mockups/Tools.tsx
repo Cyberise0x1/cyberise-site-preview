@@ -25,7 +25,10 @@ const TOOLS = [
 
 export default function Tools() {
   return (
-    <section id="tools" className="py-20 md:py-28 border-t border-[var(--color-border)] bg-[var(--color-surface)]/40">
+    <section
+      id="tools"
+      className="py-20 md:py-28 border-t border-[var(--color-border)] bg-[var(--color-surface)]/40"
+    >
       <div className="max-w-6xl mx-auto px-6">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-14">
           <div className="max-w-xl">

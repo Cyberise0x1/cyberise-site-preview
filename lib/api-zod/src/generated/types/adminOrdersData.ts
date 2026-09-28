@@ -5,8 +5,8 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import type { AdminOrder } from './adminOrder';
-import type { AdminOrdersPagination } from './adminOrdersPagination';
+import type { AdminOrder } from "./adminOrder";
+import type { AdminOrdersPagination } from "./adminOrdersPagination";
 
 export interface AdminOrdersData {
   orders: AdminOrder[];

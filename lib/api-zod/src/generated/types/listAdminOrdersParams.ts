@@ -5,18 +5,18 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import type { ListAdminOrdersStatus } from './listAdminOrdersStatus';
+import type { ListAdminOrdersStatus } from "./listAdminOrdersStatus";
 
 export type ListAdminOrdersParams = {
-/**
- * @minimum 1
- */
-page?: number;
-/**
- * @minimum 1
- * @maximum 100
- */
-limit?: number;
-search?: string;
-status?: ListAdminOrdersStatus;
+  /**
+   * @minimum 1
+   */
+  page?: number;
+  /**
+   * @minimum 1
+   * @maximum 100
+   */
+  limit?: number;
+  search?: string;
+  status?: ListAdminOrdersStatus;
 };

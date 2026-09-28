@@ -88,14 +88,24 @@ const PLANS = [
     name: "Starter",
     price: 5,
     spec: "Linux VPS",
-    features: ["1 vCPU / 1GB RAM", "25GB NVMe", "1Gbps network", "Instant deploy"],
+    features: [
+      "1 vCPU / 1GB RAM",
+      "25GB NVMe",
+      "1Gbps network",
+      "Instant deploy",
+    ],
     highlight: false,
   },
   {
     name: "Pro",
     price: 15,
     spec: "Windows RDP",
-    features: ["2 vCPU / 4GB RAM", "80GB NVMe", "1Gbps network", "Priority support"],
+    features: [
+      "2 vCPU / 4GB RAM",
+      "80GB NVMe",
+      "1Gbps network",
+      "Priority support",
+    ],
     highlight: true,
   },
 ];
@@ -130,7 +140,10 @@ export default function LandingPageV2() {
       {/* ── Navbar ── */}
       <header className="sticky top-0 z-50 border-b border-slate-200/70 bg-white/80 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-2 font-bold text-lg tracking-tight">
+          <a
+            href="/"
+            className="flex items-center gap-2 font-bold text-lg tracking-tight"
+          >
             <span className="inline-flex w-7 h-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-white text-sm">
               C
             </span>
@@ -231,8 +244,8 @@ export default function LandingPageV2() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="mx-auto mt-6 max-w-2xl text-lg text-slate-600 leading-relaxed"
           >
-            Instant VPS & RDP, professional tools, and elite security work —
-            one console, all of it.
+            Instant VPS & RDP, professional tools, and elite security work — one
+            console, all of it.
           </motion.p>
 
           <motion.div
@@ -266,7 +279,9 @@ export default function LandingPageV2() {
                 <div className="text-2xl md:text-3xl font-bold text-slate-900">
                   {s.v}
                 </div>
-                <div className="mt-1 text-xs md:text-sm text-slate-500">{s.l}</div>
+                <div className="mt-1 text-xs md:text-sm text-slate-500">
+                  {s.l}
+                </div>
               </div>
             ))}
           </div>
@@ -324,8 +339,8 @@ export default function LandingPageV2() {
               Run your entire stack on Cyberise
             </h2>
             <p className="mt-4 text-lg text-slate-600">
-              One platform for infrastructure, tools, and security. No
-              piecemeal vendors, no surprises.
+              One platform for infrastructure, tools, and security. No piecemeal
+              vendors, no surprises.
             </p>
           </div>
 
@@ -392,7 +407,9 @@ export default function LandingPageV2() {
       <section id="pricing" className="py-20 md:py-28">
         <div className="max-w-7xl mx-auto px-6">
           <div className="mx-auto max-w-2xl text-center mb-16">
-            <p className="text-sm font-semibold text-indigo-600 mb-3">Pricing</p>
+            <p className="text-sm font-semibold text-indigo-600 mb-3">
+              Pricing
+            </p>
             <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-slate-900">
               Simple, transparent pricing
             </h2>
@@ -432,7 +449,10 @@ export default function LandingPageV2() {
                 </div>
                 <ul className="mt-6 space-y-3">
                   {plan.features.map((f) => (
-                    <li key={f} className="flex items-center gap-2.5 text-sm text-slate-600">
+                    <li
+                      key={f}
+                      className="flex items-center gap-2.5 text-sm text-slate-600"
+                    >
                       <span className="inline-flex w-5 h-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
                         <Check className="w-3 h-3" />
                       </span>
@@ -461,7 +481,10 @@ export default function LandingPageV2() {
       </section>
 
       {/* ── Testimonials ── */}
-      <section id="customers" className="py-20 md:py-28 bg-white border-y border-slate-200/70">
+      <section
+        id="customers"
+        className="py-20 md:py-28 bg-white border-y border-slate-200/70"
+      >
         <div className="max-w-7xl mx-auto px-6">
           <div className="mx-auto max-w-2xl text-center mb-16">
             <p className="text-sm font-semibold text-indigo-600 mb-3">
@@ -561,7 +584,10 @@ export default function LandingPageV2() {
         <div className="max-w-7xl mx-auto px-6 py-14">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-10">
             <div className="col-span-2">
-              <a href="/" className="flex items-center gap-2 font-bold text-lg tracking-tight text-slate-900">
+              <a
+                href="/"
+                className="flex items-center gap-2 font-bold text-lg tracking-tight text-slate-900"
+              >
                 <span className="inline-flex w-7 h-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-white text-sm">
                   C
                 </span>

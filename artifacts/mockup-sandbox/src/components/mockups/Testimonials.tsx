@@ -21,7 +21,10 @@ const TESTIMONIALS = [
 
 export default function Testimonials() {
   return (
-    <section id="testimonials" className="py-20 md:py-28 border-t border-[var(--color-border)] bg-[var(--color-surface)]/40">
+    <section
+      id="testimonials"
+      className="py-20 md:py-28 border-t border-[var(--color-border)] bg-[var(--color-surface)]/40"
+    >
       <div className="max-w-6xl mx-auto px-6">
         <div className="max-w-xl mb-14">
           <p className="label-mono text-[var(--color-brand)] mb-4">

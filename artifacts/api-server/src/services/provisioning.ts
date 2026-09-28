@@ -109,8 +109,7 @@ export async function provisionInstance(
       tags: ["cyberise-rdp", userId.slice(0, 8)],
     });
   } catch (error) {
-    const linodeError =
-      error instanceof Error ? error.message : String(error);
+    const linodeError = error instanceof Error ? error.message : String(error);
     logger.error(
       { error, linodeError, plan, region },
       "Instance creation failed",

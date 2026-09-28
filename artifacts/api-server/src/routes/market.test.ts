@@ -124,11 +124,7 @@ vi.mock("../services/nowpayments", () => ({
 
 vi.mock("../middleware/auth", () => ({
   requireAuth: (_req: unknown, _res: unknown, next: () => void) => next(),
-  attachUser: (
-    req: { user?: unknown },
-    _res: unknown,
-    next: () => void,
-  ) => {
+  attachUser: (req: { user?: unknown }, _res: unknown, next: () => void) => {
     req.user = { id: "user-1", balance: 1000, email: "test@example.com" };
     next();
   },
@@ -167,9 +163,7 @@ beforeAll(async () => {
   app.use(express.json());
   app.use("/api", marketRouter);
   server = createServer(app);
-  await new Promise<void>((resolve) =>
-    server.listen(0, "127.0.0.1", resolve),
-  );
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   const port = (server.address() as AddressInfo).port;
   baseUrl = `http://127.0.0.1:${port}/api`;
 });
