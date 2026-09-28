@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: admin
+    description: Admin operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,52 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /admin/orders:
+    get:
+      operationId: listAdminOrders
+      tags: [admin]
+      summary: List and filter orders for administrators
+      description: Returns orders with provisioning failure details and per-user failed-order counts.
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [PENDING, ACTIVE, TERMINATED, FAILED]
+      responses:
+        "200":
+          description: Paginated administrator order list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminOrdersResponse"
+        "400":
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +81,104 @@ components:
           type: string
       required:
         - status
+    AdminOrdersResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: "#/components/schemas/AdminOrdersData"
+    AdminOrdersData:
+      type: object
+      required: [orders, pagination]
+      properties:
+        orders:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminOrder"
+        pagination:
+          $ref: "#/components/schemas/AdminOrdersPagination"
+    AdminOrder:
+      type: object
+      required:
+        - id
+        - userId
+        - plan
+        - region
+        - image
+        - ip
+        - status
+        - amount
+        - createdAt
+        - expiresAt
+        - linodeInstanceId
+        - metadata
+        - failedOrderCount
+        - user
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        plan:
+          type: string
+        region:
+          type: string
+        image:
+          type: string
+        ip:
+          type: [string, "null"]
+        status:
+          type: string
+          enum: [PENDING, ACTIVE, TERMINATED, FAILED]
+        amount:
+          type: string
+          description: Decimal amount serialized as a string.
+        createdAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: [string, "null"]
+          format: date-time
+        linodeInstanceId:
+          type: [integer, "null"]
+        metadata:
+          type: [object, "null"]
+          additionalProperties: true
+        failedOrderCount:
+          type: integer
+          minimum: 0
+        user:
+          $ref: "#/components/schemas/AdminOrderUser"
+    AdminOrderUser:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+    AdminOrdersPagination:
+      type: object
+      required: [page, limit, total, totalPages]
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        totalPages:
+          type: integer
+    ApiError:
+      type: object
+      required: [success, error]
+      properties:
+        success:
+          type: boolean
+        error:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
 

@@ -139,6 +139,198 @@ export async function getWindowsImages(): Promise<LinodeImage[]> {
   );
 }
 
+export function getLinuxImages(): LinodeImage[] {
+  return [
+    {
+      id: "linode/debian12",
+      label: "Debian 12",
+      description: "Debian 12 (Bookworm)",
+      size: 1536,
+      status: "available",
+      type: "manual",
+      vendor: "Debian",
+      deprecated: false,
+    },
+    {
+      id: "linode/debian11",
+      label: "Debian 11",
+      description: "Debian 11 (Bullseye)",
+      size: 1536,
+      status: "available",
+      type: "manual",
+      vendor: "Debian",
+      deprecated: false,
+    },
+    {
+      id: "linode/ubuntu24.04",
+      label: "Ubuntu 24.04 LTS",
+      description: "Ubuntu 24.04 LTS (Noble Numbat)",
+      size: 1536,
+      status: "available",
+      type: "manual",
+      vendor: "Ubuntu",
+      deprecated: false,
+    },
+    {
+      id: "linode/ubuntu22.04",
+      label: "Ubuntu 22.04 LTS",
+      description: "Ubuntu 22.04 LTS (Jammy Jellyfish)",
+      size: 1536,
+      status: "available",
+      type: "manual",
+      vendor: "Ubuntu",
+      deprecated: false,
+    },
+    {
+      id: "linode/almalinux9",
+      label: "AlmaLinux 9",
+      description: "AlmaLinux 9",
+      size: 1536,
+      status: "available",
+      type: "manual",
+      vendor: "AlmaLinux",
+      deprecated: false,
+    },
+    {
+      id: "linode/rocky9",
+      label: "Rocky Linux 9",
+      description: "Rocky Linux 9",
+      size: 1536,
+      status: "available",
+      type: "manual",
+      vendor: "Rocky Linux",
+      deprecated: false,
+    },
+  ];
+}
+
+export function isLinuxImageId(imageId: string): boolean {
+  return getLinuxImages().some((image) => image.id === imageId);
+}
+
+interface LinodeImageListResponse {
+  data: LinodeImage[];
+  pages: number;
+}
+
+export interface LinuxImageValidationResult {
+  status: "skipped" | "valid" | "mismatch" | "error";
+  checkedIds: number;
+  missingIds: string[];
+  unavailableIds: string[];
+}
+
+async function getAllManualImages(): Promise<LinodeImage[]> {
+  const pageSize = 500;
+  const firstPageQuery = new URLSearchParams({
+    type: "manual",
+    page_size: String(pageSize),
+    page: "1",
+  });
+  const firstPage = await linodeFetch<LinodeImageListResponse>(
+    `/images?${firstPageQuery.toString()}`,
+  );
+
+  if (
+    !Array.isArray(firstPage.data) ||
+    !Number.isInteger(firstPage.pages) ||
+    firstPage.pages < 1
+  ) {
+    throw new Error("Linode returned an invalid image-list response");
+  }
+
+  const images = [...firstPage.data];
+  for (let page = 2; page <= firstPage.pages; page += 1) {
+    const query = new URLSearchParams({
+      type: "manual",
+      page_size: String(pageSize),
+      page: String(page),
+    });
+    const response = await linodeFetch<LinodeImageListResponse>(
+      `/images?${query.toString()}`,
+    );
+
+    if (!Array.isArray(response.data)) {
+      throw new Error(`Linode returned invalid image data for page ${page}`);
+    }
+
+    images.push(...response.data);
+  }
+
+  return images;
+}
+
+export async function validateLinuxImagesAgainstLinode(options?: {
+  strict?: boolean;
+}): Promise<LinuxImageValidationResult> {
+  const strict = options?.strict ?? false;
+  const configuredImages = getLinuxImages();
+  const emptyResult = {
+    checkedIds: configuredImages.length,
+    missingIds: [],
+    unavailableIds: [],
+  };
+
+  if (!process.env["LINODE_API_TOKEN"]?.trim()) {
+    logger.info(
+      "Skipping Linux image validation because LINODE_API_TOKEN is not configured",
+    );
+    return { ...emptyResult, status: "skipped" };
+  }
+
+  let liveImages: LinodeImage[];
+  try {
+    liveImages = await getAllManualImages();
+  } catch (err) {
+    logger.warn({ err }, "Unable to validate Linux image IDs against Linode");
+    if (strict) {
+      throw err;
+    }
+    return { ...emptyResult, status: "error" };
+  }
+
+  const liveImagesById = new Map(liveImages.map((image) => [image.id, image]));
+  const missingIds = configuredImages
+    .filter((image) => !liveImagesById.has(image.id))
+    .map((image) => image.id);
+  const unavailableIds = configuredImages
+    .filter((image) => {
+      const liveImage = liveImagesById.get(image.id);
+      return (
+        liveImage !== undefined &&
+        (liveImage.deprecated || liveImage.status !== "available")
+      );
+    })
+    .map((image) => image.id);
+
+  if (missingIds.length > 0 || unavailableIds.length > 0) {
+    logger.warn(
+      { missingIds, unavailableIds },
+      "Configured Linux image IDs are missing, deprecated, or unavailable in Linode",
+    );
+    if (strict) {
+      throw new Error(
+        `Linode Linux image validation failed: ${[
+          ...missingIds,
+          ...unavailableIds,
+        ].join(", ")}`,
+      );
+    }
+    return {
+      ...emptyResult,
+      status: "mismatch",
+      missingIds,
+      unavailableIds,
+    };
+  }
+
+  logger.info(
+    { checkedIds: configuredImages.length },
+    "Configured Linux image IDs validated against Linode",
+  );
+  return { ...emptyResult, status: "valid" };
+}
+
 export async function createInstance(params: {
   region: string;
   type: string;

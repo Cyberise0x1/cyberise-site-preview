@@ -47,7 +47,7 @@ function timeAgo(ts: string): string {
 }
 
 const actionColor: Record<string, string> = {
-  edit: "text-[#00f0ff]",
+  edit: "text-[var(--primary)]",
   create: "text-[#7bd389]",
   delete: "text-[#ff6b9d]",
 };
@@ -69,21 +69,21 @@ function LogPanel({
         style={{ color }}
       >
         {title} Log
-        <span className="ml-2 text-[#a0a0b8] normal-case font-normal">
+        <span className="ml-2 text-[var(--text-secondary)] normal-case font-normal">
           ({entries.length} total)
         </span>
       </p>
       {recent.length === 0 ? (
-        <p className="text-[#a0a0b8] text-sm">No entries yet.</p>
+        <p className="text-[var(--text-secondary)] text-sm">No entries yet.</p>
       ) : (
         <div className="space-y-2.5">
           {recent.map((e, i) => (
             <div key={i} className="flex gap-2 text-xs">
-              <span className="text-[#a0a0b8] shrink-0 w-14">
+              <span className="text-[var(--text-secondary)] shrink-0 w-14">
                 {timeAgo(e.ts)}
               </span>
               <span
-                className={`shrink-0 w-10 font-medium ${actionColor[e.action] ?? "text-[#a0a0b8]"}`}
+                className={`shrink-0 w-10 font-medium ${actionColor[e.action] ?? "text-[var(--text-secondary)]"}`}
               >
                 {e.action}
               </span>
@@ -91,7 +91,9 @@ function LogPanel({
                 <span className="font-mono text-[#e8e8e8] break-all">
                   {e.file}
                 </span>
-                <span className="text-[#a0a0b8] ml-1">— {e.summary}</span>
+                <span className="text-[var(--text-secondary)] ml-1">
+                  — {e.summary}
+                </span>
               </div>
             </div>
           ))}
@@ -119,13 +121,15 @@ function MapFrame({ title, src }: { title: string; src: string }) {
             href={src}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-[#00f0ff] hover:underline"
+            className="text-xs text-[var(--primary)] hover:underline"
           >
             Open full screen
           </a>
         )}
         {available === false && (
-          <span className="text-xs text-[#a0a0b8]">Not generated yet</span>
+          <span className="text-xs text-[var(--text-secondary)]">
+            Not generated yet
+          </span>
         )}
       </div>
       {available === true ? (
@@ -133,8 +137,10 @@ function MapFrame({ title, src }: { title: string; src: string }) {
       ) : (
         <div className="h-[480px] flex flex-col items-center justify-center text-center px-6">
           <FileCode className="w-10 h-10 text-[#2a2a2a] mb-3" />
-          <p className="text-[#a0a0b8] text-sm">Map not generated yet</p>
-          <p className="text-[#a0a0b8] text-xs mt-2 max-w-xs leading-relaxed">
+          <p className="text-[var(--text-secondary)] text-sm">
+            Map not generated yet
+          </p>
+          <p className="text-[var(--text-secondary)] text-xs mt-2 max-w-xs leading-relaxed">
             Run the architecture-map prompt with an agent, then place the output
             HTML file in{" "}
             <code className="text-[#e8e8e8]">artifacts/cyberise/public/</code>{" "}
@@ -183,10 +189,10 @@ export default function AdminDev() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-              <Code2 className="w-6 h-6 text-[#00f0ff]" />
+              <Code2 className="w-6 h-6 text-[var(--primary)]" />
               Dev — Agent Activity
             </h1>
-            <p className="text-[#a0a0b8] text-sm mt-1">
+            <p className="text-[var(--text-secondary)] text-sm mt-1">
               Live feed from .agent_context.json · auto-refreshes every 30s
               {lastFetch && (
                 <span className="ml-2">
@@ -197,7 +203,7 @@ export default function AdminDev() {
           </div>
           <button
             onClick={fetchContext}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-[#a0a0b8] hover:text-white hover:bg-[#ffffff08] border border-[#ffffff0a] transition-all"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-[var(--text-secondary)] hover:text-white hover:bg-[#ffffff08] border border-[#ffffff0a] transition-all"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             Refresh
@@ -205,7 +211,7 @@ export default function AdminDev() {
         </div>
 
         {loading && !ctx && (
-          <p className="text-[#a0a0b8] text-sm">Loading...</p>
+          <p className="text-[var(--text-secondary)] text-sm">Loading...</p>
         )}
 
         {error && (
@@ -218,8 +224,8 @@ export default function AdminDev() {
         {ctx && (
           <>
             {ctx.sprint_goal && (
-              <div className="bg-[#161616] border border-[#00f0ff]/20 rounded-xl px-5 py-4">
-                <p className="text-xs text-[#00f0ff] font-medium uppercase tracking-wider mb-1">
+              <div className="bg-[#161616] border border-[var(--primary)]/20 rounded-xl px-5 py-4">
+                <p className="text-xs text-[var(--primary)] font-medium uppercase tracking-wider mb-1">
                   Sprint Goal
                 </p>
                 <p className="text-white text-sm leading-relaxed">
@@ -230,18 +236,18 @@ export default function AdminDev() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="bg-[#161616] border border-[#ffffff0a] rounded-xl px-5 py-4">
-                <p className="text-xs text-[#a0a0b8] uppercase tracking-wider mb-1">
+                <p className="text-xs text-[var(--text-secondary)] uppercase tracking-wider mb-1">
                   Last Updated By
                 </p>
                 <p className="text-white font-semibold capitalize">
                   {ctx.last_updated_by}
                 </p>
-                <p className="text-[#a0a0b8] text-xs mt-0.5">
+                <p className="text-[var(--text-secondary)] text-xs mt-0.5">
                   {timeAgo(ctx.last_updated_at)}
                 </p>
               </div>
               <div className="bg-[#161616] border border-[#ffffff0a] rounded-xl px-5 py-4">
-                <p className="text-xs text-[#a0a0b8] uppercase tracking-wider mb-1">
+                <p className="text-xs text-[var(--text-secondary)] uppercase tracking-wider mb-1">
                   Active Claims
                 </p>
                 <p className="text-white font-semibold">
@@ -257,7 +263,7 @@ export default function AdminDev() {
               <div
                 className={`bg-[#161616] border rounded-xl px-5 py-4 ${ctx.conflicts.length > 0 ? "border-[#ff6b9d]/30" : "border-[#ffffff0a]"}`}
               >
-                <p className="text-xs text-[#a0a0b8] uppercase tracking-wider mb-1">
+                <p className="text-xs text-[var(--text-secondary)] uppercase tracking-wider mb-1">
                   Conflicts
                 </p>
                 <p
@@ -280,10 +286,10 @@ export default function AdminDev() {
                     <div key={agent} className="space-y-1.5">
                       <p className="text-white text-sm font-medium capitalize">
                         {agent}{" "}
-                        <span className="text-[#a0a0b8] font-normal">
+                        <span className="text-[var(--text-secondary)] font-normal">
                           — {claim.task}
                         </span>
-                        <span className="text-[#a0a0b8] text-xs ml-2">
+                        <span className="text-[var(--text-secondary)] text-xs ml-2">
                           ({timeAgo(claim.since)})
                         </span>
                       </p>
@@ -291,7 +297,7 @@ export default function AdminDev() {
                         {claim.files.map((f) => (
                           <span
                             key={f}
-                            className="text-xs bg-[#ffffff08] border border-[#ffffff0a] rounded px-2 py-0.5 text-[#a0a0b8] font-mono"
+                            className="text-xs bg-[#ffffff08] border border-[#ffffff0a] rounded px-2 py-0.5 text-[var(--text-secondary)] font-mono"
                           >
                             {f}
                           </span>
@@ -315,11 +321,13 @@ export default function AdminDev() {
                         <span className="font-mono text-[#ff6b9d]">
                           {c.file}
                         </span>
-                        <span className="text-[#a0a0b8] ml-2 text-xs capitalize">
+                        <span className="text-[var(--text-secondary)] ml-2 text-xs capitalize">
                           {c.agent_a} vs {c.agent_b}
                         </span>
                       </p>
-                      <p className="text-[#a0a0b8] text-xs">{c.reason}</p>
+                      <p className="text-[var(--text-secondary)] text-xs">
+                        {c.reason}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -330,7 +338,7 @@ export default function AdminDev() {
               <LogPanel
                 title="Replit"
                 entries={ctx.replit_log}
-                color="#00f0ff"
+                color="var(--primary)"
               />
               <LogPanel
                 title="CommandCode"
@@ -340,7 +348,7 @@ export default function AdminDev() {
             </div>
 
             <div>
-              <p className="text-xs text-[#a0a0b8] font-medium uppercase tracking-wider mb-3 flex items-center gap-2">
+              <p className="text-xs text-[var(--text-secondary)] font-medium uppercase tracking-wider mb-3 flex items-center gap-2">
                 <FileCode className="w-3.5 h-3.5" />
                 Architecture Maps
               </p>

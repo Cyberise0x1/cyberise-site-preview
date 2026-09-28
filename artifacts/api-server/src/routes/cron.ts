@@ -1,8 +1,13 @@
 import { Router, type IRouter } from "express";
 import { OrderStatus } from "@workspace/db";
 import { prisma } from "@workspace/db";
-import { deleteInstance } from "../services/linode";
-import { sendEmail, generateRenewalReminderEmail } from "../services/email";
+import { deleteInstance, isLinuxImageId } from "../services/linode";
+import {
+  sendEmail,
+  generateRenewalReminderEmail,
+  generateTerminationEmail,
+} from "../services/email";
+import { retryDueCredentialEmailDeliveries } from "../services/credentialEmailDelivery";
 import { sendSuccess, sendError } from "../utils/responses";
 import { logger } from "../lib/logger";
 import { timingSafeEqual } from "node:crypto";
@@ -35,6 +40,16 @@ export function isAuthorizedCron(req: {
   return timingSafeEqual(provided, expected);
 }
 
+export function getRenewalReminderUsername(order: {
+  image: string;
+  rdpUsername: string | null;
+}): string {
+  const storedUsername = order.rdpUsername?.trim();
+  if (storedUsername) return storedUsername;
+
+  return isLinuxImageId(order.image) ? "root" : "Administrator";
+}
+
 router.post("/cron/expire-instances", async (req, res) => {
   try {
     if (!isAuthorizedCron(req)) {
@@ -59,6 +74,17 @@ router.post("/cron/expire-instances", async (req, res) => {
     let terminated = 0;
     for (const order of expiredOrders) {
       try {
+        const claim = await prisma.order.updateMany({
+          where: { id: order.id, status: OrderStatus.ACTIVE },
+          data: {
+            status: OrderStatus.TERMINATED,
+            terminatedAt: now,
+            terminationReason: "Expired",
+          },
+        });
+
+        if (claim.count === 0) continue;
+
         let deleteFailed = false;
         if (order.linodeInstanceId) {
           try {
@@ -72,14 +98,40 @@ router.post("/cron/expire-instances", async (req, res) => {
           }
         }
 
-        await prisma.order.update({
-          where: { id: order.id },
-          data: {
-            status: OrderStatus.TERMINATED,
-            terminatedAt: now,
-            terminationReason: "Expired",
-          },
-        });
+        if (order.user?.email) {
+          const connectionType = isLinuxImageId(order.image) ? "SSH" : "RDP";
+          try {
+            const emailContent = generateTerminationEmail({
+              ip: order.ip ?? "Not available",
+              terminatedAt: now,
+              connectionType,
+            });
+
+            const emailResult = await sendEmail({
+              to: order.user.email,
+              subject: `${connectionType} Service Terminated - Cyberise`,
+              html: emailContent.html,
+              text: emailContent.text,
+              userId: order.userId,
+            });
+            if (!emailResult.success) {
+              logger.error(
+                { error: emailResult.error, orderId: order.id },
+                "Failed to send expiry termination email",
+              );
+            }
+          } catch (error) {
+            logger.error(
+              { error, orderId: order.id },
+              "Failed to send expiry termination email",
+            );
+          }
+        } else {
+          logger.warn(
+            { orderId: order.id },
+            "Skipping expiry termination email because the owner email is missing",
+          );
+        }
 
         await prisma.auditLog.create({
           data: {
@@ -123,14 +175,17 @@ router.post("/cron/expire-instances", async (req, res) => {
       if (!order.ip || !order.user?.email) continue;
 
       try {
+        const connectionType = isLinuxImageId(order.image) ? "SSH" : "RDP";
         const emailContent = generateRenewalReminderEmail({
           ip: order.ip,
           expiresAt: order.expiresAt!,
+          username: getRenewalReminderUsername(order),
+          connectionType,
         });
 
         await sendEmail({
           to: order.user.email,
-          subject: "RDP Renewal Reminder - Cyberise",
+          subject: `${connectionType} Renewal Reminder - Cyberise`,
           html: emailContent.html,
           text: emailContent.text,
           userId: order.userId,
@@ -142,11 +197,22 @@ router.post("/cron/expire-instances", async (req, res) => {
       }
     }
 
-    logger.info({ terminated, remindersSent }, "Cron job completed");
+    let credentialEmails = { attempted: 0, sent: 0, failed: 0 };
+    try {
+      credentialEmails = await retryDueCredentialEmailDeliveries();
+    } catch (error) {
+      logger.error({ error }, "Failed to retry credential email deliveries");
+    }
+
+    logger.info(
+      { terminated, remindersSent, credentialEmails },
+      "Cron job completed",
+    );
 
     sendSuccess(res, {
       terminated,
       remindersSent,
+      credentialEmails,
       timestamp: now.toISOString(),
     });
   } catch (error) {

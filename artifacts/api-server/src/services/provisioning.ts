@@ -109,18 +109,22 @@ export async function provisionInstance(
       tags: ["cyberise-rdp", userId.slice(0, 8)],
     });
   } catch (error) {
-    logger.error({ error, plan, region }, "Instance creation failed");
+    const linodeError = error instanceof Error ? error.message : String(error);
+    logger.error(
+      { error, linodeError, plan, region },
+      "Instance creation failed",
+    );
     throw Object.assign(
       new Error(
         "Failed to provision instance. Please try a different region or plan.",
       ),
-      { statusCode: 503 },
+      { statusCode: 503, linodeError },
     );
   }
 
   return {
     ip: linodeInstance.ipv4[0],
-    username: "Administrator",
+    username: "root",
     password: rdpPassword,
     instanceId: linodeInstance.id,
     totalAmount,

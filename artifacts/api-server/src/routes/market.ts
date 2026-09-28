@@ -5,7 +5,7 @@ import {
   getPlans,
   getSharedCPUPlans,
   getRegions,
-  getWindowsImages,
+  getLinuxImages,
   deleteInstance,
 } from "../services/linode";
 import {
@@ -14,7 +14,11 @@ import {
   deleteProInstance,
 } from "../services/rdpmonster";
 import { getCache, setCache } from "../services/redis";
-import { sendEmail, generateRDPCredentialsEmail } from "../services/email";
+import {
+  sendEmail,
+  generateRDPCredentialsEmail,
+  generateSSHCredentialsEmail,
+} from "../services/email";
 import { encrypt } from "../utils/encryption";
 import {
   provisionInstance,
@@ -72,14 +76,13 @@ router.get("/market/plans", marketRateLimit, async (_req, res) => {
       settings.map((s) => [s.key, s.value]),
     );
 
-    const [basicPlans, basicRegions, images, proPlans, proRegions] =
-      await Promise.all([
-        getPlans(),
-        getRegions(),
-        getWindowsImages(),
-        getProPlans(),
-        getProRegions(),
-      ]);
+    const [basicPlans, basicRegions, proPlans, proRegions] = await Promise.all([
+      getPlans(),
+      getRegions(),
+      getProPlans(),
+      getProRegions(),
+    ]);
+    const images = getLinuxImages();
 
     const enabledRegions =
       (settingsMap.enabled_regions as string[]) ??
@@ -283,8 +286,42 @@ router.post(
           markupPercent,
         });
       } catch (err: unknown) {
-        const e = err as Error & { statusCode?: number };
-        logger.error({ err }, "Provisioning failed");
+        const e = err as Error & { statusCode?: number; linodeError?: string };
+        logger.error(
+          { err, linodeError: e.linodeError, plan, region },
+          "Provisioning failed",
+        );
+        await Promise.all([
+          prisma.auditLog.create({
+            data: {
+              actorId: userId,
+              action: "PROVISION_FAILED",
+              entity: "User",
+              entityId: userId,
+              metadata: {
+                plan,
+                region,
+                image: image ?? "unknown",
+                linodeError: e.linodeError ?? null,
+              },
+            },
+          }),
+          prisma.order.create({
+            data: {
+              userId,
+              plan,
+              region,
+              image: image ?? "unknown",
+              status: OrderStatus.FAILED,
+              amount: totalAmount,
+              durationDays,
+              metadata: {
+                tier,
+                linodeError: e.linodeError ?? null,
+              },
+            },
+          }),
+        ]);
         sendError(
           res,
           e.message || "Failed to provision instance",
@@ -378,16 +415,29 @@ router.post(
         return;
       }
 
-      const emailContent = generateRDPCredentialsEmail({
-        ip: orderResult.ip,
-        username: orderResult.username,
-        password: orderResult.password,
-        expiresAt,
-      });
+      const emailContent =
+        tier === "basic"
+          ? generateSSHCredentialsEmail({
+              ip: orderResult.ip,
+              username: orderResult.username,
+              password: orderResult.password,
+              expiresAt,
+            })
+          : generateRDPCredentialsEmail({
+              ip: orderResult.ip,
+              username: orderResult.username,
+              password: orderResult.password,
+              expiresAt,
+            });
+
+      const emailSubject =
+        tier === "basic"
+          ? "Your Linux Server Credentials — Cyberise"
+          : "Your RDP Server Credentials — Cyberise";
 
       await sendEmail({
         to: req.user!.email,
-        subject: "Your Server Credentials — Cyberise",
+        subject: emailSubject,
         html: emailContent.html,
         text: emailContent.text,
         userId,

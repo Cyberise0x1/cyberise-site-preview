@@ -27,20 +27,36 @@
   --font-rajdhani: 'Rajdhani', sans-serif;
 }
 
+/*
+ * ─── Design Token Defaults ───────────────────────────────────────
+ * These are the DEFAULT values for all CSS custom properties.
+ * They get overridden at runtime when the admin selects a theme preset
+ * via document.documentElement.style.setProperty().
+ *
+ * Every component uses var(--primary), var(--secondary), etc. —
+ * never hardcoded hex values. This makes them themeable at runtime.
+ */
 :root {
+  /* Core brand colors */
   --primary: #00f0ff;
   --secondary: #7b2ff7;
   --accent: #ff2d55;
+
+  /* Surface / layout colors */
   --dark-bg: #0a0a0f;
   --dark-surface: #12121a;
   --dark-card: #1a1a2e;
+
+  /* Text colors */
   --text-primary: #ffffff;
   --text-secondary: #a0a0b8;
-  
-  --gradient-1: linear-gradient(135deg, #00f0ff, #7b2ff7);
-  --gradient-2: linear-gradient(135deg, #7b2ff7, #ff2d55);
-  --gradient-3: linear-gradient(135deg, #00f0ff, #00ff88);
-  
+
+  /* Gradients — auto-derived from brand colors */
+  --gradient-1: linear-gradient(135deg, var(--primary), var(--secondary));
+  --gradient-2: linear-gradient(135deg, var(--secondary), var(--accent));
+  --gradient-3: linear-gradient(135deg, var(--primary), #00ff88);
+
+  /* Glow effects — auto-derived from brand colors */
   --glow-primary: 0 0 30px rgba(0, 240, 255, 0.3);
   --glow-secondary: 0 0 30px rgba(123, 47, 247, 0.3);
 

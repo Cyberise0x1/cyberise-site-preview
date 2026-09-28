@@ -13,7 +13,11 @@ import {
 } from "../utils/responses";
 import { requireAuth, attachUser, requireAdmin } from "../middleware/auth";
 import { strictRateLimit } from "../middleware/rateLimit";
-import { updateSettingsSchema, paginationSchema } from "../validators/admin";
+import {
+  updateSettingsSchema,
+  paginationSchema,
+  adminOrdersQuerySchema,
+} from "../validators/admin";
 import { logger } from "../lib/logger";
 import type { AuthRequest } from "../middleware/auth";
 
@@ -131,28 +135,31 @@ router.patch(
 
 router.get("/admin/orders", async (req: AuthRequest, res) => {
   try {
-    const parsed = paginationSchema.safeParse(req.query);
+    const parsed = adminOrdersQuerySchema.safeParse(req.query);
     if (!parsed.success) {
       sendValidationError(res, parsed.error.flatten().fieldErrors);
       return;
     }
 
-    const { page, limit, search } = parsed.data;
+    const { page, limit, search, status } = parsed.data;
     const skip = (page - 1) * limit;
 
-    const where = search
-      ? {
-          OR: [
-            { id: { contains: search } },
-            { ip: { contains: search } },
-            {
-              user: {
-                email: { contains: search, mode: "insensitive" as const },
+    const where: Prisma.OrderWhereInput = {
+      ...(status ? { status } : {}),
+      ...(search
+        ? {
+            OR: [
+              { id: { contains: search } },
+              { ip: { contains: search } },
+              {
+                user: {
+                  email: { contains: search, mode: "insensitive" as const },
+                },
               },
-            },
-          ],
-        }
-      : {};
+            ],
+          }
+        : {}),
+    };
 
     const [orders, total] = await Promise.all([
       prisma.order.findMany({
@@ -160,15 +167,45 @@ router.get("/admin/orders", async (req: AuthRequest, res) => {
         skip,
         take: limit,
         orderBy: { createdAt: "desc" },
-        include: {
+        select: {
+          id: true,
+          userId: true,
+          plan: true,
+          region: true,
+          image: true,
+          ip: true,
+          status: true,
+          amount: true,
+          createdAt: true,
+          expiresAt: true,
+          linodeInstanceId: true,
+          metadata: true,
           user: { select: { email: true } },
         },
       }),
       prisma.order.count({ where }),
     ]);
+    const userIds = [...new Set(orders.map((order) => order.userId))];
+    const failedOrderCounts = userIds.length
+      ? await prisma.order.groupBy({
+          by: ["userId"],
+          where: {
+            userId: { in: userIds },
+            status: OrderStatus.FAILED,
+          },
+          _count: { _all: true },
+        })
+      : [];
+    const failedOrderCountsByUser = new Map(
+      failedOrderCounts.map((entry) => [entry.userId, entry._count._all]),
+    );
+    const ordersWithFailureCounts = orders.map((order) => ({
+      ...order,
+      failedOrderCount: failedOrderCountsByUser.get(order.userId) ?? 0,
+    }));
 
     sendSuccess(res, {
-      orders,
+      orders: ordersWithFailureCounts,
       pagination: {
         page,
         limit,
@@ -181,6 +218,70 @@ router.get("/admin/orders", async (req: AuthRequest, res) => {
     sendError(res, "Failed to fetch orders");
   }
 });
+
+router.get(
+  "/admin/credential-email-deliveries",
+  async (req: AuthRequest, res) => {
+    try {
+      const parsed = paginationSchema.safeParse(req.query);
+      if (!parsed.success) {
+        sendValidationError(res, parsed.error.flatten().fieldErrors);
+        return;
+      }
+
+      const { page, limit } = parsed.data;
+      const where = { status: { in: ["PENDING", "FAILED"] } };
+      const [deliveries, total] = await Promise.all([
+        prisma.credentialEmailDelivery.findMany({
+          where,
+          skip: (page - 1) * limit,
+          take: limit,
+          orderBy: { updatedAt: "desc" },
+          select: {
+            id: true,
+            orderId: true,
+            status: true,
+            attempts: true,
+            lastAttemptAt: true,
+            order: {
+              select: {
+                plan: true,
+                region: true,
+              },
+            },
+          },
+        }),
+        prisma.credentialEmailDelivery.count({ where }),
+      ]);
+
+      sendSuccess(res, {
+        deliveries: deliveries.map((delivery) => ({
+          id: delivery.id,
+          orderId: delivery.orderId,
+          status: delivery.status,
+          attempts: delivery.attempts,
+          lastAttemptAt: delivery.lastAttemptAt,
+          order: delivery.order,
+          errorSummary:
+            delivery.status === "FAILED"
+              ? "The last delivery attempt failed. Sensitive error details are hidden."
+              : delivery.attempts > 0
+                ? "Waiting for the next delivery attempt."
+                : "Waiting for the first delivery attempt.",
+        })),
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      });
+    } catch (error) {
+      logger.error({ error }, "Failed to fetch credential email deliveries");
+      sendError(res, "Failed to fetch credential email deliveries");
+    }
+  },
+);
 
 router.delete(
   "/admin/orders/:id",
@@ -291,6 +392,57 @@ router.patch(
     }
   },
 );
+
+router.get("/admin/audit-logs", async (req: AuthRequest, res) => {
+  try {
+    const parsed = paginationSchema.safeParse(req.query);
+    if (!parsed.success) {
+      sendValidationError(res, parsed.error.flatten().fieldErrors);
+      return;
+    }
+
+    const { page, limit, search } = parsed.data;
+    const skip = (page - 1) * limit;
+    const action = req.query.action ? String(req.query.action) : undefined;
+
+    const where: Record<string, unknown> = {};
+    if (action) {
+      where.action = action;
+    } else if (search) {
+      where.OR = [
+        { action: { contains: search, mode: "insensitive" } },
+        { entity: { contains: search, mode: "insensitive" } },
+        { entityId: { contains: search, mode: "insensitive" } },
+      ];
+    }
+
+    const [logs, total] = await Promise.all([
+      prisma.auditLog.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: "desc" },
+        include: {
+          actor: { select: { email: true } },
+        },
+      }),
+      prisma.auditLog.count({ where }),
+    ]);
+
+    sendSuccess(res, {
+      logs,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    logger.error({ error }, "Failed to fetch audit logs");
+    sendError(res, "Failed to fetch audit logs");
+  }
+});
 
 router.get("/admin/agent-context", async (_req: AuthRequest, res) => {
   try {

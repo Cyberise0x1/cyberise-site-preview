@@ -67,12 +67,30 @@ type CryptoPaymentData = {
 function CopyButton({ value, label }: { value: string; label: string }) {
   const [copied, setCopied] = useState(false);
   const copy = () => {
-    navigator.clipboard.writeText(value);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(value).catch(() => fallbackCopy(value));
+    } else {
+      fallbackCopy(value);
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+  const fallbackCopy = (text: string) => {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.setAttribute("readonly", "");
+    textarea.style.cssText =
+      "position:fixed;top:-9999px;left:-9999px;opacity:0";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    try {
+      document.execCommand("copy");
+    } catch (_) {}
+    document.body.removeChild(textarea);
+  };
   return (
-    <div className="flex items-center gap-2 bg-[#0a0a0f] rounded-lg px-3 py-2.5 border border-[rgba(255,255,255,0.06)]">
+    <div className="flex items-center gap-2 bg-[var(--dark-bg)] rounded-lg px-3 py-2.5 border border-[rgba(255,255,255,0.06)]">
       <div className="flex-1 min-w-0">
         <p className="text-[#666] text-[10px] uppercase tracking-[1px] font-rajdhani mb-0.5">
           {label}
@@ -81,10 +99,10 @@ function CopyButton({ value, label }: { value: string; label: string }) {
       </div>
       <button
         onClick={copy}
-        className="flex-shrink-0 text-[#a0a0b8] hover:text-[#00f0ff] transition-colors"
+        className="flex-shrink-0 text-[var(--text-secondary)] hover:text-[var(--primary)] transition-colors"
       >
         {copied ? (
-          <Check className="w-4 h-4 text-[#00f0ff]" />
+          <Check className="w-4 h-4 text-[var(--primary)]" />
         ) : (
           <Copy className="w-4 h-4" />
         )}
@@ -134,8 +152,8 @@ function PlanCard({
       className={`relative cursor-pointer rounded-xl p-4 border-2 transition-colors ${
         selected
           ? isPro
-            ? "border-[#7b2ff7] bg-[rgba(123,47,247,0.08)]"
-            : "border-[#00f0ff] bg-[rgba(0,240,255,0.06)]"
+            ? "border-[var(--secondary)] bg-[rgba(123,47,247,0.08)]"
+            : "border-[var(--primary)] bg-[rgba(0,240,255,0.06)]"
           : "border-[rgba(255,255,255,0.07)] hover:border-[rgba(255,255,255,0.15)] bg-[#0d0d14]"
       }`}
     >
@@ -154,7 +172,7 @@ function PlanCard({
           className={`text-[10px] font-bold tracking-[1.5px] uppercase px-2 py-1 rounded-md font-rajdhani ${
             isPro
               ? "bg-[rgba(123,47,247,0.15)] text-[#a855f7] border border-[rgba(123,47,247,0.25)]"
-              : "bg-[rgba(0,240,255,0.08)] text-[#00f0ff] border border-[rgba(0,240,255,0.2)]"
+              : "bg-[rgba(0,240,255,0.08)] text-[var(--primary)] border border-[rgba(0,240,255,0.2)]"
           }`}
         >
           {isPro ? "⚡ Pro" : "Basic"}
@@ -162,7 +180,7 @@ function PlanCard({
         {selected && (
           <div
             className={`w-5 h-5 rounded-full flex items-center justify-center ${
-              isPro ? "bg-[#7b2ff7]" : "bg-[#00f0ff]"
+              isPro ? "bg-[var(--secondary)]" : "bg-[var(--primary)]"
             }`}
           >
             <Check className="w-3 h-3 text-white" />
@@ -174,7 +192,7 @@ function PlanCard({
         {plan.label}
       </h3>
       <div
-        className={`text-xl font-bold font-orbitron mb-3 ${isPro ? "text-[#a855f7]" : "text-[#00f0ff]"}`}
+        className={`text-xl font-bold font-orbitron mb-3 ${isPro ? "text-[#a855f7]" : "text-[var(--primary)]"}`}
       >
         ${plan.price.monthly.toFixed(2)}
         <span className="text-[#666] text-xs font-sans font-normal">/mo</span>
@@ -194,7 +212,7 @@ function PlanCard({
             className="flex flex-col items-center gap-1 bg-[rgba(255,255,255,0.03)] rounded-lg py-2 px-1"
           >
             <Icon className="w-3.5 h-3.5 text-[#666]" />
-            <span className="text-[10px] text-[#a0a0b8] font-medium leading-none">
+            <span className="text-[10px] text-[var(--text-secondary)] font-medium leading-none">
               {val}
             </span>
           </div>
@@ -378,7 +396,7 @@ export default function Market() {
             region: selectedRegion,
             image:
               selectedTier === "basic"
-                ? selectedImage || "windows10"
+                ? selectedImage || "linode/debian12"
                 : "windows",
             durationDays: duration,
             tier: selectedTier,
@@ -439,7 +457,9 @@ export default function Market() {
           plan: selectedPlan,
           region: selectedRegion,
           image:
-            selectedTier === "basic" ? selectedImage || "windows10" : "windows",
+            selectedTier === "basic"
+              ? selectedImage || "linode/debian12"
+              : "windows",
           durationDays: duration,
           tier: selectedTier,
           payCurrency,
@@ -496,8 +516,8 @@ export default function Market() {
       <AppShell>
         <div className="min-h-screen flex items-center justify-center">
           <div className="flex flex-col items-center gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-[#00f0ff]" />
-            <p className="text-[#a0a0b8] text-sm font-rajdhani tracking-widest uppercase">
+            <Loader2 className="w-8 h-8 animate-spin text-[var(--primary)]" />
+            <p className="text-[var(--text-secondary)] text-sm font-rajdhani tracking-widest uppercase">
               Loading marketplace...
             </p>
           </div>
@@ -508,7 +528,7 @@ export default function Market() {
 
   return (
     <AppShell>
-      <div className="min-h-screen bg-[#0a0a0f] py-8 px-4 md:px-8">
+      <div className="min-h-screen bg-[var(--dark-bg)] py-8 px-4 md:px-8">
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -516,18 +536,18 @@ export default function Market() {
           className="mb-8"
         >
           <div className="flex items-center gap-2 mb-1">
-            <Shield className="w-4 h-4 text-[#00f0ff]" />
-            <span className="text-[#00f0ff] text-xs font-rajdhani tracking-[2px] uppercase">
+            <Shield className="w-4 h-4 text-[var(--primary)]" />
+            <span className="text-[var(--primary)] text-xs font-rajdhani tracking-[2px] uppercase">
               Instant Deployment
             </span>
           </div>
           <h1 className="text-3xl md:text-4xl font-orbitron font-bold text-white">
             Server{" "}
-            <span className="bg-gradient-to-r from-[#00f0ff] to-[#7b2ff7] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] bg-clip-text text-transparent">
               Marketplace
             </span>
           </h1>
-          <p className="text-[#a0a0b8] mt-1 text-sm">
+          <p className="text-[var(--text-secondary)] mt-1 text-sm">
             Deploy high-performance Windows servers globally. Get credentials
             instantly.
           </p>
@@ -551,9 +571,9 @@ export default function Market() {
                       value={t}
                       className={`rounded-lg px-5 py-2 text-xs font-rajdhani font-bold tracking-[1.5px] uppercase transition-all data-[state=active]:shadow-none ${
                         t === "pro"
-                          ? "data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#7b2ff7] data-[state=active]:to-[#a855f7] data-[state=active]:text-white"
+                          ? "data-[state=active]:bg-gradient-to-r data-[state=active]:from-[var(--secondary)] data-[state=active]:to-[#a855f7] data-[state=active]:text-white"
                           : t === "basic"
-                            ? "data-[state=active]:bg-[rgba(0,240,255,0.12)] data-[state=active]:text-[#00f0ff]"
+                            ? "data-[state=active]:bg-[rgba(0,240,255,0.12)] data-[state=active]:text-[var(--primary)]"
                             : "data-[state=active]:bg-[rgba(255,255,255,0.07)] data-[state=active]:text-white"
                       }`}
                     >
@@ -574,13 +594,13 @@ export default function Market() {
               <div>
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-8 h-8 rounded-lg bg-[rgba(0,240,255,0.08)] flex items-center justify-center">
-                    <Server className="w-4 h-4 text-[#00f0ff]" />
+                    <Server className="w-4 h-4 text-[var(--primary)]" />
                   </div>
                   <div>
                     <h3 className="text-white font-semibold font-rajdhani">
                       Linode Servers
                     </h3>
-                    <p className="text-[#a0a0b8] text-xs">
+                    <p className="text-[var(--text-secondary)] text-xs">
                       High-performance Linux servers
                     </p>
                   </div>
@@ -589,7 +609,7 @@ export default function Market() {
                 {filteredPlans.filter((p) => p.tier === "basic").length ===
                 0 ? (
                   <div className="rounded-xl border border-[#ffffff0a] bg-[#0d0d14] p-6 text-center">
-                    <p className="text-[#a0a0b8] text-sm">
+                    <p className="text-[var(--text-secondary)] text-sm">
                       No Linode plans available
                     </p>
                   </div>
@@ -631,7 +651,7 @@ export default function Market() {
                     <h3 className="text-white font-semibold font-rajdhani">
                       Windows Servers
                     </h3>
-                    <p className="text-[#a0a0b8] text-xs">
+                    <p className="text-[var(--text-secondary)] text-xs">
                       High-performance Windows RDP servers
                     </p>
                   </div>
@@ -644,7 +664,7 @@ export default function Market() {
                   <h4 className="text-white font-semibold font-rajdhani mb-2">
                     Coming Soon
                   </h4>
-                  <p className="text-[#a0a0b8] text-sm max-w-xs">
+                  <p className="text-[var(--text-secondary)] text-sm max-w-xs">
                     High-performance Windows RDP servers are being added to our
                     platform. Check back soon for instant deployment.
                   </p>
@@ -671,7 +691,7 @@ export default function Market() {
                     <h3 className="text-white font-semibold font-rajdhani">
                       Pro Servers
                     </h3>
-                    <p className="text-[#a0a0b8] text-xs">
+                    <p className="text-[var(--text-secondary)] text-xs">
                       Premium performance servers
                     </p>
                   </div>
@@ -706,7 +726,7 @@ export default function Market() {
                 className="bg-[#0d0d14] rounded-xl border border-[rgba(255,255,255,0.07)] p-4"
               >
                 <div className="flex items-center gap-2 mb-3">
-                  <Globe className="w-4 h-4 text-[#00f0ff]" />
+                  <Globe className="w-4 h-4 text-[var(--primary)]" />
                   <h3 className="text-white text-sm font-semibold font-rajdhani tracking-wide">
                     Select Region
                   </h3>
@@ -718,8 +738,8 @@ export default function Market() {
                       onClick={() => setSelectedRegion(region.id)}
                       className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all border ${
                         selectedRegion === region.id
-                          ? "border-[#00f0ff]/50 bg-[rgba(0,240,255,0.08)] text-white"
-                          : "border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] text-[#a0a0b8] hover:text-white hover:border-[rgba(255,255,255,0.15)]"
+                          ? "border-[var(--primary)]/50 bg-[rgba(0,240,255,0.08)] text-white"
+                          : "border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] text-[var(--text-secondary)] hover:text-white hover:border-[rgba(255,255,255,0.15)]"
                       }`}
                     >
                       <span className="text-base leading-none">
@@ -745,8 +765,8 @@ export default function Market() {
                 >
                   <AlertTriangle className="w-4 h-4 text-[#ff8800] flex-shrink-0" />
                   <p className="text-[#ff8800] text-xs font-rajdhani">
-                    No Windows images are configured on this account. Contact
-                    support to enable Basic tier deployments.
+                    No Linux images are available. Contact support to enable
+                    Basic tier deployments.
                   </p>
                 </motion.div>
               )}
@@ -759,9 +779,12 @@ export default function Market() {
                   transition={{ delay: 0.3 }}
                   className="bg-[#0d0d14] rounded-xl border border-[rgba(255,255,255,0.07)] p-4"
                 >
-                  <h3 className="text-white text-sm font-semibold font-rajdhani tracking-wide mb-3">
-                    Windows Image
-                  </h3>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Server className="w-4 h-4 text-[var(--primary)]" />
+                    <h3 className="text-white text-sm font-semibold font-rajdhani tracking-wide">
+                      Linux Distribution
+                    </h3>
+                  </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {marketData.images.map((img) => (
                       <button
@@ -769,8 +792,8 @@ export default function Market() {
                         onClick={() => setSelectedImage(img.id)}
                         className={`px-3 py-2 rounded-lg text-xs font-medium transition-all border text-left ${
                           selectedImage === img.id
-                            ? "border-[#00f0ff]/50 bg-[rgba(0,240,255,0.08)] text-white"
-                            : "border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] text-[#a0a0b8] hover:text-white"
+                            ? "border-[var(--primary)]/50 bg-[rgba(0,240,255,0.08)] text-white"
+                            : "border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] text-[var(--text-secondary)] hover:text-white"
                         }`}
                       >
                         {img.label}
@@ -797,7 +820,7 @@ export default function Market() {
               <div className="p-5 space-y-5">
                 <div>
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-[#a0a0b8] text-xs font-rajdhani uppercase tracking-[1px]">
+                    <span className="text-[var(--text-secondary)] text-xs font-rajdhani uppercase tracking-[1px]">
                       Duration
                     </span>
                     <span className="text-white text-sm font-semibold">
@@ -820,38 +843,48 @@ export default function Market() {
 
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-[#a0a0b8]">Plan</span>
+                    <span className="text-[var(--text-secondary)]">Plan</span>
                     <span className="text-white truncate max-w-[140px] text-right">
                       {selectedPlanData?.label || "—"}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-[#a0a0b8]">Tier</span>
+                    <span className="text-[var(--text-secondary)]">Tier</span>
                     <span
                       className={
                         selectedTier === "pro"
                           ? "text-[#a855f7]"
-                          : "text-[#00f0ff]"
+                          : "text-[var(--primary)]"
                       }
                     >
                       {selectedTier === "pro" ? "⚡ Pro" : "Basic"}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-[#a0a0b8]">Region</span>
+                    <span className="text-[var(--text-secondary)]">Region</span>
                     <span className="text-white">
                       {availableRegions.find((r) => r.id === selectedRegion)
                         ? `${getRegionFlag(availableRegions.find((r) => r.id === selectedRegion)!.country)} ${availableRegions.find((r) => r.id === selectedRegion)!.label}`
                         : "—"}
                     </span>
                   </div>
+                  {selectedTier === "basic" && (
+                    <div className="flex justify-between">
+                      <span className="text-[var(--text-secondary)]">OS</span>
+                      <span className="text-white text-right">
+                        {marketData?.images.find(
+                          (img) => img.id === selectedImage,
+                        )?.label ?? "Debian 12"}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Promo Code Section */}
                 <div className="border-t border-[rgba(255,255,255,0.06)] pt-4">
                   <div className="flex items-center gap-2 mb-3">
-                    <Tag className="w-4 h-4 text-[#00f0ff]" />
-                    <span className="text-[#a0a0b8] text-xs font-rajdhani uppercase tracking-[1px]">
+                    <Tag className="w-4 h-4 text-[var(--primary)]" />
+                    <span className="text-[var(--text-secondary)] text-xs font-rajdhani uppercase tracking-[1px]">
                       Promo Code
                     </span>
                   </div>
@@ -859,17 +892,17 @@ export default function Market() {
                   {promoApplied ? (
                     <div className="flex items-center justify-between bg-[rgba(0,240,255,0.06)] rounded-lg px-3 py-2 border border-[rgba(0,240,255,0.2)]">
                       <div className="flex items-center gap-2">
-                        <Check className="w-4 h-4 text-[#00f0ff]" />
+                        <Check className="w-4 h-4 text-[var(--primary)]" />
                         <span className="text-white text-sm font-mono">
                           {promoCode.toUpperCase()}
                         </span>
-                        <span className="text-[#00f0ff] text-xs font-rajdhani">
+                        <span className="text-[var(--primary)] text-xs font-rajdhani">
                           {promoDiscount}% OFF
                         </span>
                       </div>
                       <button
                         onClick={handleRemovePromo}
-                        className="text-[#a0a0b8] hover:text-white transition-colors"
+                        className="text-[var(--text-secondary)] hover:text-white transition-colors"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -883,7 +916,7 @@ export default function Market() {
                           setPromoError(null);
                         }}
                         placeholder="Enter code"
-                        className="flex-1 bg-[#0a0a0f] border-[rgba(255,255,255,0.07)] text-white text-sm font-mono placeholder:text-[#555]"
+                        className="flex-1 bg-[var(--dark-bg)] border-[rgba(255,255,255,0.07)] text-white text-sm font-mono placeholder:text-[#555]"
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
                             handleValidatePromo();
@@ -894,7 +927,7 @@ export default function Market() {
                         onClick={handleValidatePromo}
                         disabled={promoLoading || !promoCode.trim()}
                         variant="outline"
-                        className="border-[rgba(0,240,255,0.3)] text-[#00f0ff] hover:bg-[rgba(0,240,255,0.08)] hover:text-[#00f0ff] font-rajdhani text-xs uppercase tracking-[1px]"
+                        className="border-[rgba(0,240,255,0.3)] text-[var(--primary)] hover:bg-[rgba(0,240,255,0.08)] hover:text-[var(--primary)] font-rajdhani text-xs uppercase tracking-[1px]"
                       >
                         {promoLoading ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
@@ -916,7 +949,9 @@ export default function Market() {
                   <div className="space-y-2 mb-4">
                     {promoApplied && promoDiscount && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-[#a0a0b8]">Subtotal</span>
+                        <span className="text-[var(--text-secondary)]">
+                          Subtotal
+                        </span>
                         <span className="text-[#666] line-through">
                           ${basePrice.toFixed(2)}
                         </span>
@@ -924,19 +959,21 @@ export default function Market() {
                     )}
                     {promoApplied && promoDiscount && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-[#00f0ff]">
+                        <span className="text-[var(--primary)]">
                           Discount ({promoDiscount}%)
                         </span>
-                        <span className="text-[#00f0ff]">
+                        <span className="text-[var(--primary)]">
                           -${discountAmount.toFixed(2)}
                         </span>
                       </div>
                     )}
                     <div className="flex items-end justify-between">
-                      <span className="text-[#a0a0b8] text-sm">Total</span>
+                      <span className="text-[var(--text-secondary)] text-sm">
+                        Total
+                      </span>
                       <div className="text-right">
                         <span
-                          className={`text-2xl font-bold font-orbitron ${selectedTier === "pro" ? "text-[#a855f7]" : "text-[#00f0ff]"}`}
+                          className={`text-2xl font-bold font-orbitron ${selectedTier === "pro" ? "text-[#a855f7]" : "text-[var(--primary)]"}`}
                         >
                           ${totalPrice.toFixed(2)}
                         </span>
@@ -952,7 +989,7 @@ export default function Market() {
                       onClick={() => setPaymentMethod("balance")}
                       className={`flex-1 py-2 rounded-lg text-xs font-rajdhani font-bold tracking-[1px] uppercase transition-all border ${
                         paymentMethod === "balance"
-                          ? "border-[#00f0ff]/50 bg-[rgba(0,240,255,0.08)] text-white"
+                          ? "border-[var(--primary)]/50 bg-[rgba(0,240,255,0.08)] text-white"
                           : "border-[rgba(255,255,255,0.06)] bg-transparent text-[#555] hover:text-white"
                       }`}
                     >
@@ -963,7 +1000,7 @@ export default function Market() {
                       onClick={() => setPaymentMethod("crypto")}
                       className={`flex-1 py-2 rounded-lg text-xs font-rajdhani font-bold tracking-[1px] uppercase transition-all border ${
                         paymentMethod === "crypto"
-                          ? "border-[#7b2ff7]/50 bg-[rgba(123,47,247,0.08)] text-white"
+                          ? "border-[var(--secondary)]/50 bg-[rgba(123,47,247,0.08)] text-white"
                           : "border-[rgba(255,255,255,0.06)] bg-transparent text-[#555] hover:text-white"
                       }`}
                     >
@@ -981,7 +1018,7 @@ export default function Market() {
                         <select
                           value={payCurrency}
                           onChange={(e) => setPayCurrency(e.target.value)}
-                          className="w-full bg-[#0a0a0f] border border-[rgba(255,255,255,0.07)] rounded-lg px-3 py-2 text-white text-sm font-mono"
+                          className="w-full bg-[var(--dark-bg)] border border-[rgba(255,255,255,0.07)] rounded-lg px-3 py-2 text-white text-sm font-mono"
                         >
                           {cryptoCurrencies.length === 0 && (
                             <option value="btc">BTC</option>
@@ -995,7 +1032,7 @@ export default function Market() {
                       </div>
                       {cryptoEstimate && (
                         <div className="flex items-center justify-between bg-[rgba(123,47,247,0.06)] rounded-lg px-3 py-2 border border-[rgba(123,47,247,0.15)]">
-                          <span className="text-[#a0a0b8] text-[11px] font-rajdhani uppercase tracking-[0.5px]">
+                          <span className="text-[var(--text-secondary)] text-[11px] font-rajdhani uppercase tracking-[0.5px]">
                             Estimate
                           </span>
                           <span className="text-[#a855f7] text-sm font-mono">
@@ -1015,7 +1052,7 @@ export default function Market() {
                   {paymentMethod === "balance" && (
                     <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.05)] mb-4">
                       <Lock className="w-3.5 h-3.5 text-[#555]" />
-                      <span className="text-[#a0a0b8] text-[11px] font-rajdhani">
+                      <span className="text-[var(--text-secondary)] text-[11px] font-rajdhani">
                         Balance: $
                         {user?.publicMetadata?.balance
                           ? Number(user.publicMetadata.balance).toFixed(2)
@@ -1031,8 +1068,8 @@ export default function Market() {
                     disabled={ordering || !selectedPlan || !selectedRegion}
                     className={`w-full font-rajdhani font-bold tracking-[1.5px] uppercase py-5 text-sm transition-all ${
                       selectedTier === "pro"
-                        ? "bg-gradient-to-r from-[#7b2ff7] to-[#a855f7] hover:opacity-90 text-white"
-                        : "bg-gradient-to-r from-[#00f0ff] to-[#7b2ff7] hover:opacity-90 text-[#0a0a0f]"
+                        ? "bg-gradient-to-r from-[var(--secondary)] to-[#a855f7] hover:opacity-90 text-white"
+                        : "bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] hover:opacity-90 text-[var(--dark-bg)]"
                     }`}
                   >
                     {ordering ? (
@@ -1051,7 +1088,7 @@ export default function Market() {
                   <Button
                     onClick={handleCryptoOrder}
                     disabled={ordering || !selectedPlan || !selectedRegion}
-                    className="w-full font-rajdhani font-bold tracking-[1.5px] uppercase py-5 text-sm bg-gradient-to-r from-[#7b2ff7] to-[#a855f7] hover:opacity-90 text-white transition-all"
+                    className="w-full font-rajdhani font-bold tracking-[1.5px] uppercase py-5 text-sm bg-gradient-to-r from-[var(--secondary)] to-[#a855f7] hover:opacity-90 text-white transition-all"
                   >
                     {ordering ? (
                       <>
@@ -1076,29 +1113,35 @@ export default function Market() {
         <DialogContent className="bg-[#0d0d14] border border-[rgba(0,240,255,0.2)] max-w-md">
           <DialogHeader>
             <DialogTitle className="text-white font-orbitron flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-[#00f0ff]/15 flex items-center justify-center">
-                <Check className="w-3.5 h-3.5 text-[#00f0ff]" />
+              <div className="w-6 h-6 rounded-full bg-[var(--primary)]/15 flex items-center justify-center">
+                <Check className="w-3.5 h-3.5 text-[var(--primary)]" />
               </div>
               Server Ready
             </DialogTitle>
           </DialogHeader>
           {credentials && (
             <div className="space-y-3 mt-2">
-              <p className="text-[#a0a0b8] text-sm">
+              <p className="text-[var(--text-secondary)] text-sm">
                 Your credentials have also been sent to your email.
               </p>
+              {credentials.tier === "basic" && (
+                <CopyButton
+                  value={`ssh ${credentials.username}@${credentials.ip}`}
+                  label="SSH Command"
+                />
+              )}
               <CopyButton value={credentials.ip} label="IP Address" />
               <CopyButton value={credentials.username} label="Username" />
               <CopyButton value={credentials.password} label="Password" />
               <div className="flex items-center gap-2 bg-[rgba(0,240,255,0.04)] rounded-lg px-3 py-2 border border-[rgba(0,240,255,0.1)]">
-                <Server className="w-3.5 h-3.5 text-[#00f0ff]" />
-                <span className="text-[#a0a0b8] text-xs">
+                <Server className="w-3.5 h-3.5 text-[var(--primary)]" />
+                <span className="text-[var(--text-secondary)] text-xs">
                   Expires {new Date(credentials.expiresAt).toLocaleDateString()}
                 </span>
               </div>
               <Button
                 onClick={() => setCredentials(null)}
-                className="w-full bg-gradient-to-r from-[#00f0ff] to-[#7b2ff7] text-[#0a0a0f] font-rajdhani font-bold uppercase tracking-[1px]"
+                className="w-full bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-[var(--dark-bg)] font-rajdhani font-bold uppercase tracking-[1px]"
               >
                 Done
               </Button>
@@ -1124,8 +1167,8 @@ export default function Market() {
           </DialogHeader>
           {cryptoPayment && (
             <div className="space-y-4 mt-2">
-              <div className="bg-[#0a0a0f] rounded-lg p-4 border border-[rgba(123,47,247,0.2)]">
-                <p className="text-[#a0a0b8] text-[10px] font-rajdhani uppercase tracking-[1px] mb-2">
+              <div className="bg-[var(--dark-bg)] rounded-lg p-4 border border-[rgba(123,47,247,0.2)]">
+                <p className="text-[var(--text-secondary)] text-[10px] font-rajdhani uppercase tracking-[1px] mb-2">
                   Send exactly
                 </p>
                 <p className="text-white text-2xl font-mono font-bold">
@@ -1135,10 +1178,10 @@ export default function Market() {
               </div>
 
               <div>
-                <p className="text-[#a0a0b8] text-[10px] font-rajdhani uppercase tracking-[1px] mb-1.5">
+                <p className="text-[var(--text-secondary)] text-[10px] font-rajdhani uppercase tracking-[1px] mb-1.5">
                   Wallet Address
                 </p>
-                <div className="bg-[#0a0a0f] rounded-lg border border-[rgba(255,255,255,0.06)] flex items-center">
+                <div className="bg-[var(--dark-bg)] rounded-lg border border-[rgba(255,255,255,0.06)] flex items-center">
                   <code className="flex-1 text-white text-xs font-mono px-3 py-2.5 break-all">
                     {cryptoPayment.payAddress}
                   </code>
@@ -1147,7 +1190,7 @@ export default function Market() {
                       navigator.clipboard.writeText(cryptoPayment.payAddress);
                       toast.success("Address copied");
                     }}
-                    className="px-3 py-2.5 text-[#a0a0b8] hover:text-white transition-colors flex-shrink-0"
+                    className="px-3 py-2.5 text-[var(--text-secondary)] hover:text-white transition-colors flex-shrink-0"
                   >
                     <Copy className="w-4 h-4" />
                   </button>
@@ -1156,7 +1199,7 @@ export default function Market() {
 
               <div className="flex items-center gap-2 bg-[rgba(123,47,247,0.06)] rounded-lg px-3 py-2 border border-[rgba(123,47,247,0.15)]">
                 <Clock className="w-3.5 h-3.5 text-[#a855f7]" />
-                <span className="text-[#a0a0b8] text-xs">
+                <span className="text-[var(--text-secondary)] text-xs">
                   Payment link expires in 1 hour
                 </span>
               </div>
@@ -1196,7 +1239,7 @@ export default function Market() {
                   )}
                   {cryptoPaymentStatus.paymentStatus === "waiting" &&
                     paymentPolling && (
-                      <p className="text-[#a0a0b8] text-xs mt-1">
+                      <p className="text-[var(--text-secondary)] text-xs mt-1">
                         Waiting for transaction to be detected...
                       </p>
                     )}
@@ -1216,7 +1259,7 @@ export default function Market() {
                       setCryptoPaymentStatus(null);
                       handleCryptoOrder();
                     }}
-                    className="w-full bg-gradient-to-r from-[#7b2ff7] to-[#a855f7] text-white font-rajdhani font-bold uppercase tracking-[1px] text-sm"
+                    className="w-full bg-gradient-to-r from-[var(--secondary)] to-[#a855f7] text-white font-rajdhani font-bold uppercase tracking-[1px] text-sm"
                   >
                     Try Again
                   </Button>
@@ -1226,11 +1269,11 @@ export default function Market() {
               {cryptoPaymentStatus?.orderStatus === "ACTIVE" &&
                 !credentials && (
                   <div className="text-center space-y-2">
-                    <Check className="w-8 h-8 text-[#00f0ff] mx-auto" />
+                    <Check className="w-8 h-8 text-[var(--primary)] mx-auto" />
                     <p className="text-white font-semibold">
                       Payment Confirmed!
                     </p>
-                    <p className="text-[#a0a0b8] text-xs">
+                    <p className="text-[var(--text-secondary)] text-xs">
                       Your server is being provisioned. Check your email for
                       credentials.
                     </p>

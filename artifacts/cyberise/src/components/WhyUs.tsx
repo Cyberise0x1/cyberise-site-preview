@@ -28,7 +28,7 @@ export default function WhyUs() {
       className="bg-[rgba(18,18,26,0.3)] border-y border-[rgba(0,240,255,0.05)]"
     >
       <div className="text-center mb-[80px] reveal">
-        <div className="inline-block font-rajdhani text-[0.85rem] font-semibold tracking-[3px] uppercase text-[#00f0ff] mb-[20px] relative before:content-['—'] before:mx-[10px] before:text-[rgba(0,240,255,0.4)] after:content-['—'] after:mx-[10px] after:text-[rgba(0,240,255,0.4)]">
+        <div className="inline-block font-rajdhani text-[0.85rem] font-semibold tracking-[3px] uppercase text-[var(--primary)] mb-[20px] relative before:content-['—'] before:mx-[10px] before:text-[rgba(0,240,255,0.4)] after:content-['—'] after:mx-[10px] after:text-[rgba(0,240,255,0.4)]">
           The Cyberise Advantage
         </div>
         <h2 className="font-orbitron text-[clamp(2rem,4vw,3.5rem)] font-extrabold leading-[1.2] mb-[20px]">
@@ -48,7 +48,7 @@ export default function WhyUs() {
             <h4 className="font-orbitron text-[1rem] font-bold mb-[12px] relative z-[2] text-white">
               {r.title}
             </h4>
-            <p className="text-[#a0a0b8] text-[0.9rem] leading-[1.6] relative z-[2]">
+            <p className="text-[var(--text-secondary)] text-[0.9rem] leading-[1.6] relative z-[2]">
               {r.desc}
             </p>
           </div>

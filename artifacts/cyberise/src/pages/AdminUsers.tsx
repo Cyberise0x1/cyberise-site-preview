@@ -80,12 +80,12 @@ export default function AdminUsers() {
             <h1 className="text-3xl font-bold text-white mb-1">
               User Management
             </h1>
-            <p className="text-[#a0a0b8]">
+            <p className="text-[var(--text-secondary)]">
               {data?.pagination.total ?? 0} total users
             </p>
           </div>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#a0a0b8]" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
             <Input
               placeholder="Search users..."
               value={search}
@@ -93,43 +93,43 @@ export default function AdminUsers() {
                 setSearch(e.target.value);
                 setPage(1);
               }}
-              className="pl-9 bg-[#0a0a0f] border-[#ffffff1a] text-white w-64"
+              className="pl-9 bg-[var(--dark-bg)] border-[#ffffff1a] text-white w-64"
             />
           </div>
         </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-[#00f0ff]" />
+            <Loader2 className="w-8 h-8 animate-spin text-[var(--primary)]" />
           </div>
         ) : data?.users.length === 0 ? (
           <div className="text-center py-16">
             <Users className="w-12 h-12 text-[#ffffff1a] mx-auto mb-4" />
-            <p className="text-[#a0a0b8]">No users found</p>
+            <p className="text-[var(--text-secondary)]">No users found</p>
           </div>
         ) : (
-          <Card className="bg-[#12121a]/80 border-[#00f0ff]/20 backdrop-blur-sm">
+          <Card className="bg-[var(--dark-surface)]/80 border-[var(--primary)]/20 backdrop-blur-sm">
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-[#ffffff0a]">
-                      <th className="text-left p-4 text-[#a0a0b8] text-sm font-medium">
+                      <th className="text-left p-4 text-[var(--text-secondary)] text-sm font-medium">
                         User
                       </th>
-                      <th className="text-left p-4 text-[#a0a0b8] text-sm font-medium">
+                      <th className="text-left p-4 text-[var(--text-secondary)] text-sm font-medium">
                         Role
                       </th>
-                      <th className="text-left p-4 text-[#a0a0b8] text-sm font-medium">
+                      <th className="text-left p-4 text-[var(--text-secondary)] text-sm font-medium">
                         Balance
                       </th>
-                      <th className="text-left p-4 text-[#a0a0b8] text-sm font-medium">
+                      <th className="text-left p-4 text-[var(--text-secondary)] text-sm font-medium">
                         Orders
                       </th>
-                      <th className="text-left p-4 text-[#a0a0b8] text-sm font-medium">
+                      <th className="text-left p-4 text-[var(--text-secondary)] text-sm font-medium">
                         Status
                       </th>
-                      <th className="text-left p-4 text-[#a0a0b8] text-sm font-medium">
+                      <th className="text-left p-4 text-[var(--text-secondary)] text-sm font-medium">
                         Actions
                       </th>
                     </tr>
@@ -152,8 +152,8 @@ export default function AdminUsers() {
                           <span
                             className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                               user.role === "ADMIN"
-                                ? "bg-[#7b2ff7]/10 text-[#7b2ff7]"
-                                : "bg-[#ffffff0a] text-[#a0a0b8]"
+                                ? "bg-[var(--secondary)]/10 text-[var(--secondary)]"
+                                : "bg-[#ffffff0a] text-[var(--text-secondary)]"
                             }`}
                           >
                             {user.role}
@@ -162,7 +162,7 @@ export default function AdminUsers() {
                         <td className="p-4 text-white text-sm">
                           ${Number(user.balance).toFixed(2)}
                         </td>
-                        <td className="p-4 text-[#a0a0b8] text-sm">
+                        <td className="p-4 text-[var(--text-secondary)] text-sm">
                           {user._count.orders}
                         </td>
                         <td className="p-4">
@@ -171,7 +171,7 @@ export default function AdminUsers() {
                               <Ban className="w-3 h-3" /> Banned
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-[#00f0ff]/10 text-[#00f0ff]">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-[var(--primary)]/10 text-[var(--primary)]">
                               <CheckCircle className="w-3 h-3" /> Active
                             </span>
                           )}
@@ -182,7 +182,7 @@ export default function AdminUsers() {
                             variant="outline"
                             className={
                               user.banned
-                                ? "border-[#00f0ff]/30 text-[#00f0ff] hover:bg-[#00f0ff]/10"
+                                ? "border-[var(--primary)]/30 text-[var(--primary)] hover:bg-[var(--primary)]/10"
                                 : "border-[#ff4444]/30 text-[#ff4444] hover:bg-[#ff4444]/10"
                             }
                             onClick={() => toggleBan(user.id, user.banned)}
@@ -206,11 +206,11 @@ export default function AdminUsers() {
               size="sm"
               disabled={page <= 1}
               onClick={() => setPage((p) => p - 1)}
-              className="border-[#ffffff1a] text-[#a0a0b8]"
+              className="border-[#ffffff1a] text-[var(--text-secondary)]"
             >
               Previous
             </Button>
-            <span className="text-[#a0a0b8] text-sm">
+            <span className="text-[var(--text-secondary)] text-sm">
               Page {data.pagination.page} of {data.pagination.totalPages}
             </span>
             <Button
@@ -218,7 +218,7 @@ export default function AdminUsers() {
               size="sm"
               disabled={page >= data.pagination.totalPages}
               onClick={() => setPage((p) => p + 1)}
-              className="border-[#ffffff1a] text-[#a0a0b8]"
+              className="border-[#ffffff1a] text-[var(--text-secondary)]"
             >
               Next
             </Button>

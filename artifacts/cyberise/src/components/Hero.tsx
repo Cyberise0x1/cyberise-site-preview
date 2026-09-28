@@ -13,8 +13,8 @@ export default function Hero() {
       <div className="absolute rounded-[20px] backdrop-blur-[10px] animate-[float_6s_ease-in-out_infinite] w-[60px] h-[60px] bg-[linear-gradient(135deg,rgba(255,45,85,0.1),rgba(0,240,255,0.1))] border border-[rgba(255,45,85,0.15)] bottom-[20%] left-[12%] [animation-delay:4s] rotate-[45deg] hidden md:block"></div>
 
       <div className="text-center relative z-[2] max-w-[1000px] w-full">
-        <div className="inline-flex items-center gap-[10px] px-[24px] py-[8px] bg-[rgba(0,240,255,0.08)] border border-[rgba(0,240,255,0.2)] rounded-full font-rajdhani text-[0.85rem] font-semibold tracking-[2px] uppercase text-[#00f0ff] mb-[30px] animate-[fadeInDown_1s_ease_0.5s_both]">
-          <span className="w-2 h-2 bg-[#00f0ff] rounded-full animate-[blink_1.5s_ease-in-out_infinite]"></span>
+        <div className="inline-flex items-center gap-[10px] px-[24px] py-[8px] bg-[rgba(0,240,255,0.08)] border border-[rgba(0,240,255,0.2)] rounded-full font-rajdhani text-[0.85rem] font-semibold tracking-[2px] uppercase text-[var(--primary)] mb-[30px] animate-[fadeInDown_1s_ease_0.5s_both]">
+          <span className="w-2 h-2 bg-[var(--primary)] rounded-full animate-[blink_1.5s_ease-in-out_infinite]"></span>
           Securing The Digital Frontier
         </div>
 
@@ -29,7 +29,7 @@ export default function Hero() {
           </span>
         </h1>
 
-        <p className="text-[1.1rem] md:text-[1.2rem] text-[#a0a0b8] max-w-[650px] mx-auto mb-[40px] leading-[1.8] animate-[fadeInUp_1s_ease_0.9s_both]">
+        <p className="text-[1.1rem] md:text-[1.2rem] text-[var(--text-secondary)] max-w-[650px] mx-auto mb-[40px] leading-[1.8] animate-[fadeInUp_1s_ease_0.9s_both]">
           Cyberise Technology is a global powerhouse in digital solutions — from
           cutting-edge web & mobile development to elite cybersecurity,
           government consultancy, and intelligence-grade tracking systems across
@@ -51,10 +51,10 @@ export default function Hero() {
       </div>
 
       <div className="absolute bottom-[40px] left-1/2 -translate-x-1/2 flex flex-col items-center gap-[10px] animate-[fadeIn_1s_ease_1.5s_both]">
-        <span className="font-rajdhani text-[0.75rem] tracking-[3px] uppercase text-[#a0a0b8]">
+        <span className="font-rajdhani text-[0.75rem] tracking-[3px] uppercase text-[var(--text-secondary)]">
           Scroll
         </span>
-        <div className="w-[1px] h-[60px] bg-gradient-to-b from-[#00f0ff] to-transparent animate-[scroll-pulse_2s_ease-in-out_infinite]"></div>
+        <div className="w-[1px] h-[60px] bg-gradient-to-b from-[var(--primary)] to-transparent animate-[scroll-pulse_2s_ease-in-out_infinite]"></div>
       </div>
     </section>
   );

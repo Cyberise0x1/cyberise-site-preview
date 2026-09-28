@@ -17,19 +17,25 @@ interface EmailOptions {
   html: string;
   text?: string;
   userId?: string;
+  idempotencyKey?: string;
 }
 
 export async function sendEmail(
   options: EmailOptions,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const { error } = await getResend().emails.send({
-      from: `Cyberise RDP <${env.RESEND_SENDER_ADDRESS}>`,
-      to: [options.to],
-      subject: options.subject,
-      html: options.html,
-      text: options.text,
-    });
+    const { error } = await getResend().emails.send(
+      {
+        from: `Cyberise RDP <${env.RESEND_SENDER_ADDRESS}>`,
+        to: [options.to],
+        subject: options.subject,
+        html: options.html,
+        text: options.text,
+      },
+      options.idempotencyKey
+        ? { idempotencyKey: options.idempotencyKey }
+        : undefined,
+    );
 
     const status = error ? "failed" : "sent";
 
@@ -55,6 +61,85 @@ export async function sendEmail(
     logger.error({ err, to: options.to }, "Email service error");
     return { success: false, error: "Internal email error" };
   }
+}
+
+export function generateSSHCredentialsEmail(params: {
+  ip: string;
+  username: string;
+  password: string;
+  expiresAt: Date;
+}): { html: string; text: string } {
+  const { ip, username, password, expiresAt } = params;
+  const sshCommand = `ssh ${username}@${ip}`;
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your SSH Credentials</title>
+</head>
+<body style="margin:0;padding:0;background-color:#0a0a0f;font-family:system-ui,-apple-system,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0a0a0f;">
+    <tr>
+      <td align="center" style="padding:40px 16px;">
+        <table role="presentation" width="100%" style="max-width:600px;" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="background:linear-gradient(135deg,#1a1a2e,#0f0f1a);border:1px solid #00f0ff33;border-radius:12px;overflow:hidden;">
+              <div style="height:4px;background:linear-gradient(90deg,#00f0ff,#7b2ff7);"></div>
+              <div style="padding:32px;">
+                <h1 style="margin:0 0 8px;color:#ffffff;font-size:24px;">Your Linux Server is Ready</h1>
+                <p style="margin:0 0 24px;color:#a0a0b8;">Connect to your server via SSH using the credentials below.</p>
+                <div style="background:#12121a;border:1px solid #00f0ff22;border-radius:8px;padding:20px;margin-bottom:20px;">
+                  <div style="margin-bottom:16px;">
+                    <span style="color:#7b2ff7;font-size:12px;text-transform:uppercase;letter-spacing:1px;">SSH Command</span>
+                    <div style="color:#00f0ff;font-size:16px;font-family:monospace;margin-top:4px;">${sshCommand}</div>
+                  </div>
+                  <div style="margin-bottom:16px;">
+                    <span style="color:#7b2ff7;font-size:12px;text-transform:uppercase;letter-spacing:1px;">IP Address</span>
+                    <div style="color:#00f0ff;font-size:18px;font-family:monospace;margin-top:4px;">${ip}</div>
+                  </div>
+                  <div style="margin-bottom:16px;">
+                    <span style="color:#7b2ff7;font-size:12px;text-transform:uppercase;letter-spacing:1px;">Username</span>
+                    <div style="color:#ffffff;font-size:16px;font-family:monospace;margin-top:4px;">${username}</div>
+                  </div>
+                  <div>
+                    <span style="color:#7b2ff7;font-size:12px;text-transform:uppercase;letter-spacing:1px;">Password</span>
+                    <div style="color:#ffffff;font-size:16px;font-family:monospace;margin-top:4px;">${password}</div>
+                  </div>
+                </div>
+                <div style="background:#1a1a2e;border-radius:8px;padding:16px;margin-bottom:20px;">
+                  <p style="margin:0;color:#a0a0b8;font-size:14px;">
+                    <strong style="color:#ffffff;">Expires:</strong> ${expiresAt.toLocaleDateString()}
+                  </p>
+                </div>
+                <p style="margin:0;color:#666;font-size:12px;">
+                  Keep these credentials secure. You can also access them from your dashboard.
+                </p>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+  const text = `Your Linux Server is Ready
+
+Connect to your server via SSH using these credentials:
+
+SSH Command: ${sshCommand}
+IP Address: ${ip}
+Username: ${username}
+Password: ${password}
+
+Expires: ${expiresAt.toLocaleDateString()}
+
+Keep these credentials secure. You can also access them from your dashboard.`;
+
+  return { html, text };
 }
 
 export function generateRDPCredentialsEmail(params: {
@@ -133,14 +218,15 @@ Keep these credentials secure. You can also access them from your dashboard.`;
 export function generateTerminationEmail(params: {
   ip: string;
   terminatedAt: Date;
+  connectionType: "RDP" | "SSH";
 }): { html: string; text: string } {
-  const { ip, terminatedAt } = params;
+  const { ip, terminatedAt, connectionType } = params;
 
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>RDP Service Terminated</title>
+  <title>${connectionType} Service Terminated</title>
 </head>
 <body style="margin:0;padding:0;background-color:#0a0a0f;font-family:system-ui,-apple-system,sans-serif;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0a0a0f;">
@@ -151,10 +237,11 @@ export function generateTerminationEmail(params: {
             <td style="background:linear-gradient(135deg,#1a1a2e,#0f0f1a);border:1px solid #ff444433;border-radius:12px;overflow:hidden;">
               <div style="height:4px;background:linear-gradient(90deg,#ff4444,#ff8800);"></div>
               <div style="padding:32px;">
-                <h1 style="margin:0 0 8px;color:#ffffff;font-size:24px;">RDP Service Terminated</h1>
-                <p style="margin:0 0 24px;color:#a0a0b8;">Your RDP instance has been terminated.</p>
+                <h1 style="margin:0 0 8px;color:#ffffff;font-size:24px;">${connectionType} Service Terminated</h1>
+                <p style="margin:0 0 24px;color:#a0a0b8;">Your ${connectionType} instance has been terminated.</p>
                 <div style="background:#12121a;border:1px solid #ff444422;border-radius:8px;padding:20px;">
                   <p style="margin:0 0 8px;color:#a0a0b8;">IP Address: <span style="color:#ffffff;font-family:monospace;">${ip}</span></p>
+                  <p style="margin:0 0 8px;color:#a0a0b8;">Connection Type: <span style="color:#ffffff;">${connectionType}</span></p>
                   <p style="margin:0;color:#a0a0b8;">Terminated: <span style="color:#ffffff;">${terminatedAt.toLocaleString()}</span></p>
                 </div>
               </div>
@@ -167,14 +254,15 @@ export function generateTerminationEmail(params: {
 </body>
 </html>`;
 
-  const text = `RDP Service Terminated
+  const text = `${connectionType} Service Terminated
 
-Your RDP instance has been terminated.
+Your ${connectionType} instance has been terminated.
 
 IP Address: ${ip}
+Connection Type: ${connectionType}
 Terminated: ${terminatedAt.toLocaleString()}
 
-To continue using RDP services, please place a new order.`;
+To continue using ${connectionType} services, please place a new order.`;
 
   return { html, text };
 }
@@ -182,8 +270,17 @@ To continue using RDP services, please place a new order.`;
 export function generateRenewalReminderEmail(params: {
   ip: string;
   expiresAt: Date;
+  username?: string;
+  connectionType?: "RDP" | "SSH";
 }): { html: string; text: string } {
-  const { ip, expiresAt } = params;
+  const { ip, expiresAt, username, connectionType } = params;
+  const serviceName = connectionType ?? "Service";
+  const escapedUsername = username
+    ?.replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
   const daysLeft = Math.ceil(
     (expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
   );
@@ -192,7 +289,7 @@ export function generateRenewalReminderEmail(params: {
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>RDP Renewal Reminder</title>
+  <title>${serviceName} Renewal Reminder</title>
 </head>
 <body style="margin:0;padding:0;background-color:#0a0a0f;font-family:system-ui,-apple-system,sans-serif;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0a0a0f;">
@@ -203,10 +300,12 @@ export function generateRenewalReminderEmail(params: {
             <td style="background:linear-gradient(135deg,#1a1a2e,#0f0f1a);border:1px solid #00f0ff33;border-radius:12px;overflow:hidden;">
               <div style="height:4px;background:linear-gradient(90deg,#00f0ff,#7b2ff7);"></div>
               <div style="padding:32px;">
-                <h1 style="margin:0 0 8px;color:#ffffff;font-size:24px;">RDP Renewal Reminder</h1>
-                <p style="margin:0 0 24px;color:#a0a0b8;">Your RDP service expires in ${daysLeft} day${daysLeft !== 1 ? "s" : ""}.</p>
+                <h1 style="margin:0 0 8px;color:#ffffff;font-size:24px;">${serviceName} Renewal Reminder</h1>
+                <p style="margin:0 0 24px;color:#a0a0b8;">Your ${connectionType ? `${connectionType} service` : "service"} expires in ${daysLeft} day${daysLeft !== 1 ? "s" : ""}.</p>
                 <div style="background:#12121a;border:1px solid #00f0ff22;border-radius:8px;padding:20px;">
                   <p style="margin:0 0 8px;color:#a0a0b8;">IP Address: <span style="color:#00f0ff;font-family:monospace;">${ip}</span></p>
+                  ${connectionType ? `<p style="margin:0 0 8px;color:#a0a0b8;">Connection Type: <span style="color:#ffffff;">${connectionType}</span></p>` : ""}
+                  ${username ? `<p style="margin:0 0 8px;color:#a0a0b8;">Username: <span style="color:#ffffff;font-family:monospace;">${escapedUsername}</span></p>` : ""}
                   <p style="margin:0;color:#a0a0b8;">Expires: <span style="color:#ffffff;">${expiresAt.toLocaleDateString()}</span></p>
                 </div>
                 <p style="margin:20px 0 0;color:#666;font-size:14px;">
@@ -222,12 +321,12 @@ export function generateRenewalReminderEmail(params: {
 </body>
 </html>`;
 
-  const text = `RDP Renewal Reminder
+  const text = `${serviceName} Renewal Reminder
 
-Your RDP service expires in ${daysLeft} day${daysLeft !== 1 ? "s" : ""}.
+Your ${connectionType ? `${connectionType} service` : "service"} expires in ${daysLeft} day${daysLeft !== 1 ? "s" : ""}.
 
 IP Address: ${ip}
-Expires: ${expiresAt.toLocaleDateString()}
+${connectionType ? `Connection Type: ${connectionType}\n` : ""}${username ? `Username: ${username}\n` : ""}Expires: ${expiresAt.toLocaleDateString()}
 
 Visit your dashboard to renew your service.`;
 

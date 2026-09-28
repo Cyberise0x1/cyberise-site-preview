@@ -1,0 +1,275 @@
+#!/usr/bin/env bash
+#
+# kimchi-claude — Install & configure Kimchi + Claude Code
+#
+# Usage:
+#   chmod +x kimchi-claude
+#   ./kimchi-claude
+#
+# What this script does:
+#   1. Installs Kimchi binary to ~/bin
+#   2. Sets up directory structure
+#   3. Configures PATH
+#   4. Runs kimchi setup
+#   5. Integrates with Claude Code
+#
+
+set -euo pipefail
+
+# ─── Colors ───────────────────────────────────────────────────────────────────
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# ─── Helper Functions ─────────────────────────────────────────────────────────
+info()    { echo -e "${BLUE}[INFO]${NC} $1"; }
+success() { echo -e "${GREEN}[OK]${NC} $1"; }
+warn()    { echo -e "${YELLOW}[WARN]${NC} $1"; }
+error()   { echo -e "${RED}[ERROR]${NC} $1"; exit 1; }
+
+# ─── Detect Platform ─────────────────────────────────────────────────────────
+detect_platform() {
+    local os arch
+
+    os="$(uname -s)"
+    arch="$(uname -m)"
+
+    case "$os" in
+        Linux*)
+            case "$arch" in
+                x86_64)  PLATFORM="linux-x64" ;;
+                aarch64) PLATFORM="linux-arm64" ;;
+                *)       error "Unsupported architecture: $arch" ;;
+            esac
+            ;;
+        Darwin*)
+            case "$arch" in
+                x86_64)  PLATFORM="darwin-x64" ;;
+                arm64)   PLATFORM="darwin-arm64" ;;
+                *)       error "Unsupported architecture: $arch" ;;
+            esac
+            ;;
+        MINGW*|MSYS*|CYGWIN*)
+            PLATFORM="win32-x64"
+            ;;
+        *)
+            error "Unsupported OS: $os"
+            ;;
+    esac
+
+    info "Detected platform: $PLATFORM"
+}
+
+# ─── Check Dependencies ──────────────────────────────────────────────────────
+check_deps() {
+    local missing=()
+
+    for cmd in curl chmod mkdir tar; do
+        if ! command -v "$cmd" &>/dev/null; then
+            missing+=("$cmd")
+        fi
+    done
+
+    if [ ${#missing[@]} -gt 0 ]; then
+        error "Missing required commands: ${missing[*]}"
+    fi
+
+    success "Dependencies check passed"
+}
+
+# ─── Install Kimchi Binary ───────────────────────────────────────────────────
+install_kimchi() {
+    local bin_dir="$HOME/bin"
+    local kimchi_bin="$bin_dir/kimchi"
+    # Map platform to the actual asset naming (uses _amd64 / _arm64, not -x64 / -arm64)
+local asset_platform
+case "$PLATFORM" in
+    linux-x64)   asset_platform="linux_amd64" ;;
+    linux-arm64) asset_platform="linux_arm64" ;;
+    darwin-x64)  asset_platform="darwin_amd64" ;;
+    darwin-arm64) asset_platform="darwin_arm64" ;;
+    *)           asset_platform="$PLATFORM" ;;
+esac
+local download_url="https://github.com/getkimchi/kimchi/releases/latest/download/kimchi_${asset_platform}.tar.gz"
+
+    info "Installing Kimchi to $kimchi_bin..."
+
+    # Create bin directory
+    mkdir -p "$bin_dir"
+
+    # Download and extract tarball
+    local tmp_dir
+    tmp_dir="$(mktemp -d)"
+    info "Downloading from: $download_url"
+
+    if ! curl -fsSL "$download_url" -o "$tmp_dir/kimchi.tar.gz"; then
+        error "Failed to download Kimchi binary"
+    fi
+
+    # Extract
+    info "Extracting..."
+    tar -xzf "$tmp_dir/kimchi.tar.gz" -C "$tmp_dir"
+
+    # Find the binary (could be in a subdirectory)
+    if [ -f "$tmp_dir/kimchi" ]; then
+        mv "$tmp_dir/kimchi" "$kimchi_bin"
+    elif [ -f "$tmp_dir/kimchi_linux_amd64/kimchi" ]; then
+        mv "$tmp_dir/kimchi_linux_amd64/kimchi" "$kimchi_bin"
+    elif [ -f "$tmp_dir/kimchi_linux_arm64/kimchi" ]; then
+        mv "$tmp_dir/kimchi_linux_arm64/kimchi" "$kimchi_bin"
+    elif [ -f "$tmp_dir/kimchi_darwin_amd64/kimchi" ]; then
+        mv "$tmp_dir/kimchi_darwin_amd64/kimchi" "$kimchi_bin"
+    elif [ -f "$tmp_dir/kimchi_darwin_arm64/kimchi" ]; then
+        mv "$tmp_dir/kimchi_darwin_arm64/kimchi" "$kimchi_bin"
+    else
+        # Try to find any executable
+        local found
+        found="$(find "$tmp_dir" -type f -executable 2>/dev/null | head -1)"
+        if [ -n "$found" ]; then
+            mv "$found" "$kimchi_bin"
+        else
+            error "Could not find kimchi binary in extracted archive"
+        fi
+    fi
+
+    # Make executable
+    chmod +x "$kimchi_bin"
+
+    # Clean up
+    rm -rf "$tmp_dir"
+
+    success "Kimchi binary installed"
+}
+
+# ─── Setup PATH ──────────────────────────────────────────────────────────────
+setup_path() {
+    local shell_rc
+    local bin_dir="$HOME/bin"
+
+    # Detect shell
+    if [ -n "${ZSH_VERSION:-}" ]; then
+        shell_rc="$HOME/.zshrc"
+    elif [ -n "${BASH_VERSION:-}" ]; then
+        shell_rc="$HOME/.bashrc"
+    else
+        shell_rc="$HOME/.profile"
+    fi
+
+    # Check if ~/bin is already in PATH
+    if [[ ":$PATH:" != *":$bin_dir:"* ]]; then
+        info "Adding $bin_dir to PATH in $shell_rc"
+
+        # Add to shell config
+        echo "" >> "$shell_rc"
+        echo "# Kimchi CLI" >> "$shell_rc"
+        echo "export PATH=\"\$HOME/bin:\$PATH\"" >> "$shell_rc"
+
+        # Export for current session
+        export PATH="$bin_dir:$PATH"
+
+        success "PATH updated (restart shell or run: source $shell_rc)"
+    else
+        success "PATH already configured"
+    fi
+}
+
+# ─── Create Directory Structure ──────────────────────────────────────────────
+create_dirs() {
+    info "Creating directory structure..."
+
+    mkdir -p "$HOME/.kimchi/ferments"
+    mkdir -p "$HOME/.cache/kimchi"
+    mkdir -p "$HOME/share/kimchi"
+
+    success "Directories created"
+}
+
+# ─── Run Kimchi Setup ────────────────────────────────────────────────────────
+run_setup() {
+    info "Running kimchi setup..."
+
+    if [ -t 0 ]; then
+        # Interactive terminal
+        "$HOME/bin/kimchi" setup
+    else
+        warn "Non-interactive mode detected"
+        warn "Run 'kimchi setup' manually after this script completes"
+    fi
+}
+
+# ─── Integrate with Claude Code ──────────────────────────────────────────────
+integrate_claude() {
+    info "Integrating Kimchi with Claude Code..."
+
+    if [ -t 0 ]; then
+        # Interactive terminal
+        echo ""
+        echo "┌─────────────────────────────────────────────────────────────┐"
+        echo "│  Next: Run 'kimchi claude' to configure & launch Claude Code │"
+        echo "└─────────────────────────────────────────────────────────────┘"
+        echo ""
+
+        read -rp "Run 'kimchi claude' now? [Y/n] " answer
+        answer="${answer:-Y}"
+
+        if [[ "$answer" =~ ^[Yy]$ ]]; then
+            "$HOME/bin/kimchi" claude
+        else
+            info "Skipping Claude integration"
+            info "Run 'kimchi claude' when ready"
+        fi
+    else
+        warn "Non-interactive mode: run 'kimchi claude' manually"
+    fi
+}
+
+# ─── Print Summary ───────────────────────────────────────────────────────────
+print_summary() {
+    echo ""
+    echo "┌────────────────────────────────────────────────────────────────┐"
+    echo "│                    🥬 Kimchi + Claude Code                      │"
+    echo "├─────────────────────────────────────────────────────────────                                         │"
+    echo "│  Useful commands:                                              │"
+    echo "│    kimchi --help         # Show all options                    │"
+    echo "│    kimchi --version      # Show version                        │"
+    echo "│    kimchi config         # Inspect/change config               │"
+    echo "│                                                                │"
+    echo "│  Locations:                                                    │"
+    echo "│    Binary:  ~/bin/kimchi                                       │"
+    echo "│    Config:  ~/.kimchi/                                         │"
+    echo "│ Cache: ~/.cache/kimchi/ │"
+    echo "│    Themes:  ~/share/kimchi/theme/                              │"
+    echo "└────────────────────────────────────────────────────────────────┘"
+    echo ""
+}
+
+# ─── Main ─────────────────────────────────────────────────────────────────────
+main() {
+    echo ""
+    echo "  🥬 Kimchi + Claude Code Installer"
+    echo "  ─────────────────────────────────"
+    echo ""
+
+    detect_platform
+    check_deps
+    install_kimchi
+    setup_path
+    create_dirs
+
+    # Optional interactive steps
+    if [ "${1:-}" != "--no-setup" ]; then
+        run_setup
+        integrate_claude
+    else
+        warn "Skipping setup (--no-setup flag detected)"
+    fi
+
+    print_summary
+
+    success "Done! Restart your shell or run: source ~/.bashrc"
+}
+
+# ─── Run ──────────────────────────────────────────────────────────────────────
+main "$@"

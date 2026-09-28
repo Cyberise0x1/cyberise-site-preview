@@ -58,13 +58,13 @@ export default function Services() {
   return (
     <section id="services">
       <div className="text-center mb-[80px] reveal">
-        <div className="inline-block font-rajdhani text-[0.85rem] font-semibold tracking-[3px] uppercase text-[#00f0ff] mb-[20px] relative before:content-['—'] before:mx-[10px] before:text-[rgba(0,240,255,0.4)] after:content-['—'] after:mx-[10px] after:text-[rgba(0,240,255,0.4)]">
+        <div className="inline-block font-rajdhani text-[0.85rem] font-semibold tracking-[3px] uppercase text-[var(--primary)] mb-[20px] relative before:content-['—'] before:mx-[10px] before:text-[rgba(0,240,255,0.4)] after:content-['—'] after:mx-[10px] after:text-[rgba(0,240,255,0.4)]">
           What We Do
         </div>
         <h2 className="font-orbitron text-[clamp(2rem,4vw,3.5rem)] font-extrabold leading-[1.2] mb-[20px]">
           Our Core <span className="text-gradient-1">Services</span>
         </h2>
-        <p className="text-[1.1rem] text-[#a0a0b8] max-w-[600px] mx-auto leading-[1.7]">
+        <p className="text-[1.1rem] text-[var(--text-secondary)] max-w-[600px] mx-auto leading-[1.7]">
           From concept to deployment, we deliver end-to-end digital solutions
           that transform businesses and secure nations.
         </p>
@@ -74,20 +74,22 @@ export default function Services() {
         {services.map((s, i) => {
           const Icon = s.icon;
 
-          let gradientClass = "bg-[linear-gradient(135deg,#00f0ff,#7b2ff7)]";
+          let gradientClass =
+            "bg-[linear-gradient(135deg,var(--primary),#7b2ff7)]";
           let iconBg =
-            "bg-[rgba(0,240,255,0.08)] border-[rgba(0,240,255,0.15)] text-[#00f0ff]";
+            "bg-[rgba(0,240,255,0.08)] border-[rgba(0,240,255,0.15)] text-[var(--primary)]";
           let shadowClass =
             "hover:shadow-[0_30px_60px_rgba(0,0,0,0.3),0_0_30px_rgba(0,240,255,0.3)]";
 
           if (s.color === "secondary") {
             gradientClass = "bg-[linear-gradient(135deg,#7b2ff7,#ff2d55)]";
             iconBg =
-              "bg-[rgba(123,47,247,0.08)] border-[rgba(123,47,247,0.15)] text-[#7b2ff7]";
+              "bg-[rgba(123,47,247,0.08)] border-[rgba(123,47,247,0.15)] text-[var(--secondary)]";
             shadowClass =
               "hover:shadow-[0_30px_60px_rgba(0,0,0,0.3),0_0_30px_rgba(123,47,247,0.3)]";
           } else if (s.color === "accent") {
-            gradientClass = "bg-[linear-gradient(135deg,#ff2d55,#00f0ff)]";
+            gradientClass =
+              "bg-[linear-gradient(135deg,#ff2d55,var(--primary))]";
             iconBg =
               "bg-[rgba(255,45,85,0.08)] border-[rgba(255,45,85,0.15)] text-[#ff2d55]";
             shadowClass =
@@ -128,13 +130,13 @@ export default function Services() {
                 {s.title}
               </h3>
 
-              <p className="text-[#a0a0b8] leading-[1.7] text-[0.95rem]">
+              <p className="text-[var(--text-secondary)] leading-[1.7] text-[0.95rem]">
                 {s.desc}
               </p>
 
               <a
                 href="#contact"
-                className="inline-flex items-center gap-[8px] mt-[20px] text-[#00f0ff] no-underline font-rajdhani font-semibold tracking-[1px] uppercase text-[0.9rem] transition-all duration-300 hover:gap-[15px] group/link"
+                className="inline-flex items-center gap-[8px] mt-[20px] text-[var(--primary)] no-underline font-rajdhani font-semibold tracking-[1px] uppercase text-[0.9rem] transition-all duration-300 hover:gap-[15px] group/link"
               >
                 Learn More{" "}
                 <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover/link:translate-x-1" />

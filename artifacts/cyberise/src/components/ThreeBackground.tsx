@@ -38,7 +38,11 @@ function CSSParticleFallback() {
             height: Math.random() * 3 + 1 + "px",
             borderRadius: "50%",
             background:
-              i % 3 === 0 ? "#00f0ff" : i % 3 === 1 ? "#7b2ff7" : "#00ff88",
+              i % 3 === 0
+                ? "var(--primary)"
+                : i % 3 === 1
+                  ? "#7b2ff7"
+                  : "#00ff88",
             left: Math.random() * 100 + "%",
             top: Math.random() * 100 + "%",
             opacity: Math.random() * 0.4 + 0.1,

@@ -21,5 +21,9 @@ export const paginationSchema = z.object({
     .optional(),
 });
 
+export const adminOrdersQuerySchema = paginationSchema.extend({
+  status: z.enum(["PENDING", "ACTIVE", "TERMINATED", "FAILED"]).optional(),
+});
+
 export type UpdateSettingsInput = z.infer<typeof updateSettingsSchema>;
 export type PaginationInput = z.infer<typeof paginationSchema>;
